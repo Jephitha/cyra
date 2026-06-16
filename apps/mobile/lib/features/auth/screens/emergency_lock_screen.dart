@@ -22,10 +22,8 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
   late Animation<double> _fadeOutAnimation;
   late Animation<double> _slideInAnimation;
   late Animation<double> _pulseAnimation;
-  late Animation<double> _scaleAnimation;
 
   bool _activated = false;
-  bool _calculating = false;
   String _displayText = '';
   final _calculatorBuffer = StringBuffer();
   double _currentValue = 0;
@@ -58,12 +56,6 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
         ]).animate(
           CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
         );
-    _scaleAnimation = Tween<double>(begin: 1.2, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: const Interval(0.5, 1.0, curve: Curves.easeOutBack),
-      ),
-    );
 
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
@@ -89,7 +81,7 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
       if (authenticated && mounted) {
         ref.read(isEmergencyLockedProvider.notifier).deactivate();
         await ref.read(authStateNotifierProvider.notifier).authenticate();
-        if (context.mounted) context.go('/dashboard');
+        if (mounted) context.go('/dashboard');
       }
     } catch (_) {}
   }

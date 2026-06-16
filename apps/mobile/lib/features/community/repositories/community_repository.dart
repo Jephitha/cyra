@@ -159,7 +159,7 @@ class CommunityRepository {
 
       await _supabase.insert('community_replies', data);
 
-      await _supabase.client.rpc('increment_reply_count', params: {
+      await _supabase.client.rpc<void>('increment_reply_count', params: {
         'post_id': postId,
       });
 
@@ -195,7 +195,7 @@ class CommunityRepository {
             .eq('post_id', postId)
             .eq('anonymous_user_id', userId);
 
-        await _supabase.client.rpc('decrement_like_count', params: {
+        await _supabase.client.rpc<void>('decrement_like_count', params: {
           'post_id': postId,
         });
       } else {
@@ -205,7 +205,7 @@ class CommunityRepository {
           'created_at': DateTime.now().toIso8601String(),
         });
 
-        await _supabase.client.rpc('increment_like_count', params: {
+        await _supabase.client.rpc<void>('increment_like_count', params: {
           'post_id': postId,
         });
       }

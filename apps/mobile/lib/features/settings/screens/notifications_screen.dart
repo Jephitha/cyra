@@ -5,7 +5,6 @@ import 'package:cyra/core/design/app_typography.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/providers/settings_providers.dart';
 import 'package:cyra/features/settings/providers/settings_notifier.dart';
 
@@ -116,7 +115,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 ),
                 Switch.adaptive(
                   value: enabled,
-                  activeColor: AppColors.forestGreen,
+                  activeTrackColor: AppColors.forestGreen,
                   onChanged: (v) =>
                       ref.read(notificationsEnabledProvider.notifier).setEnabled(v),
                 ),
@@ -321,7 +320,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               ],
               Switch.adaptive(
                 value: value,
-                activeColor: AppColors.forestGreen,
+                activeTrackColor: AppColors.forestGreen,
                 onChanged: onChanged,
               ),
             ],
@@ -430,7 +429,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     required int current,
     required ValueChanged<int> onSelected,
   }) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(
@@ -468,7 +467,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     WidgetRef ref,
     NotificationPreviewMode current,
   ) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(

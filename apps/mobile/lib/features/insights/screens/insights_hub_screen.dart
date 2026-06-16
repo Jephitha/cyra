@@ -10,17 +10,11 @@ import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/confidence_badge.dart';
 import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart';
 import 'package:cyra/core/design/widgets/health_stat_card.dart';
-import 'package:cyra/core/design/widgets/symptom_bar_chart.dart';
-import 'package:cyra/core/design/widgets/health_timeline.dart';
-import 'package:cyra/core/constants/app_constants.dart';
 import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/features/cycle/models/cycle.dart' as models;
-import 'package:cyra/features/symptoms/models/symptom_models.dart';
 import 'package:cyra/features/insights/screens/topic_detail_screen.dart';
 import 'package:cyra/features/insights/screens/health_tips_screen.dart';
-import 'package:cyra/features/insights/screens/cycle_education_screen.dart';
 import 'package:cyra/features/insights/screens/ai_disclaimer_screen.dart';
-import 'package:cyra/features/insights/screens/insight_detail_card.dart';
 
 final _insightsHubProvider = ChangeNotifierProvider<_InsightsHubState>((ref) {
   return _InsightsHubState();
@@ -175,7 +169,7 @@ class InsightsHubScreen extends ConsumerWidget {
     if (!state.aiDisclaimerAccepted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (_) => AIDisclaimerScreen(
               onAccept: () => ref.read(_insightsHubProvider.notifier).acceptDisclaimer(),
             ),
@@ -475,7 +469,7 @@ class InsightsHubScreen extends ConsumerWidget {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => const TopicDetailScreen(topic: 'prediction'),
                 ),
               ),
@@ -582,7 +576,7 @@ class InsightsHubScreen extends ConsumerWidget {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => const TopicDetailScreen(topic: 'cycle_regularity'),
                 ),
               ),
@@ -625,7 +619,7 @@ class InsightsHubScreen extends ConsumerWidget {
           'View all tips',
           icon: Icons.arrow_forward,
           onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const HealthTipsScreen()),
+            MaterialPageRoute<void>(builder: (_) => const HealthTipsScreen()),
           ),
           height: 40,
         ),

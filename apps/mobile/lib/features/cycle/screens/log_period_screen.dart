@@ -8,7 +8,6 @@ import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/flow_intensity_picker.dart';
 import 'package:cyra/core/design/widgets/symptom_selector.dart';
 import 'package:cyra/core/constants/cycle_constants.dart';
-import 'package:cyra/core/utils/extensions.dart';
 
 class LogPeriodScreen extends StatefulWidget {
   final DateTime? initialDate;

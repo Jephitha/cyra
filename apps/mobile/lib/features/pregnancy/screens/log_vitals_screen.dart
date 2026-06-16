@@ -614,7 +614,7 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
                 value: _glucoseFasting,
                 onChanged: (val) =>
                     setState(() => _glucoseFasting = val),
-                activeColor: AppColors.forestGreen,
+                activeTrackColor: AppColors.forestGreen,
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(

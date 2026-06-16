@@ -15,7 +15,7 @@ analyzer:
     prefer_const_constructors: error
     prefer_const_declarations: error
     prefer_const_literals_to_create_immutables: error
-    avoid_dynamic: warning
+    # avoid_dynamic: warning  # Not a recognized diagnostic code
     require_trailing_commas: warning
     avoid_print: warning
     no_leading_underscores_for_local_identifiers: warning

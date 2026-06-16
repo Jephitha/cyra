@@ -67,7 +67,6 @@ class ExplanationEngine {
   String explainFertilityStatus(FertileWindow window, int cycleDay) {
     final buffer = StringBuffer();
     final windowStart = _formatDate(window.windowStart);
-    final windowEnd = _formatDate(window.windowEnd);
 
     if (window.isInWindow) {
       buffer.write(

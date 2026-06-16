@@ -226,7 +226,7 @@ class _ArticleSearchTile extends StatelessWidget {
     return AppCard.interactive(
       padding: const EdgeInsets.all(AppSpacing.md),
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => ArticleReaderScreen(articleId: article.id),
         ),
       ),
@@ -331,7 +331,7 @@ class _FeaturedCard extends StatelessWidget {
       child: AppCard.interactive(
         padding: const EdgeInsets.all(AppSpacing.lg),
         onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (_) => ArticleReaderScreen(articleId: article.id),
           ),
         ),
@@ -474,7 +474,7 @@ class _CategoryCard extends StatelessWidget {
     final color = _categoryColor(category.id);
     return AppCard.interactive(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => ArticleListScreen(categoryId: category.id),
         ),
       ),
@@ -566,7 +566,7 @@ class _MiniArticleCard extends StatelessWidget {
       child: AppCard.interactive(
         padding: const EdgeInsets.all(AppSpacing.md),
         onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (_) => ArticleReaderScreen(articleId: article.id),
           ),
         ),

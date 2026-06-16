@@ -28,10 +28,9 @@ class AppButton extends StatelessWidget {
     this.isDisabled = false,
     this.width,
     this.height = 48,
-    double iconSize = 56,
-    required _AppButtonVariant variant,
-  })  : _iconSize = iconSize,
-        _variant = variant;
+    this._iconSize = 56,
+    required this._variant,
+  });
 
   /// Deep forest green filled button.
   ///

@@ -60,7 +60,6 @@ class OvulationDetector {
 
       if (allAbove && shiftMagnitude >= _bbtShiftThreshold) {
         final shiftStart = shiftRecords.first.date;
-        final totalDataPoints = deduped.length;
         final magnitudeFactor =
             (shiftMagnitude / 0.3).clamp(0.0, 1.0);
         const dataPointFactor = 1.0;
@@ -81,7 +80,7 @@ class OvulationDetector {
           method: 'bbt_shift',
           explanation:
               'Sustained temperature shift detected: '
-              '${_shiftCount} consecutive readings elevated ${shiftMagnitude.toStringAsFixed(2)}°C '
+              '$_shiftCount consecutive readings elevated ${shiftMagnitude.toStringAsFixed(2)}°C '
               'above cover line of ${coverLine.toStringAsFixed(2)}°C. '
               'Ovulation estimated ${ovulationDate != null ? 'on ${_formatDate(ovulationDate)}' : 'around ${_formatDate(shiftStart)}'}. '
               'Confidence: ${(confidence * 100).round()}%.',

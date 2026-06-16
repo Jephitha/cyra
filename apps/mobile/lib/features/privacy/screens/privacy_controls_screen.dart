@@ -5,9 +5,7 @@ import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/app_typography.dart';
 import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
-import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/providers/settings_providers.dart';
 import 'package:cyra/core/security/biometric_auth_service.dart';
 import 'package:cyra/core/security/data_export_service.dart';
@@ -25,8 +23,6 @@ class PrivacyControlsScreen extends ConsumerStatefulWidget {
 class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.warmIvory;
 
     return Scaffold(
       appBar: AppBar(
@@ -91,7 +87,7 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
           subtitle: 'Unlock with Face ID or fingerprint',
           trailing: Switch.adaptive(
             value: enabled,
-            activeColor: AppColors.forestGreen,
+            activeTrackColor: AppColors.forestGreen,
             onChanged: (value) async {
               if (value) {
                 final available = await authService.isBiometricAvailable();
@@ -150,7 +146,7 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
                 ),
               Switch.adaptive(
                 value: enabled,
-                activeColor: AppColors.forestGreen,
+                activeTrackColor: AppColors.forestGreen,
                 onChanged: (value) async {
                   if (value) {
                     final result = await _showPinSetupDialog(context, authService);
@@ -166,6 +162,7 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
                     );
                     if (confirmed == true && mounted) {
                       await authService.clearPinCode();
+                      if (!mounted) return;
                       ref.read(pinEnabledProvider.notifier).setEnabled(false);
                       context.showSnackBar('PIN code disabled');
                     }
@@ -225,7 +222,7 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       subtitle: 'Hide sensitive content from notification previews',
       trailing: Switch.adaptive(
         value: privateMode,
-        activeColor: AppColors.forestGreen,
+        activeTrackColor: AppColors.forestGreen,
         onChanged: (value) async {
           if (value) {
             await privacyService.enablePrivateMode();
@@ -248,7 +245,7 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       subtitle: 'Change app icon to neutral "Health" icon',
       trailing: Switch.adaptive(
         value: false,
-        activeColor: AppColors.forestGreen,
+        activeTrackColor: AppColors.forestGreen,
         onChanged: (value) {
           context.showSnackBar('Hidden app icon requires platform-specific setup', isError: true);
         },
@@ -263,7 +260,7 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       subtitle: 'Configure emergency lock gesture',
       trailing: Icon(Icons.chevron_right, color: AppColors.slate),
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const EmergencySetupScreen()),
+        MaterialPageRoute<void>(builder: (_) => const EmergencySetupScreen()),
       ),
     );
   }
@@ -384,7 +381,7 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
 
   Future<void> _handleDeleteDateRange(BuildContext context) async {
     final range = await _showDateRangePicker(context);
-    if (range == null) return;
+    if (range == null || !context.mounted) return;
 
     final confirmed = await _showConfirmDialog(
       context,
@@ -395,7 +392,7 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       isDestructive: true,
       confirmLabel: 'Delete Range',
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !context.mounted) return;
 
     try {
       final authService = ref.read(biometricAuthServiceProvider);
@@ -403,18 +400,18 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
         reason: 'Authenticate to delete data',
       );
       if (!authenticated) {
-        if (mounted) context.showSnackBar('Authentication required to delete data', isError: true);
+        if (context.mounted) context.showSnackBar('Authentication required to delete data', isError: true);
         return;
       }
 
       final exportService = ref.read(dataExportServiceProvider);
       await exportService.deleteDateRange(range.start, range.end);
 
-      if (mounted) {
+      if (context.mounted) {
         context.showSnackBar('Data range deleted successfully');
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         context.showSnackBar('Delete failed: ${e.toString()}', isError: true);
       }
     }
@@ -429,7 +426,7 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       isDestructive: true,
       confirmLabel: 'Continue',
     );
-    if (firstConfirm != true) return;
+    if (firstConfirm != true || !context.mounted) return;
 
     final secondConfirm = await _showConfirmDialog(
       context,
@@ -438,7 +435,7 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       isDestructive: true,
       confirmLabel: 'Delete Everything',
     );
-    if (secondConfirm != true || !mounted) return;
+    if (secondConfirm != true || !context.mounted) return;
 
     try {
       final authService = ref.read(biometricAuthServiceProvider);
@@ -446,18 +443,18 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
         reason: 'Authenticate to delete all data',
       );
       if (!authenticated) {
-        if (mounted) context.showSnackBar('Authentication required to delete all data', isError: true);
+        if (context.mounted) context.showSnackBar('Authentication required to delete all data', isError: true);
         return;
       }
 
       final exportService = ref.read(dataExportServiceProvider);
       await exportService.deleteAllData();
 
-      if (mounted) {
+      if (context.mounted) {
         context.showSnackBar('All data has been permanently deleted');
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         context.showSnackBar('Delete failed: ${e.toString()}', isError: true);
       }
     }
@@ -475,10 +472,10 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       reason: 'Verify your identity to change PIN',
     );
     if (!verified) {
-      if (mounted) context.showSnackBar('Verification failed', isError: true);
+      if (context.mounted) context.showSnackBar('Verification failed', isError: true);
       return;
     }
-    if (mounted) {
+    if (context.mounted) {
       await _showPinSetupDialog(context, authService);
     }
   }
@@ -785,9 +782,9 @@ class _PinSetupDialogState extends ConsumerState<_PinSetupDialog> {
             if (!_formKey.currentState!.validate()) return;
             try {
               await widget.authService.setPinCode(_pinController.text);
-              if (mounted) Navigator.of(context).pop(true);
+              if (context.mounted) Navigator.of(context).pop(true);
             } catch (e) {
-              if (mounted) {
+              if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Failed to set PIN: $e')),
                 );

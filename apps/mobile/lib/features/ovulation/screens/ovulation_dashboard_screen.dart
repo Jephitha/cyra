@@ -8,10 +8,8 @@ import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/bbt_chart.dart';
 import 'package:cyra/core/design/widgets/fertility_widget.dart';
-import 'package:cyra/core/design/widgets/health_stat_card.dart';
 import 'package:cyra/core/design/widgets/confidence_badge.dart';
 import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart';
-import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/features/ovulation/screens/log_bbt_screen.dart';
 import 'package:cyra/features/ovulation/screens/log_opk_screen.dart';
 import 'package:cyra/features/ovulation/screens/log_mucus_screen.dart';
@@ -225,12 +223,6 @@ class OvulationDashboardScreen extends ConsumerWidget {
     _OvulationDashboardState state,
     bool isDark,
   ) {
-    final daysSinceOvulation = state.confirmedOvulationDate != null
-        ? DateTime.now().daysUntil(state.confirmedOvulationDate!)
-        : null;
-    final daysUntilOvulation = state.ovulationDate != null && state.ovulationDate!.isAfter(DateTime.now())
-        ? DateTime.now().daysUntil(state.ovulationDate!)
-        : null;
 
     return AppCard.standard(
       padding: EdgeInsets.zero,
@@ -288,7 +280,7 @@ class OvulationDashboardScreen extends ConsumerWidget {
               icon: Icons.add_rounded,
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (_) => const LogBBTScreen(),
                   ),
                 );
@@ -340,7 +332,7 @@ class OvulationDashboardScreen extends ConsumerWidget {
               icon: Icons.add_rounded,
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (_) => const LogOPKScreen(),
                   ),
                 );
@@ -480,7 +472,7 @@ class OvulationDashboardScreen extends ConsumerWidget {
               icon: Icons.add_rounded,
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (_) => const LogMucusScreen(),
                   ),
                 );
@@ -658,20 +650,16 @@ class OvulationDashboardScreen extends ConsumerWidget {
     bool isDark,
   ) {
     String status;
-    String statusIcon;
     Color statusColor;
 
     if (state.ovulationDetected && state.confirmedOvulationDate != null) {
       status = 'Confirmed';
-      statusIcon = 'check_circle';
       statusColor = AppColors.forestGreen;
     } else if (state.ovulationProbability >= 0.5) {
       status = 'Estimated';
-      statusIcon = 'pending';
       statusColor = AppColors.softGold;
     } else {
       status = 'Not Detected';
-      statusIcon = 'remove_circle';
       statusColor = AppColors.slate;
     }
 

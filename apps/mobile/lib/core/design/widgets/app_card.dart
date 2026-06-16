@@ -37,11 +37,11 @@ class AppCard extends StatelessWidget {
   }) {
     return AppCard._(
       key: key,
-      child: child,
       title: title,
       padding: padding,
       elevation: 0,
       backgroundColor: backgroundColor,
+      child: child,
     );
   }
 
@@ -55,11 +55,11 @@ class AppCard extends StatelessWidget {
   }) {
     return AppCard._(
       key: key,
-      child: child,
       onTap: onTap,
       padding: padding,
       elevation: 1,
       backgroundColor: backgroundColor,
+      child: child,
     );
   }
 
@@ -73,11 +73,11 @@ class AppCard extends StatelessWidget {
   }) {
     return AppCard._(
       key: key,
-      child: child,
       title: title,
       padding: padding,
       elevation: 0,
       backgroundColor: backgroundColor,
+      child: child,
     );
   }
 
@@ -90,11 +90,11 @@ class AppCard extends StatelessWidget {
   }) {
     return AppCard._(
       key: key,
-      child: child,
       padding: padding,
       elevation: 1,
       accentColor: AppColors.forestGreen,
       backgroundColor: backgroundColor,
+      child: child,
     );
   }
 

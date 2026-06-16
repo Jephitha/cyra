@@ -207,6 +207,7 @@ void main() {
 
     group('resetFailedAttempts', () {
       test('resets the failed attempts counter', () async {
+        await pinAuth.setPin('1234');
         await pinAuth.verifyPin('0000');
         await pinAuth.verifyPin('0000');
         await pinAuth.resetFailedAttempts();
@@ -216,6 +217,7 @@ void main() {
       });
 
       test('clears lockout', () async {
+        await pinAuth.setPin('1234');
         for (int i = 0; i < 5; i++) {
           await pinAuth.verifyPin('9999');
         }

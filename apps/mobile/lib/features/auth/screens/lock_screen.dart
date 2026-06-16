@@ -151,8 +151,9 @@ class _LockScreenState extends ConsumerState<LockScreen>
 
     if (isValid) {
       await ref.read(authStateNotifierProvider.notifier).authenticate();
+      if (!mounted) return;
       ref.read(failedPinAttemptsProvider.notifier).reset();
-      if (context.mounted) context.go('/dashboard');
+      context.go('/dashboard');
     } else {
       final attempts = ref.read(failedPinAttemptsProvider);
       ref.read(failedPinAttemptsProvider.notifier).increment();

@@ -8,7 +8,6 @@ import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/providers/security_providers.dart';
-import 'package:cyra/core/providers/settings_providers.dart';
 
 class DataControlsScreen extends ConsumerStatefulWidget {
   const DataControlsScreen({super.key});
@@ -31,7 +30,6 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(

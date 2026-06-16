@@ -122,7 +122,7 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
       setState(() => _isPrivateMode = true);
 
       if (mounted) {
-        showDialog(
+        showDialog<void>(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
@@ -151,7 +151,6 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.warmIvory;
 
     if (_isPrivateMode) {
       return _buildSafeScreen(context, isDark);
@@ -455,11 +454,10 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
                       await privacyService.deactivateEmergencyLock();
                       setState(() => _isPrivateMode = false);
                     } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to unlock: $e')),
-                        );
-                      }
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to unlock: $e')),
+                      );
                     }
                   },
                   child: const Text('Tap to Unlock'),

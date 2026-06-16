@@ -301,7 +301,7 @@ class _ArticleCard extends ConsumerWidget {
     return AppCard.interactive(
       padding: const EdgeInsets.all(AppSpacing.md),
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => ArticleReaderScreen(articleId: article.id),
         ),
       ),

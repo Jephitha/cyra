@@ -3,7 +3,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cyra/core/security/secure_storage_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pointycastle/export.dart' as pc;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -163,9 +162,8 @@ class PinAuthService {
 
   bool _constantTimeEqual(List<int> a, List<int> b) {
     if (a.length != b.length) {
-      int result = a.length ^ b.length;
       for (var i = 0; i < min(a.length, b.length); i++) {
-        result |= a[i] ^ b[i];
+        a[i] ^ b[i];
       }
       return false;
     }

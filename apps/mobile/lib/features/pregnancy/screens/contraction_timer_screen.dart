@@ -119,7 +119,7 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
             const SizedBox(height: AppSpacing.lg),
             _buildSummaryStats(context, isDark, avgDuration, avgFrequency),
           ],
-          if (_contractions.length >= 1) ...[
+          if (_contractions.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.lg),
             _buildContractionList(context, isDark),
           ],
@@ -567,7 +567,7 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
   }
 
   void _showShareSheet(BuildContext context, bool isDark) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (sheetContext) {
         return SafeArea(

@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'privacy_service.g.dart';
@@ -47,10 +45,10 @@ class PrivacyService {
   final VoidCallback? onAutoLock;
 
   PrivacyService({
-    required FlutterSecureStorage secureStorage,
+    required this._secureStorage,
     this.onEmergencyLock,
     this.onAutoLock,
-  }) : _secureStorage = secureStorage;
+  });
 
   // --- Emergency Lock ---
 

@@ -5,7 +5,6 @@ import 'package:cyra/core/design/app_typography.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/confidence_badge.dart';
 import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart';
 import 'package:cyra/core/design/widgets/cycle_overview_chart.dart';
@@ -685,7 +684,7 @@ class TopicDetailScreen extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: () => Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => TopicDetailScreen(topic: r.topic),
                 ),
               ),

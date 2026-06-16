@@ -8,7 +8,6 @@ import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/pregnancy_week_widget.dart';
 import 'package:cyra/core/design/widgets/health_stat_card.dart';
 import 'package:cyra/core/utils/date_utils.dart';
-import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/features/pregnancy/screens/kick_counter_screen.dart';
 import 'package:cyra/features/pregnancy/screens/contraction_timer_screen.dart';
 import 'package:cyra/features/pregnancy/screens/pregnancy_symptoms_screen.dart';
@@ -221,7 +220,7 @@ class PregnancyDashboardScreen extends ConsumerWidget {
                 icon: Icons.add_rounded,
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (_) =>
                           const SetupPregnancyScreen(),
                     ),
@@ -241,7 +240,6 @@ class PregnancyDashboardScreen extends ConsumerWidget {
     _PregnancyDashboardState state,
     bool isDark,
   ) {
-    final weeksRemaining = (40 - state.currentWeek).clamp(0, 40);
 
     return AppCard.standard(
       padding: EdgeInsets.zero,
@@ -406,7 +404,7 @@ class PregnancyDashboardScreen extends ConsumerWidget {
               child: GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (_) => const LogVitalsScreen(initialSection: 'weight'),
                     ),
                   );
@@ -427,7 +425,7 @@ class PregnancyDashboardScreen extends ConsumerWidget {
               child: GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (_) => const LogVitalsScreen(initialSection: 'blood_pressure'),
                     ),
                   );
@@ -455,7 +453,7 @@ class PregnancyDashboardScreen extends ConsumerWidget {
               child: GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (_) => const LogVitalsScreen(initialSection: 'glucose'),
                     ),
                   );
@@ -489,7 +487,7 @@ class PregnancyDashboardScreen extends ConsumerWidget {
     return AppCard.interactive(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (_) => const KickCounterScreen(),
           ),
         );
@@ -565,7 +563,7 @@ class PregnancyDashboardScreen extends ConsumerWidget {
     return AppCard.interactive(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (_) => const ContractionTimerScreen(),
           ),
         );
@@ -646,7 +644,7 @@ class PregnancyDashboardScreen extends ConsumerWidget {
     return AppCard.interactive(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (_) => const PregnancySymptomsScreen(),
           ),
         );
@@ -728,7 +726,7 @@ class PregnancyDashboardScreen extends ConsumerWidget {
               icon: Icons.add_rounded,
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (_) => const PregnancySymptomsScreen(),
                   ),
                 );
@@ -792,7 +790,7 @@ class PregnancyDashboardScreen extends ConsumerWidget {
               return GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (_) =>
                           WeekDetailScreen(week: week),
                     ),

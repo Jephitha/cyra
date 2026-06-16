@@ -8,7 +8,6 @@ import 'package:cyra/features/insights/models/insight_models.dart';
 import 'package:cyra/features/ovulation/models/bbt_record.dart';
 import 'package:cyra/features/ovulation/providers/ovulation_providers.dart';
 import 'package:cyra/features/pregnancy/providers/pregnancy_providers.dart';
-import 'package:cyra/features/symptoms/models/symptom_models.dart';
 import 'package:cyra/features/symptoms/providers/symptom_providers.dart';
 
 part 'insight_providers.g.dart';

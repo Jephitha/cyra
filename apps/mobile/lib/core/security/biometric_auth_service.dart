@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:cyra/core/security/pin_auth_service.dart';
@@ -23,12 +22,10 @@ class BiometricAuthService {
   static const _biometricEnabledKey = 'cyra_biometric_enabled';
 
   BiometricAuthService({
-    required LocalAuthentication localAuth,
-    required FlutterSecureStorage secureStorage,
-    required PinAuthService pinAuthService,
-  })  : _localAuth = localAuth,
-        _secureStorage = secureStorage,
-        _pinAuthService = pinAuthService;
+    required this._localAuth,
+    required this._secureStorage,
+    required this._pinAuthService,
+  });
 
   Future<bool> isBiometricAvailable() async {
     try {

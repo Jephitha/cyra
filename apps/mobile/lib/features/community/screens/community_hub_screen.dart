@@ -182,7 +182,7 @@ class CommunityHubScreen extends ConsumerWidget {
 
     return AppCard.interactive(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => TopicScreen(topic: topic),
         ),
       ),
@@ -247,9 +247,6 @@ class CommunityHubScreen extends ConsumerWidget {
     final baseColor = isDark
         ? AppColors.charcoal.withValues(alpha: 0.3)
         : AppColors.borderLight;
-    final highlightColor = isDark
-        ? AppColors.charcoal.withValues(alpha: 0.5)
-        : AppColors.mistWhite;
 
     return GridView.builder(
       shrinkWrap: true,
@@ -359,7 +356,7 @@ class CommunityHubScreen extends ConsumerWidget {
     return AppCard.interactive(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (_) => const MyActivityScreen(),
           ),
         );
@@ -418,7 +415,7 @@ class CommunityHubScreen extends ConsumerWidget {
           icon: Icons.article_outlined,
           label: 'Community Guidelines',
           onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
+            MaterialPageRoute<void>(
               builder: (_) => const CommunityGuidelinesScreen(),
             ),
           ),
@@ -465,7 +462,7 @@ class CommunityHubScreen extends ConsumerWidget {
   }
 
   void _showReportDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Report a Concern'),

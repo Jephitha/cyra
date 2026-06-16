@@ -417,7 +417,7 @@ class WeekDetailScreen extends StatelessWidget {
               '← Week ${week - 1}',
               onPressed: () {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (_) =>
                         WeekDetailScreen(week: week - 1),
                   ),
@@ -433,7 +433,7 @@ class WeekDetailScreen extends StatelessWidget {
               'Week ${week + 1} →',
               onPressed: () {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (_) =>
                         WeekDetailScreen(week: week + 1),
                   ),
@@ -462,7 +462,7 @@ class WeekDetailScreen extends StatelessWidget {
           icon: Icons.add_rounded,
           onPressed: () {
             Navigator.of(context).push(
-              MaterialPageRoute(
+              MaterialPageRoute<void>(
                 builder: (_) => const PregnancySymptomsScreen(),
               ),
             );

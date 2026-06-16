@@ -6,7 +6,6 @@ import 'package:cyra/core/design/app_typography.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/features/community/models/community_models.dart';
 import 'package:cyra/features/community/repositories/community_repository.dart';
 
@@ -82,7 +81,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   void _showReportOption(BuildContext context, String id, String type) {
     final controller = TextEditingController();
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Report $type'),

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -44,15 +43,14 @@ class DataExportService {
   final Future<void> Function()? deleteAllDataCallback;
 
   DataExportService({
-    required BiometricAuthService authService,
-    required AuditService auditService,
+    required this._authService,
+    required this._auditService,
     this.getAllDataCallback,
     this.getDataByDateRangeCallback,
     this.deleteRecordCallback,
     this.deleteDateRangeCallback,
     this.deleteAllDataCallback,
-  })  : _authService = authService,
-        _auditService = auditService;
+  });
 
   Future<File> exportAllDataAsJson() async {
     await _requireReVerification('Export all data');

@@ -5,7 +5,6 @@ import 'package:drift/drift.dart';
 import 'package:cyra/core/database/app_database.dart';
 import 'package:cyra/core/prediction/ovulation_detector.dart';
 import 'package:cyra/features/fertility/models/fertility_models.dart';
-import 'package:cyra/features/ovulation/models/ovulation_models.dart';
 import 'package:cyra/features/ovulation/models/bbt_record.dart';
 import 'package:cyra/features/ovulation/models/opk_test_record.dart';
 import 'package:cyra/features/ovulation/models/mucus_observation.dart';

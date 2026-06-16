@@ -166,7 +166,7 @@ class JournalRepository {
     final destFile = File(destPath);
     await destFile.writeAsBytes(await File(sourcePath).readAsBytes());
 
-    final encryptedPath = '${destPath}.encrypted';
+    final encryptedPath = '$destPath.encrypted';
     await _encryption.encryptFile(destFile, File(encryptedPath));
     await destFile.delete();
 
@@ -194,7 +194,7 @@ class JournalRepository {
     final destFile = File(destPath);
     await destFile.writeAsBytes(await File(sourcePath).readAsBytes());
 
-    final encryptedPath = '${destPath}.encrypted';
+    final encryptedPath = '$destPath.encrypted';
     await _encryption.encryptFile(destFile, File(encryptedPath));
     await destFile.delete();
 
@@ -249,29 +249,6 @@ class JournalRepository {
     );
   }
 
-  db.JournalEntriesCompanion _toCompanion(JournalEntry entry) {
-    return db.JournalEntriesCompanion(
-      id: Value(entry.id),
-      date: Value(entry.date),
-      title: entry.title != null
-          ? Value(_encryption.encryptString(entry.title!))
-          : Value.absent(),
-      content: entry.content != null
-          ? Value(_encryption.encryptString(entry.content!))
-          : Value.absent(),
-      photoPaths: entry.photoPaths.isNotEmpty
-          ? Value(json.encode(entry.photoPaths))
-          : Value.absent(),
-      voiceNotePath: entry.voiceNotePaths.isNotEmpty
-          ? Value(json.encode(entry.voiceNotePaths))
-          : Value.absent(),
-      moodRating:
-          entry.moodRating > 0 ? Value(entry.moodRating) : Value.absent(),
-      cycleDayId:
-          entry.cycleDayId != null ? Value(entry.cycleDayId!) : Value.absent(),
-      updatedAt: Value(DateTime.now()),
-    );
-  }
 
   Future<List<JournalEntry>> _getEntriesInRange(
       DateTime start, DateTime end) async {

@@ -64,7 +64,6 @@ class AppearanceScreen extends ConsumerWidget {
     double textSize,
     bool isDark,
   ) {
-    final bgColor = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
     final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final subTextColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
@@ -312,13 +311,16 @@ class AppearanceScreen extends ConsumerWidget {
             ...FontStyleSetting.values.map((style) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                // ignore: deprecated_member_use
                 child: RadioListTile<FontStyleSetting>(
                   value: style,
+                  // ignore: deprecated_member_use
                   groupValue: fontStyle,
                   title: Text(style.label),
                   activeColor: AppColors.forestGreen,
                   contentPadding: EdgeInsets.zero,
                   dense: true,
+                  // ignore: deprecated_member_use
                   onChanged: (v) {
                     if (v != null) {
                       ref.read(fontStyleSettingNotifierProvider.notifier).setFontStyle(v);
@@ -486,7 +488,7 @@ class _ToggleRow extends StatelessWidget {
           ),
           Switch.adaptive(
             value: value,
-            activeColor: AppColors.forestGreen,
+            activeTrackColor: AppColors.forestGreen,
             onChanged: onChanged,
           ),
         ],

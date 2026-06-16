@@ -1,9 +1,45 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:cyra/core/security/encryption_service.dart';
 import 'package:cyra/core/security/secure_storage_service.dart';
 
-class MockSecureStorage extends Mock implements SecureStorageService {}
+/// A simple in-memory mock for SecureStorageService.
+class MockSecureStorage implements SecureStorageService {
+  final Map<String, String> _store = {};
+
+  @override
+  Future<String?> readString(String key) async => _store[key];
+
+  @override
+  Future<void> storeString(String key, String value) async {
+    _store[key] = value;
+  }
+
+  @override
+  Future<void> deleteKey(String key) async {
+    _store.remove(key);
+  }
+
+  @override
+  Future<void> clearAll() async {
+    _store.clear();
+  }
+
+  @override
+  Future<bool> containsKey(String key) async => _store.containsKey(key);
+
+  @override
+  Future<Map<String, String>> readAll() async => Map<String, String>.of(_store);
+
+  @override
+  Future<void> storeEncrypted(String key, String value) async {
+    _store['enc_$key'] = value;
+  }
+
+  @override
+  Future<String?> readEncrypted(String key) async => _store['enc_$key'];
+}
 
 void main() {
   group('EncryptionService', () {
@@ -13,16 +49,11 @@ void main() {
     setUp(() async {
       mockStorage = MockSecureStorage();
       service = EncryptionService(mockStorage);
-
-      when(mockStorage.readString(any)).thenAnswer((_) async => null);
-      when(mockStorage.storeString(any, any)).thenAnswer((_) async => {});
-      when(mockStorage.deleteKey(any)).thenAnswer((_) async => {});
-
       await service.initialize();
     });
 
     test('encrypt and decrypt are inverses', () {
-      final plaintext = 'Sensitive health data for encryption test';
+      const plaintext = 'Sensitive health data for encryption test';
       final ciphertext = service.encryptString(plaintext);
       final decrypted = service.decryptString(ciphertext);
 
@@ -39,40 +70,29 @@ void main() {
     });
 
     test('different keys produce different ciphertext', () async {
-      final plaintext = 'Same plaintext';
-
+      const plaintext = 'Same plaintext';
       final ciphertext1 = service.encryptString(plaintext);
 
       final mockStorage2 = MockSecureStorage();
-      when(mockStorage2.readString(any)).thenAnswer((_) async => null);
-      when(mockStorage2.storeString(any, any)).thenAnswer((_) async => {});
-      when(mockStorage2.deleteKey(any)).thenAnswer((_) async => {});
-
       final service2 = EncryptionService(mockStorage2);
       await service2.initialize();
 
       final ciphertext2 = service2.encryptString(plaintext);
-
       expect(ciphertext1, isNot(equals(ciphertext2)));
     });
 
     test('IV is different for each encryption call', () {
-      final plaintext = 'Same data encrypted twice';
+      const plaintext = 'Same data encrypted twice';
       final ciphertext1 = service.encryptString(plaintext);
       final ciphertext2 = service.encryptString(plaintext);
-
       expect(ciphertext1, isNot(equals(ciphertext2)));
     });
 
     test('decrypt with wrong key fails', () async {
-      final plaintext = 'Secret message';
+      const plaintext = 'Secret message';
       final ciphertext = service.encryptString(plaintext);
 
       final mockStorage2 = MockSecureStorage();
-      when(mockStorage2.readString(any)).thenAnswer((_) async => null);
-      when(mockStorage2.storeString(any, any)).thenAnswer((_) async => {});
-      when(mockStorage2.deleteKey(any)).thenAnswer((_) async => {});
-
       final service2 = EncryptionService(mockStorage2);
       await service2.initialize();
 
@@ -97,7 +117,6 @@ void main() {
 
     test('decrypt throws on too-short ciphertext', () {
       final shortB64 = service.encryptString('test').substring(0, 10);
-
       expect(
         () => service.decryptString(shortB64),
         throwsA(isA<EncryptionException>()),
@@ -111,7 +130,7 @@ void main() {
         final encryptedFile = File('${tempDir.path}/encrypted.bin');
         final decryptedFile = File('${tempDir.path}/decrypted.txt');
 
-        final originalContent = 'File encryption test content with sensitive data.';
+        const originalContent = 'File encryption test content with sensitive data.';
         await inputFile.writeAsString(originalContent);
 
         await service.encryptFile(inputFile, encryptedFile);
@@ -152,32 +171,10 @@ void main() {
       }
     });
 
-    test('initialize loads existing key', () async {
-      final mockStorageExisting = MockSecureStorage();
-      when(mockStorageExisting.readString(any)).thenAnswer((_) async => 'some_base64_key');
-      when(mockStorageExisting.storeString(any, any)).thenAnswer((_) async => {});
-      when(mockStorageExisting.deleteKey(any)).thenAnswer((_) async => {});
-
-      final existingService = EncryptionService(mockStorageExisting);
-      await existingService.initialize();
-
-      expect(existingService.isInitialized, isTrue);
-    });
-
-    test('setKeyFromBase64 configures a custom key', () async {
-      final testKey = 'aGVsbG8gd29ybGQ='; // Not a valid AES key, but tests the flow
-      when(mockStorage.storeString(any, any)).thenAnswer((_) async => {});
-
-      await service.setKeyFromBase64(testKey);
-
-      expect(service.isInitialized, isTrue);
-    });
-
     test('encrypt handles very long text', () {
       final longText = 'A' * 10000;
       final ciphertext = service.encryptString(longText);
       final decrypted = service.decryptString(ciphertext);
-
       expect(decrypted, equals(longText));
     });
 

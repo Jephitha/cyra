@@ -4,9 +4,7 @@ import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/bbt_chart.dart';
-import 'package:cyra/core/utils/extensions.dart';
 
 class _FertilityChartMarker {
   final DateTime date;
@@ -53,8 +51,8 @@ class _FertilityChartScreenState extends State<FertilityChartScreen> {
     BBTDataPoint(date: DateTime(2026, 3, 17), temperature: 36.7),
   ];
 
-  DateTime? _ovulationDate = DateTime(2026, 3, 12);
-  double? _coverLine = 36.6;
+  final DateTime _ovulationDate = DateTime(2026, 3, 12);
+  final double _coverLine = 36.6;
 
   final List<_FertilityChartMarker> _markers = [
     _FertilityChartMarker(

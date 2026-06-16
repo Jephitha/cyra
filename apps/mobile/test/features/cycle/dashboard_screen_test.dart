@@ -36,7 +36,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Next period predicted'), findsOneWidget);
-      expect(find.textContaining('days'), findsOneWidget);
+      // Multiple widgets may contain "days" (title + explanation)
+      expect(find.textContaining('days'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('displays fertility card during fertile window',
@@ -81,6 +82,13 @@ void main() {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
+      // Scroll down to reveal the Cycle Overview section below the fold
+      await tester.scrollUntilVisible(
+        find.text('Cycle Overview'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+
       expect(find.text('Cycle Overview'), findsOneWidget);
     });
 
@@ -89,6 +97,13 @@ void main() {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
+      // Scroll down to reveal the Recent Activity section
+      await tester.scrollUntilVisible(
+        find.text('Recent Activity'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+
       expect(find.text('Recent Activity'), findsOneWidget);
     });
 
@@ -96,6 +111,13 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
+
+      // Scroll down to reveal the stats grid
+      await tester.scrollUntilVisible(
+        find.textContaining('Cycle Day'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
 
       expect(find.textContaining('Cycle Day'), findsOneWidget);
       expect(find.textContaining('Cycle Length'), findsOneWidget);
@@ -127,6 +149,13 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
+
+      // Scroll down to reveal the "View full history" button
+      await tester.scrollUntilVisible(
+        find.text('View full history'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
 
       final viewHistory = find.text('View full history');
       expect(viewHistory, findsOneWidget);

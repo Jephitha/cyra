@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cyra/core/design/app_colors.dart';
-import 'package:cyra/core/design/app_typography.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
-import 'package:cyra/core/design/tokens/app_radius.dart';
 
 /// The four phases of the menstrual cycle.
 enum CyclePhase {

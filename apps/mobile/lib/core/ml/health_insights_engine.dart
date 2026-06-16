@@ -301,9 +301,6 @@ class HealthInsightsEngine {
   }
 
   TopicInsight _conceptionInsight(InsightTopic topic, Map<String, dynamic> data) {
-    final cycleLength = data['cycleLength'] as int? ?? 28;
-    final probabilities = _ovulationDetector.dailyConceptionProbability(cycleLength);
-
     return TopicInsight(
       topic: topic,
       title: 'Conception Tips',
@@ -364,33 +361,6 @@ class HealthInsightsEngine {
         InsightTopic.periodPrediction,
       ].map((t) => t.name).toList(),
       requiresDisclaimer: true,
-    );
-  }
-
-  CycleSummary _buildCycleSummary(
-    List<Cycle> cycles,
-    PredictionResult prediction,
-  ) {
-    final completed =
-        cycles.where((c) => c.endDate != null && c.cycleLength > 0).toList();
-    final lengths = completed.map((c) => c.cycleLength.toDouble()).toList();
-    final avg = lengths.isEmpty ? 28.0 : lengths.reduce((a, b) => a + b) / lengths.length;
-    final min = lengths.isEmpty ? 28 : lengths.reduce((a, b) => a < b ? a : b).round();
-    final max = lengths.isEmpty ? 28 : lengths.reduce((a, b) => a > b ? a : b).round();
-    final periodLengths = completed.map((c) => c.periodLength.toDouble()).toList();
-    final avgPeriod = periodLengths.isEmpty
-        ? 5.0
-        : periodLengths.reduce((a, b) => a + b) / periodLengths.length;
-
-    return CycleSummary(
-      cycleCount: completed.length,
-      averageLength: avg,
-      minLength: min,
-      maxLength: max,
-      variabilityScore: prediction.variabilityScore,
-      averagePeriodLength: avgPeriod,
-      lastPeriodStart: completed.isNotEmpty ? completed.last.startDate : null,
-      nextPredictedPeriodStart: prediction.predictedDate,
     );
   }
 

@@ -462,7 +462,7 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
           ),
           Switch(
             value: true,
-            activeColor: AppColors.forestGreen,
+            activeTrackColor: AppColors.forestGreen,
             onChanged: (_) {},
           ),
         ],
@@ -576,7 +576,7 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
 
   void _openDeviceDetail(WearableDevice device) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => DeviceDetailScreen(device: device),
       ),
     );

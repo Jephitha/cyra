@@ -332,7 +332,7 @@ class ConditionsHubScreen extends ConsumerWidget {
               onChanged: (value) => _toggleCondition(
                 context, ref, info, value, existingCondition,
               ),
-              activeColor: AppColors.forestGreen,
+              activeTrackColor: AppColors.forestGreen,
             ),
           ],
         ),
@@ -516,7 +516,7 @@ class ConditionsHubScreen extends ConsumerWidget {
 
   void _openDetail(BuildContext context, String conditionType) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => ConditionDetailScreen(conditionType: conditionType),
       ),
     );

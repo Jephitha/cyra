@@ -12,8 +12,6 @@ import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/app_button.dart';
-import 'package:cyra/features/journal/models/journal_models.dart';
 import 'package:cyra/features/journal/providers/journal_providers.dart';
 
 class JournalEntryScreen extends ConsumerStatefulWidget {
@@ -37,7 +35,6 @@ class _JournalEntryScreenState extends ConsumerState<JournalEntryScreen> {
 
   final AudioRecorder _recorder = AudioRecorder();
   bool _isRecording = false;
-  String? _recordingPath;
   AudioPlayer? _audioPlayer;
 
   bool _isAudioPlaying = false;
@@ -226,7 +223,7 @@ class _JournalEntryScreenState extends ConsumerState<JournalEntryScreen> {
       if (!mounted) return;
 
       Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => Scaffold(
             backgroundColor: Colors.black,
             appBar: AppBar(
@@ -273,7 +270,6 @@ class _JournalEntryScreenState extends ConsumerState<JournalEntryScreen> {
       await _recorder.start(const RecordConfig(), path: path);
       setState(() {
         _isRecording = true;
-        _recordingPath = path;
       });
     } catch (e) {
       if (mounted) {
@@ -315,7 +311,7 @@ class _JournalEntryScreenState extends ConsumerState<JournalEntryScreen> {
         return;
       }
 
-      final file = await ref
+      await ref
           .read(journalRepositoryProvider)
           .getDecryptedVoiceNote(encryptedPath);
 

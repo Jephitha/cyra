@@ -16,7 +16,7 @@ class SupabaseClientService {
     await dotenv.load();
     await Supabase.initialize(
       url: dotenv.env['SUPABASE_URL'] ?? ApiConstants.supabaseUrl,
-      anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? ApiConstants.supabaseAnonKey,
+      publishableKey: dotenv.env['SUPABASE_ANON_KEY'] ?? ApiConstants.supabaseAnonKey,
     );
   }
 

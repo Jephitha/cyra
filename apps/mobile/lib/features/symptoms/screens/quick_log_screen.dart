@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
@@ -54,8 +53,7 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
   }
 
   void _showSeverityPicker(String id, String name) {
-    final current = _symptomSeverities[id] ?? 1;
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
@@ -99,12 +97,14 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
     int level,
     String label,
   ) {
-    final isSelected = _symptomSeverities[symptomId] == level;
     return ListTile(
+      // ignore: deprecated_member_use
       leading: Radio<int>(
         value: level,
+        // ignore: deprecated_member_use
         groupValue: _symptomSeverities[symptomId] ?? 1,
         activeColor: AppColors.forestGreen,
+        // ignore: deprecated_member_use
         onChanged: (val) {
           setSheetState(() => _symptomSeverities[symptomId] = val!);
         },

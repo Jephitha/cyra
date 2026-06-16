@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -90,10 +89,9 @@ class AuditService {
   int _retentionDays;
 
   AuditService({
-    required FlutterSecureStorage secureStorage,
-    int retentionDays = _defaultRetentionDays,
-  })  : _secureStorage = secureStorage,
-        _retentionDays = retentionDays;
+    required this._secureStorage,
+    this._retentionDays = _defaultRetentionDays,
+  });
 
   int get retentionDays => _retentionDays;
 
@@ -343,14 +341,6 @@ class AuditService {
     if (totalLength > 512) {
       throw AuditException('Audit log details exceed maximum length (512 chars)');
     }
-  }
-}
-
-extension _ListExtension<T> on List<T> {
-  List<T> sorted(int Function(T, T) compare) {
-    final copy = [...this];
-    copy.sort(compare);
-    return copy;
   }
 }
 

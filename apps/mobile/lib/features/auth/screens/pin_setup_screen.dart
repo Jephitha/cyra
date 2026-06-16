@@ -112,8 +112,9 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
   Future<void> _validateConfirmation() async {
     if (_pin == _confirmPin) {
       await ref.read(pinAuthServiceProvider).setPin(_pin);
+      if (!mounted) return;
       ref.read(privacySettingsProvider.notifier).updatePin(true);
-      if (context.mounted) context.pop(true);
+      context.pop(true);
     } else {
       _triggerError('PINs do not match. Try again.');
       setState(() {
@@ -129,7 +130,8 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
 
     if (verified) {
       ref.read(failedPinAttemptsProvider.notifier).reset();
-      if (context.mounted) context.pop(true);
+      if (!mounted) return;
+      context.pop(true);
     } else {
       _failedAttempts++;
       ref.read(failedPinAttemptsProvider.notifier).increment();
@@ -198,6 +200,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
 
       if (authenticated && mounted) {
         await ref.read(pinAuthServiceProvider).clearPin();
+        if (!mounted) return;
         ref.read(privacySettingsProvider.notifier).updatePin(false);
         context.pop(true);
       }

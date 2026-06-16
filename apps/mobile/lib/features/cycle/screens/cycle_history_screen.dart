@@ -7,8 +7,6 @@ import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/health_stat_card.dart';
-import 'package:cyra/core/constants/cycle_constants.dart';
-import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/features/cycle/screens/cycle_detail_screen.dart';
 import 'package:cyra/features/cycle/screens/log_period_screen.dart';
 
@@ -57,7 +55,7 @@ class _HistoryState extends ChangeNotifier {
   Future<void> refresh() async {
     isRefreshing = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
     isRefreshing = false;
     notifyListeners();
   }
@@ -102,7 +100,7 @@ class CycleHistoryScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.add_rounded),
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
+              MaterialPageRoute<void>(
                 builder: (_) => const LogPeriodScreen(),
               ),
             ),
@@ -182,7 +180,7 @@ class CycleHistoryScreen extends ConsumerWidget {
 
     return AppCard.interactive(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => CycleDetailScreen(cycleId: cycle.cycleNumber),
         ),
       ),
@@ -319,7 +317,7 @@ class CycleHistoryScreen extends ConsumerWidget {
               'Log Your First Period',
               icon: Icons.add_rounded,
               onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => const LogPeriodScreen(),
                 ),
               ),

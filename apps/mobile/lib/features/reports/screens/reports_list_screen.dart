@@ -261,14 +261,14 @@ class ReportsListScreen extends ConsumerWidget {
 
   void _navigateToGenerate(BuildContext context, WidgetRef ref) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const GenerateReportScreen()),
+      MaterialPageRoute<void>(builder: (_) => const GenerateReportScreen()),
     );
   }
 
   void _navigateToPreview(
       BuildContext context, WidgetRef ref, HealthReport report) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => ReportPreviewScreen(report: report),
       ),
     );

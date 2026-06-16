@@ -10,7 +10,6 @@ import 'package:cyra/core/design/widgets/cycle_calendar.dart';
 import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart';
 import 'package:cyra/core/constants/cycle_constants.dart';
 import 'package:cyra/core/utils/extensions.dart';
-import 'package:cyra/features/cycle/models/cycle.dart' as models;
 import 'package:cyra/features/cycle/screens/log_period_screen.dart';
 
 final _calendarProvider = ChangeNotifierProvider<_CalendarState>((ref) {
@@ -27,19 +26,6 @@ class _CalendarState extends ChangeNotifier {
   _CalendarState() : year = DateTime.now().year, month = DateTime.now().month {
     selectedDate = DateTime.now();
     _loadData();
-  }
-
-  CycleDayStatus _stringToStatus(String? phase) {
-    switch (phase) {
-      case 'menstrual':
-        return CycleDayStatus.period;
-      case 'fertile':
-        return CycleDayStatus.fertile;
-      case 'ovulation':
-        return CycleDayStatus.ovulation;
-      default:
-        return CycleDayStatus.none;
-    }
   }
 
   void _loadData() {
@@ -267,7 +253,6 @@ class CalendarScreen extends ConsumerWidget {
   Widget _buildSelectedDayDetail(BuildContext context, _CalendarState state, bool isDark, WidgetRef ref) {
     final date = state.selectedDate!;
     final dayOfWeek = DateFormat('EEE').format(date);
-    final formattedDate = DateFormat('MMM d, yyyy').format(date);
     final cycleDay = state.cycleDayForDate(date);
     final phase = state.phaseForDate(date);
     final flow = state.flowIntensity;
@@ -425,7 +410,7 @@ class CalendarScreen extends ConsumerWidget {
             'Log data for this day',
             icon: Icons.add_rounded,
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
+              MaterialPageRoute<void>(
                 builder: (_) => LogPeriodScreen(initialDate: date),
               ),
             ),
@@ -476,7 +461,7 @@ class CalendarScreen extends ConsumerWidget {
               'Log Your Period',
               icon: Icons.add_rounded,
               onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => const LogPeriodScreen(),
                 ),
               ),

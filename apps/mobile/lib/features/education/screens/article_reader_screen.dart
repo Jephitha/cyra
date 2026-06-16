@@ -541,7 +541,7 @@ class _RelatedArticlesSection extends ConsumerWidget {
           child: AppCard.interactive(
             padding: const EdgeInsets.all(AppSpacing.md),
             onTap: () => Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
+              MaterialPageRoute<void>(
                 builder: (_) => ArticleReaderScreen(articleId: r.id),
               ),
             ),

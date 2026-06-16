@@ -12,7 +12,6 @@ import 'package:cyra/core/design/widgets/confidence_badge.dart';
 import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart';
 import 'package:cyra/core/design/widgets/health_stat_card.dart';
 import 'package:cyra/core/design/widgets/flow_intensity_picker.dart';
-import 'package:cyra/core/design/widgets/symptom_selector.dart';
 import 'package:cyra/core/design/widgets/privacy_lock.dart';
 import 'package:cyra/core/design/widgets/fertility_widget.dart';
 import 'package:cyra/core/design/widgets/pregnancy_week_widget.dart';
@@ -113,7 +112,7 @@ class _DashboardState extends ChangeNotifier {
   Future<void> refresh() async {
     isRefreshing = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future<void>.delayed(const Duration(milliseconds: 600));
     isRefreshing = false;
     notifyListeners();
   }
@@ -286,7 +285,7 @@ class DashboardScreen extends ConsumerWidget {
 
     return AppCard.interactive(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => const PredictionDetailScreen(),
         ),
       ),
@@ -575,7 +574,7 @@ class DashboardScreen extends ConsumerWidget {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => const CycleHistoryScreen(),
                 ),
               ),
@@ -665,7 +664,7 @@ class DashboardScreen extends ConsumerWidget {
                   'Log Your Period',
                   icon: Icons.add_rounded,
                   onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (_) => const LogPeriodScreen(),
                     ),
                   ),
@@ -675,7 +674,7 @@ class DashboardScreen extends ConsumerWidget {
                   'Explore Calendar',
                   icon: Icons.calendar_month_rounded,
                   onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (_) => const CalendarScreen(),
                     ),
                   ),

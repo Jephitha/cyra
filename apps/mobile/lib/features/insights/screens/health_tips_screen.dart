@@ -31,7 +31,7 @@ class _TipCardData {
   bool isRead;
   bool isExpanded;
 
-  _TipCardData({required this.tip, this.isRead = false, this.isExpanded = false});
+  _TipCardData({required this.tip}) : isRead = false, isExpanded = false;
 }
 
 class HealthTipsScreen extends StatefulWidget {
@@ -205,7 +205,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Tips are contextual to your current cycle phase and based on medical guidelines. '
-          '${_unreadCount} unread',
+          '$_unreadCount unread',
           style: AppTypography.light.bodySmall?.copyWith(color: AppColors.slate),
         ),
       ],

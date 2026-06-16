@@ -1,8 +1,8 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
 export "FLUTTER_ROOT=/opt/homebrew/share/flutter"
-export "FLUTTER_APPLICATION_PATH=/Users/jotham/Documents/padt/apps/mobile"
-export "FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=/Users/jotham/Documents/padt/apps/mobile/ios/Flutter/ephemeral/Packages/.packages/FlutterFramework"
+export "FLUTTER_APPLICATION_PATH=/Users/jotham/Documents/Cyra/apps/mobile"
+export "FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=/Users/jotham/Documents/Cyra/apps/mobile/ios/Flutter/ephemeral/Packages/.packages/FlutterFramework"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib/main.dart"
 export "FLUTTER_BUILD_DIR=build"

@@ -464,18 +464,6 @@ class _ConditionDetailScreenState
     }
 
     final barData = List.generate(shortList.length, (i) {
-      final labels = [
-        'Irregular',
-        'Hair growth',
-        'Acne',
-        'Weight',
-        'Hair thinning',
-        'Fertility',
-        'Pain',
-        'Flow',
-        'Mood',
-        'Fatigue',
-      ];
       return SymptomBarData(
         label: shortList[i].length > 12
             ? '${shortList[i].substring(0, 10)}...'
@@ -653,7 +641,7 @@ class _ConditionDetailScreenState
 
   void _openTracking(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => ConditionTrackingScreen(
           conditionType: widget.conditionType,
         ),

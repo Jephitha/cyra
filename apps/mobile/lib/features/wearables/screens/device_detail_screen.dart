@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:cyra/core/design/app_colors.dart';
-import 'package:cyra/core/design/app_typography.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
@@ -257,7 +256,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
           ),
           Switch(
             value: enabled,
-            activeColor: AppColors.forestGreen,
+            activeTrackColor: AppColors.forestGreen,
             onChanged: (val) => _toggleDataType(dataType),
           ),
         ],

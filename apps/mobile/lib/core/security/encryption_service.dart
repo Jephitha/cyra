@@ -5,7 +5,6 @@ import 'dart:typed_data';
 
 import 'package:cyra/core/security/secure_storage_service.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'encryption_service.g.dart';

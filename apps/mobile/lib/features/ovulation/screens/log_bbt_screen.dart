@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/bbt_chart.dart';
-import 'package:cyra/core/utils/extensions.dart';
 
 class LogBBTScreen extends StatefulWidget {
   const LogBBTScreen({super.key});
@@ -18,7 +15,6 @@ class LogBBTScreen extends StatefulWidget {
 
 class _LogBBTScreenState extends State<LogBBTScreen> {
   String _temperatureString = '36.7';
-  bool _isEditing = false;
   String _measurementMethod = 'Oral';
   TimeOfDay _selectedTime = TimeOfDay.now();
   final TextEditingController _notesController = TextEditingController();

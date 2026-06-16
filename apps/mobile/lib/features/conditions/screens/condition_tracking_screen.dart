@@ -11,7 +11,6 @@ import 'package:cyra/core/design/widgets/symptom_selector.dart';
 import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/features/conditions/data/condition_data.dart';
 import 'package:cyra/features/conditions/models/condition_models.dart';
-import 'package:cyra/features/conditions/providers/condition_providers.dart';
 import 'package:cyra/features/symptoms/models/symptom_models.dart';
 import 'package:cyra/features/symptoms/providers/symptom_providers.dart';
 
@@ -623,12 +622,12 @@ class _ConditionTrackingScreenState
         ));
       }
 
-      if (context.mounted) {
+      if (mounted) {
         context.showSnackBar('Entry saved successfully');
         Navigator.of(context).pop();
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         context.showSnackBar('Failed to save entry', isError: true);
       }
     } finally {
@@ -639,7 +638,7 @@ class _ConditionTrackingScreenState
   }
 
   void _showInfo(BuildContext context, bool isDark) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(

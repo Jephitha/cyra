@@ -236,7 +236,7 @@ class JournalListScreen extends ConsumerWidget {
 
   void _showDayEntries(BuildContext context, WidgetRef ref, DateTime date,
       List<JournalEntry> entries, bool isDark) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -265,13 +265,13 @@ class JournalListScreen extends ConsumerWidget {
 
   void _navigateToEntry(BuildContext context, WidgetRef ref, String id) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => JournalEntryScreen(entryId: id)),
+      MaterialPageRoute<void>(builder: (_) => JournalEntryScreen(entryId: id)),
     );
   }
 
   void _navigateToNewEntry(BuildContext context, WidgetRef ref) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const NewJournalEntryScreen()),
+      MaterialPageRoute<void>(builder: (_) => const NewJournalEntryScreen()),
     );
   }
 

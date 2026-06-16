@@ -126,7 +126,7 @@ Heat Therapy
 Applying heat to the lower abdomen is one of the most effective non-pharmaceutical interventions. A 2018 Cochrane review found that heat therapy is comparable to ibuprofen for pain relief. Use a heating pad, hot water bottle, or warm bath for 15-20 minutes as needed.
 
 Exercise
-Moderate exercise increases blood flow and releases endorphins, which are natural pain relievers. A 2019 systematic review in BMC Women\'s Health found that aerobic exercise performed 3 times per week significantly reduced menstrual pain severity. Gentle yoga poses — particularly child\'s pose, cat-cow, and reclining bound angle — can be especially helpful.
+Moderate exercise increases blood flow and releases endorphins, which are natural pain relievers. A 2019 systematic review in BMC Women's Health found that aerobic exercise performed 3 times per week significantly reduced menstrual pain severity. Gentle yoga poses — particularly child's pose, cat-cow, and reclining bound angle — can be especially helpful.
 
 Dietary Adjustments
 Anti-inflammatory dietary choices may reduce cramping. Omega-3 fatty acids (found in fish, flaxseeds, and walnuts) have been shown to reduce prostaglandin production. Magnesium supplementation (200-400 mg daily) may help reduce muscle contraction intensity. Reducing salt intake can minimize water retention and bloating.
@@ -225,7 +225,7 @@ This article is for educational purposes and does not constitute medical advice.
       title: 'Basal Body Temperature: A Complete Guide',
       category: 'fertility',
       summary: 'Everything you need to know about tracking BBT accurately for fertility awareness.',
-      content: '''Basal body temperature (BBT) charting is a powerful fertility awareness method that helps you confirm ovulation and understand your cycle patterns. BBT is your body\'s temperature at complete rest, measured immediately upon waking before any activity.
+      content: '''Basal body temperature (BBT) charting is a powerful fertility awareness method that helps you confirm ovulation and understand your cycle patterns. BBT is your body's temperature at complete rest, measured immediately upon waking before any activity.
 
 How BBT Works
 
@@ -464,7 +464,7 @@ The first stage begins with regular contractions that cause the cervix to dilate
 
 Pain Management Options
 
-Non-pharmacological approaches include breathing techniques, hydrotherapy (shower or bath), massage, acupressure, movement and position changes, and continuous labor support from a doula or partner. Pharmacological options include nitrous oxide (laughing gas), which provides mild pain relief while allowing you to remain alert. Epidural anesthesia provides significant pain relief by blocking nerve signals from the lower spine. Opioid medications may be offered at some hospitals but cross the placenta and can affect the baby\'s breathing.
+Non-pharmacological approaches include breathing techniques, hydrotherapy (shower or bath), massage, acupressure, movement and position changes, and continuous labor support from a doula or partner. Pharmacological options include nitrous oxide (laughing gas), which provides mild pain relief while allowing you to remain alert. Epidural anesthesia provides significant pain relief by blocking nerve signals from the lower spine. Opioid medications may be offered at some hospitals but cross the placenta and can affect the baby's breathing.
 
 Birth Planning
 

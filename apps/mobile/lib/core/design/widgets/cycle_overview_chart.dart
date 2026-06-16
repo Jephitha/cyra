@@ -34,7 +34,6 @@ class CycleOverviewChart extends StatefulWidget {
 
 class _CycleOverviewChartState extends State<CycleOverviewChart> {
   double _averageLength = 28;
-  bool _hasAverageEntry = false;
 
   @override
   void initState() {
@@ -54,17 +53,14 @@ class _CycleOverviewChartState extends State<CycleOverviewChart> {
     final avgEntries = widget.cycleHistory.where((c) => c.isAverage).toList();
     if (avgEntries.isNotEmpty) {
       _averageLength = avgEntries.first.lengthDays.toDouble();
-      _hasAverageEntry = true;
       return;
     }
     final realCycles = widget.cycleHistory.where((c) => c.lengthDays > 0).toList();
     if (realCycles.isEmpty) {
       _averageLength = 28;
-      _hasAverageEntry = false;
       return;
     }
     _averageLength = realCycles.map((c) => c.lengthDays).reduce((a, b) => a + b) / realCycles.length;
-    _hasAverageEntry = false;
   }
 
   Color _barColor(int lengthDays) {

@@ -160,7 +160,6 @@ class CorrelationEngine {
     int bothPresent = 0;
     int aPresent = 0;
     int bPresent = 0;
-    int neitherPresent = 0;
 
     for (final day in cycleDays) {
       final hasA = day.symptomsJson?.contains(symptomA) ?? false;
@@ -172,8 +171,6 @@ class CorrelationEngine {
         aPresent++;
       } else if (hasB) {
         bPresent++;
-      } else {
-        neitherPresent++;
       }
     }
 
@@ -195,12 +192,6 @@ class CorrelationEngine {
     final pAB = bothPresent / totalDays;
     final pABgivenA =
         (aPresent + bothPresent) > 0 ? bothPresent / (aPresent + bothPresent) : 0.0;
-
-    final expectedBoth = pA * pB * totalDays;
-    final oddsRatio = expectedBoth > 0 && (totalDays - bothPresent - aPresent - bPresent) > 0
-        ? (bothPresent.toDouble() / (aPresent + neitherPresent).toDouble()) /
-            (bPresent.toDouble() / (neitherPresent + bPresent).toDouble())
-        : 1.0;
 
     final lift = pA > 0 ? (pAB / (pA * pB)) : 1.0;
     final correlationCoefficient = (lift - 1.0) / (lift + 1.0);
@@ -358,16 +349,6 @@ class CorrelationEngine {
 
     final slope =
         (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-    final intercept = (sumY - slope * sumX) / n;
-
-    double ssResidual = 0;
-    double ssTotal = 0;
-    final meanY = sumY / n;
-    for (int i = 0; i < n; i++) {
-      final predicted = slope * xValues[i] + intercept;
-      ssResidual += pow(yValues[i] - predicted, 2);
-      ssTotal += pow(yValues[i] - meanY, 2);
-    }
 
     TrendDirection direction;
     if (slope.abs() < 0.05) {

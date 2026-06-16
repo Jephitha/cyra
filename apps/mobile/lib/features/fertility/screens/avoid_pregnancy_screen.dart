@@ -4,9 +4,7 @@ import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/health_stat_card.dart';
-import 'package:cyra/core/utils/extensions.dart';
 
 final _avoidPregnancyProvider =
     ChangeNotifierProvider<_AvoidPregnancyState>((ref) {

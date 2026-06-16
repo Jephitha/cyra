@@ -88,7 +88,7 @@ class InsightDetailCard extends StatelessWidget {
 
     return AppCard.interactive(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => TopicDetailScreen(topic: topicRoute),
         ),
       ),

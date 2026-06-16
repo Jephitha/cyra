@@ -30,7 +30,6 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   String _pin = '';
   String _confirmPin = '';
   bool _showPinError = false;
-  bool _pinSubmitted = false;
   bool _isLoading = false;
 
   final _pinController = TextEditingController();
@@ -93,7 +92,6 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
       if (_pin != _confirmPin) {
         setState(() {
           _showPinError = true;
-          _pinSubmitted = true;
         });
         return;
       }
@@ -105,7 +103,6 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
         if (!mounted) return;
         setState(() {
           _showPinError = true;
-          _pinSubmitted = true;
           _isLoading = false;
         });
         return;
@@ -118,12 +115,12 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
       setState(() {
         _currentStep++;
         _showPinError = false;
-        _pinSubmitted = false;
       });
     } else {
       ref.read(onboardingStateProvider.notifier).complete();
       await ref.read(authStateNotifierProvider.notifier).authenticate();
-      if (context.mounted) context.go('/dashboard');
+      if (!mounted) return;
+      context.go('/dashboard');
     }
   }
 
@@ -132,7 +129,6 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
       setState(() {
         _currentStep--;
         _showPinError = false;
-        _pinSubmitted = false;
       });
     } else {
       context.go('/onboarding');

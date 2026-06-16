@@ -3,9 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
-import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
-import 'package:cyra/core/utils/extensions.dart';
 
 class LogIntercourseScreen extends StatefulWidget {
   const LogIntercourseScreen({super.key});
@@ -315,7 +313,7 @@ class _LogIntercourseScreenState extends State<LogIntercourseScreen> {
           Switch(
             value: _unprotected,
             onChanged: (val) => setState(() => _unprotected = val),
-            activeColor: AppColors.forestGreen,
+            activeTrackColor: AppColors.forestGreen,
             inactiveThumbColor: AppColors.slate,
           ),
         ],

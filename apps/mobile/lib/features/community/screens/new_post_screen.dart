@@ -146,7 +146,7 @@ class _NewPostScreenState extends ConsumerState<NewPostScreen> {
         const SizedBox(height: AppSpacing.sm),
         topicsAsync.when(
           data: (topics) => DropdownButtonFormField<CommunityTopic>(
-            value: _selectedTopic,
+            initialValue: _selectedTopic,
             hint: const Text('Select a topic'),
             items: topics.map((topic) {
               return DropdownMenuItem(
@@ -287,7 +287,7 @@ class _NewPostScreenState extends ConsumerState<NewPostScreen> {
         Switch.adaptive(
           value: _isAnonymous,
           onChanged: (v) => setState(() => _isAnonymous = v),
-          activeColor: AppColors.forestGreen,
+          activeTrackColor: AppColors.forestGreen,
         ),
       ],
     );
@@ -299,7 +299,7 @@ class _NewPostScreenState extends ConsumerState<NewPostScreen> {
       children: [
         InkWell(
           onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
+            MaterialPageRoute<void>(
               builder: (_) => const CommunityGuidelinesScreen(),
             ),
           ),

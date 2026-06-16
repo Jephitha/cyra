@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
-import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
-import 'package:cyra/core/utils/extensions.dart';
 
 class LogOPKScreen extends StatefulWidget {
   const LogOPKScreen({super.key});
@@ -46,18 +43,6 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
     Navigator.of(context).pop();
   }
 
-  String _resultIcon(String result) {
-    switch (result) {
-      case 'Positive':
-        return '🙂';
-      case 'Negative':
-        return '😐';
-      case 'Fading':
-        return '🤔';
-      default:
-        return '';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -293,7 +278,7 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
         ),
         const SizedBox(height: AppSpacing.sm),
         DropdownButtonFormField<String>(
-          value: _brand,
+          initialValue: _brand,
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.sm),

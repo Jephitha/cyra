@@ -7,7 +7,6 @@ import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/health_stat_card.dart';
-import 'package:cyra/core/design/widgets/fertility_widget.dart';
 import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart';
 import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/features/fertility/screens/log_intercourse_screen.dart';
@@ -477,7 +476,7 @@ class TTCDashboardScreen extends ConsumerWidget {
               icon: Icons.add_rounded,
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (_) => const LogIntercourseScreen(),
                   ),
                 );

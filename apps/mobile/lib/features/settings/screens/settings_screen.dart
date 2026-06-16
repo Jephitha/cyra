@@ -4,9 +4,7 @@ import 'package:cyra/core/constants/app_constants.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/app_typography.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
-import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/providers/settings_providers.dart';
 import 'package:cyra/features/privacy/screens/privacy_controls_screen.dart';
 import 'package:cyra/features/settings/screens/appearance_screen.dart';
@@ -17,8 +15,6 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.warmIvory;
 
     return Scaffold(
       appBar: AppBar(
@@ -120,7 +116,7 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: 'Lock, PIN, private mode, data controls',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const PrivacyControlsScreen()),
+              MaterialPageRoute<void>(builder: (_) => const PrivacyControlsScreen()),
             ),
           ),
         ],
@@ -138,7 +134,7 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: 'Light, dark, system, text size, colors',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const AppearanceScreen()),
+              MaterialPageRoute<void>(builder: (_) => const AppearanceScreen()),
             ),
           ),
         ],
@@ -158,7 +154,7 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: 'Period reminders, cycle alerts, privacy',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+              MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()),
             ),
           ),
           const Divider(height: 1),
@@ -170,7 +166,7 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: 'Master toggle for all notifications',
                 trailing: Switch.adaptive(
                   value: enabled,
-                  activeColor: AppColors.forestGreen,
+                  activeTrackColor: AppColors.forestGreen,
                   onChanged: (v) => ref.read(notificationsEnabledProvider.notifier).setEnabled(v),
                 ),
               );
@@ -229,7 +225,7 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: 'Automatically sync wearable data',
                 trailing: Switch.adaptive(
                   value: enabled,
-                  activeColor: AppColors.forestGreen,
+                  activeTrackColor: AppColors.forestGreen,
                   onChanged: (v) => ref.read(wearableSyncEnabledProvider.notifier).setEnabled(v),
                 ),
               );
@@ -355,7 +351,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showUnitsPicker(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(
@@ -389,7 +385,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showTemperaturePicker(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(
@@ -421,7 +417,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showLanguagePicker(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(

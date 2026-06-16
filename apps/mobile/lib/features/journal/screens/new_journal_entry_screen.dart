@@ -12,7 +12,6 @@ import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/features/journal/models/journal_models.dart';
 import 'package:cyra/features/journal/providers/journal_providers.dart';
 
@@ -36,15 +35,13 @@ class _NewJournalEntryScreenState extends ConsumerState<NewJournalEntryScreen> {
   late TextEditingController _contentController;
   late DateTime _selectedDate;
   int _moodRating = 0;
-  List<String> _photoPaths = [];
-  List<String> _voiceNotePaths = [];
+  final List<String> _photoPaths = [];
+  final List<String> _voiceNotePaths = [];
   bool _isSaving = false;
   int _currentPromptIndex = 0;
 
   final AudioRecorder _recorder = AudioRecorder();
   bool _isRecording = false;
-  String? _recordingPath;
-  bool _isAudioPlaying = false;
 
   final List<String> _prompts = [
     'How are you feeling today?',
@@ -177,7 +174,6 @@ class _NewJournalEntryScreenState extends ConsumerState<NewJournalEntryScreen> {
       await _recorder.start(const RecordConfig(), path: path);
       setState(() {
         _isRecording = true;
-        _recordingPath = path;
       });
     } catch (e) {
       if (mounted) {

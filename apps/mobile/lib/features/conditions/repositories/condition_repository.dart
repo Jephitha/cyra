@@ -122,7 +122,7 @@ class ConditionRepository {
       case 'thyroid':
         return _detectThyroidPatterns(logs);
       default:
-        return {'patterns': [], 'insights': []};
+        return {'patterns': <String>[], 'insights': <String>[]};
     }
   }
 

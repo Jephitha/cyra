@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
-import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/features/auth/providers/auth_providers.dart';
 
@@ -258,7 +257,6 @@ class _OnboardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isActive = index == currentPage;
     final offset = (index - currentPage).toDouble();
 
     return AnimatedOpacity(

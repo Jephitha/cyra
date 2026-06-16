@@ -5,13 +5,10 @@ import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/health_timeline.dart';
 import 'package:cyra/core/design/widgets/bbt_chart.dart';
 import 'package:cyra/core/design/widgets/symptom_bar_chart.dart';
 import 'package:cyra/core/design/widgets/health_stat_card.dart';
-import 'package:cyra/core/utils/extensions.dart';
-import 'package:cyra/features/cycle/models/cycle.dart';
 
 final _cycleDetailProvider = ChangeNotifierProvider.family<_CycleDetailState, int>((ref, cycleId) {
   return _CycleDetailState(cycleId);

@@ -15,8 +15,8 @@ class AIDisclaimerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         body: SafeArea(
           child: ListView(

@@ -30,7 +30,6 @@ class SyncProgress {
 }
 
 class SyncService {
-  final db.AppDatabase _database;
   final CycleDao _cycleDao;
   final BbtDao _bbtDao;
   final SupabaseClientService _supabase;
@@ -46,7 +45,7 @@ class SyncService {
   static const int _maxRetries = 3;
 
   SyncService(
-    this._database,
+    db.AppDatabase database,
     this._cycleDao,
     this._bbtDao,
     this._supabase,
@@ -125,7 +124,7 @@ class SyncService {
         return;
       } catch (e) {
         if (attempt < _maxRetries) {
-          await Future.delayed(_backoffDuration(attempt));
+          await Future<void>.delayed(_backoffDuration(attempt));
         } else {
           rethrow;
         }

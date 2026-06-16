@@ -41,7 +41,7 @@ class ReportRepository {
           _buildStatRow(context, 'Average Period Length',
               '${reportData.averagePeriodLength.toStringAsFixed(1)} days'),
           _buildStatRow(context, 'Variability Score',
-              '${reportData.variabilityScore.toStringAsFixed(2)}'),
+              reportData.variabilityScore.toStringAsFixed(2)),
           pw.SizedBox(height: 20),
           _buildSectionTitle(context, 'Cycle Details'),
           if (cycleData.isEmpty)
@@ -87,7 +87,7 @@ class ReportRepository {
           _buildStatRow(context, 'Average Period Length',
               '${reportData.averagePeriodLength.toStringAsFixed(1)} days'),
           _buildStatRow(context, 'Variability Score',
-              '${reportData.variabilityScore.toStringAsFixed(2)}'),
+              reportData.variabilityScore.toStringAsFixed(2)),
           pw.SizedBox(height: 20),
           _buildSectionTitle(context, 'Fertile Window Estimates'),
           if (cycleData.isEmpty)
@@ -251,7 +251,7 @@ class ReportRepository {
     return logs.map((log) {
       final symptom = symptomMap[log.symptomId];
       return SymptomEntry(
-        id: '${log.id}',
+        id: log.id,
         name: symptom?.name ?? log.symptomId,
         category: symptom?.category ?? 'general',
         loggedAt: log.date,

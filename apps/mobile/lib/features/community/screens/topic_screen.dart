@@ -51,6 +51,7 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
     setState(() => _isLoadingMore = true);
 
     try {
+      // ignore: unused_result
       await ref.refresh(
         topicPostsProvider(widget.topic.id, page: _page + 1).future,
       );
@@ -62,6 +63,7 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
 
   Future<void> _onRefresh() async {
     setState(() => _page = 0);
+    // ignore: unused_result
     await ref.refresh(topicPostsProvider(widget.topic.id).future);
   }
 
@@ -85,7 +87,7 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (_) => NewPostScreen(topic: widget.topic),
           ),
         ).then((_) => _onRefresh()),
@@ -185,7 +187,7 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
   Widget _buildGuidelinesReminder(BuildContext context, bool isDark) {
     return InkWell(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => const CommunityGuidelinesScreen(),
         ),
       ),
@@ -261,7 +263,7 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
           const SizedBox(height: AppSpacing.md),
           GestureDetector(
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
+              MaterialPageRoute<void>(
                 builder: (_) => PostDetailScreen(post: post),
               ),
             ),
@@ -277,7 +279,7 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
             const SizedBox(height: AppSpacing.xs),
             GestureDetector(
               onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => PostDetailScreen(post: post),
                 ),
               ),
@@ -411,7 +413,7 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
   }
 
   void _showReportOption(BuildContext context, String postId) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(
@@ -441,7 +443,7 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
   void _showReportReasonDialog(BuildContext context, String postId) {
     final controller = TextEditingController();
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Report Post'),

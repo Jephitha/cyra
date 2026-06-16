@@ -51,8 +51,6 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.warmIvory;
 
     return Scaffold(
       appBar: AppBar(
@@ -195,10 +193,13 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
                             ],
                           ),
                         ),
+                        // ignore: deprecated_member_use
                         Radio<String>(
                           value: option['id'] as String,
+                          // ignore: deprecated_member_use
                           groupValue: _selectedTrigger,
                           activeColor: AppColors.forestGreen,
+                          // ignore: deprecated_member_use
                           onChanged: (v) =>
                               setState(() => _selectedTrigger = v),
                         ),

@@ -40,7 +40,6 @@ class SymptomRepository {
   }
 
   Future<SymptomEntry> updateSymptomEntry(SymptomEntry entry) async {
-    final now = DateTime.now();
 
     await (_db.update(_db.symptomLogs)
           ..where((t) => t.id.equals(entry.id)))
@@ -110,7 +109,6 @@ class SymptomRepository {
           ..where((t) => t.date.isBetween(Variable(rangeStart), Variable(rangeEnd))))
         .get();
 
-    final cycleDays = await _db.select(_db.cycleDays).get();
 
     final grouped = <String, List<SymptomLog>>{};
     for (final log in logs) {
@@ -410,27 +408,5 @@ class SymptomRepository {
       default:
         return 'menstrual';
     }
-  }
-
-  String _buildDayRanges(List<int> days) {
-    if (days.isEmpty) return '';
-    if (days.length == 1) return days.first.toString();
-
-    final ranges = <String>[];
-    int start = days.first;
-    int prev = start;
-
-    for (int i = 1; i < days.length; i++) {
-      if (days[i] == prev + 1) {
-        prev = days[i];
-      } else {
-        ranges.add(start == prev ? '$start' : '$start-$prev');
-        start = days[i];
-        prev = start;
-      }
-    }
-    ranges.add(start == prev ? '$start' : '$start-$prev');
-
-    return ranges.join(', ');
   }
 }
