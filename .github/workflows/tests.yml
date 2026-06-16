@@ -1,0 +1,86 @@
+name: Tests & Benchmarks
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - develop
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.44.0'
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+      - run: flutter pub get
+        working-directory: apps/mobile
+      - run: flutter test --coverage --coverage-path=coverage/lcov.info
+        working-directory: apps/mobile
+      - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: apps/mobile/coverage
+          fail_ci_if_error: false
+
+  widget-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+      - run: flutter pub get
+        working-directory: apps/mobile
+      - run: flutter test --tags=widget
+        working-directory: apps/mobile
+
+  integration-tests:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        api-level: [29, 34]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+      - run: flutter pub get
+        working-directory: apps/mobile
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: |
+            adb install apps/mobile/build/app/outputs/flutter-apk/app-debug.apk
+            flutter test integration_test/
+          working-directory: apps/mobile
+
+  performance-benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+      - run: flutter pub get
+        working-directory: apps/mobile
+      - name: Run benchmark tests
+        run: flutter test --tags=benchmark --dart-define=benchmark=true
+        working-directory: apps/mobile
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: apps/mobile/benchmark_results.json
+          retention-days: 30

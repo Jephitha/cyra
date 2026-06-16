@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+env:
+  FLUTTER_VERSION: '3.44.0'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+      - run: flutter pub get
+        working-directory: apps/mobile
+      - run: flutter analyze
+        working-directory: apps/mobile
+      - run: dart format --set-exit-if-changed lib/ test/
+        working-directory: apps/mobile
+
+  test:
+    needs: analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+      - run: flutter pub get
+        working-directory: apps/mobile
+      - run: flutter test --coverage --coverage-path=coverage/lcov.info
+        working-directory: apps/mobile
+      - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: apps/mobile/coverage
+          fail_ci_if_error: false
+
+  build-android:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+      - run: flutter pub get
+        working-directory: apps/mobile
+      - run: flutter build apk --release
+        working-directory: apps/mobile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-release-apk
+          path: apps/mobile/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+
+  build-ios:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+      - run: flutter pub get
+        working-directory: apps/mobile
+      - run: flutter build ios --release --no-codesign
+        working-directory: apps/mobile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-release-build
+          path: apps/mobile/build/ios/iphoneos/Runner.app
+          retention-days: 7

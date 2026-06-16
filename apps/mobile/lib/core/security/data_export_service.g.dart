@@ -1,0 +1,27 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'data_export_service.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+String _$dataExportServiceHash() => r'a3c441e458d5d9fe68a26a333ea043388b3471d8';
+
+/// See also [dataExportService].
+@ProviderFor(dataExportService)
+final dataExportServiceProvider = Provider<DataExportService>.internal(
+  dataExportService,
+  name: r'dataExportServiceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$dataExportServiceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef DataExportServiceRef = ProviderRef<DataExportService>;
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
