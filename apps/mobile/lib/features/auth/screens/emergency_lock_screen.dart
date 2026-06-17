@@ -80,7 +80,7 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
 
       if (authenticated && mounted) {
         ref.read(isEmergencyLockedProvider.notifier).deactivate();
-        await ref.read(authStateNotifierProvider.notifier).authenticate();
+        ref.read(authStateNotifierProvider.notifier).authenticate();
         if (mounted) context.go('/dashboard');
       }
     } catch (_) {}

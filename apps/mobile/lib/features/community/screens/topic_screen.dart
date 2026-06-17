@@ -8,6 +8,7 @@ import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/features/community/models/community_models.dart';
 import 'package:cyra/features/community/providers/community_providers.dart';
+import 'package:cyra/features/community/repositories/community_repository.dart';
 import 'package:cyra/features/community/screens/new_post_screen.dart';
 import 'package:cyra/features/community/screens/post_detail_screen.dart';
 import 'package:cyra/features/community/screens/community_guidelines_screen.dart';
@@ -25,6 +26,8 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
   final ScrollController _scrollController = ScrollController();
   int _page = 0;
   bool _isLoadingMore = false;
+  bool _hasMore = true;
+  final List<CommunityPost> _allPosts = [];
 
   @override
   void initState() {
@@ -47,24 +50,34 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
   }
 
   Future<void> _loadMore() async {
-    if (_isLoadingMore) return;
+    if (_isLoadingMore || !_hasMore) return;
     setState(() => _isLoadingMore = true);
 
     try {
-      // ignore: unused_result
-      await ref.refresh(
+      final newPosts = await ref.read(
         topicPostsProvider(widget.topic.id, page: _page + 1).future,
       );
-      setState(() => _page++);
+      if (newPosts.isEmpty) {
+        _hasMore = false;
+      } else {
+        setState(() {
+          _page++;
+          _allPosts.addAll(newPosts);
+        });
+      }
     } catch (_) {}
 
-    setState(() => _isLoadingMore = false);
+    if (mounted) setState(() => _isLoadingMore = false);
   }
 
   Future<void> _onRefresh() async {
-    setState(() => _page = 0);
-    // ignore: unused_result
-    await ref.refresh(topicPostsProvider(widget.topic.id).future);
+    setState(() {
+      _page = 0;
+      _hasMore = true;
+      _allPosts.clear();
+    });
+    final posts = await ref.refresh(topicPostsProvider(widget.topic.id).future);
+    if (mounted) setState(() => _allPosts.addAll(posts));
   }
 
   @override
@@ -100,9 +113,18 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
         onRefresh: _onRefresh,
         color: AppColors.forestGreen,
         child: postsAsync.when(
-          data: (posts) => _buildPostList(context, posts, isDark),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => _buildError(context, e.toString(), isDark),
+          data: (posts) {
+            if (_page == 0 && _allPosts.isEmpty) {
+              _allPosts.addAll(posts);
+            }
+            return _buildPostList(context, _allPosts, isDark);
+          },
+          loading: () => _allPosts.isEmpty
+              ? const Center(child: CircularProgressIndicator())
+              : _buildPostList(context, _allPosts, isDark),
+          error: (e, _) => _allPosts.isEmpty
+              ? _buildError(context, e.toString(), isDark)
+              : _buildPostList(context, _allPosts, isDark),
         ),
       ),
     );
@@ -472,13 +494,30 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final reason = controller.text.trim();
+              if (reason.isEmpty) return;
               Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Report submitted. Thank you.'),
-                ),
-              );
+              try {
+                await ref.read(communityRepositoryProvider).reportContent(
+                  contentType: 'post',
+                  contentId: postId,
+                  reason: reason,
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Report submitted. Thank you.'),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to submit report: $e')),
+                  );
+                }
+              }
             },
             child: const Text('Submit'),
           ),

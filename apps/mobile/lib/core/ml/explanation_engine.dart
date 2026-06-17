@@ -64,16 +64,16 @@ class ExplanationEngine {
             '${correlation.isSignificant ? "This pattern is statistically significant and may be meaningful for tracking." : "More data is needed to confirm this pattern."}';
   }
 
-  String explainFertilityStatus(FertileWindow window, int cycleDay) {
+  String explainFertilityStatus(FertileWindow window, int cycleDay, {DateTime? cycleStartDate}) {
     final buffer = StringBuffer();
     final windowStart = _formatDate(window.windowStart);
 
     if (window.isInWindow) {
       buffer.write(
         'You are currently in your fertile window '
-        '(cycle days ${_dayOfCycle(window.windowStart)}-${_dayOfCycle(window.windowEnd)}).',
+        '(cycle days ${_windowDay(window.windowStart, cycleStartDate)}-${_windowDay(window.windowEnd, cycleStartDate)}).',
       );
-    } else if (cycleDay < _dayOfCycle(window.windowStart)) {
+    } else if (cycleDay < _windowDay(window.windowStart, cycleStartDate)) {
       buffer.write(
         'Your fertile window is approaching — '
         'expected to start around $windowStart.',
@@ -285,7 +285,10 @@ class ExplanationEngine {
     };
   }
 
-  int _dayOfCycle(DateTime date) {
+  int _windowDay(DateTime date, [DateTime? cycleStart]) {
+    if (cycleStart != null) {
+      return date.difference(cycleStart).inDays + 1;
+    }
     return date.day;
   }
 

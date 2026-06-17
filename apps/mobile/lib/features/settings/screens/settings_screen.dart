@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:cyra/core/constants/app_constants.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/app_typography.dart';
@@ -91,7 +92,7 @@ class SettingsScreen extends ConsumerWidget {
             label: 'Profile',
             subtitle: 'Name, email, date of birth',
             trailing: Text('Jotham', style: TextStyle(color: AppColors.slate, fontSize: 14)),
-            onTap: () {},
+            onTap: () => _showProfileEditDialog(context),
           ),
           const Divider(height: 1),
           _SettingsRow(
@@ -99,7 +100,15 @@ class SettingsScreen extends ConsumerWidget {
             label: 'Sync Preferences',
             subtitle: 'iCloud / Google Drive sync settings',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () {},
+            onTap: () => _showSyncSheet(context),
+          ),
+          const Divider(height: 1),
+          _SettingsRow(
+            icon: Icons.login_rounded,
+            label: 'Cloud Account',
+            subtitle: 'Sign in to sync your data across devices',
+            trailing: Icon(Icons.chevron_right, color: AppColors.slate),
+            onTap: () => context.go('/sign-in'),
           ),
         ],
       ),
@@ -451,6 +460,103 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.lg),
           ],
         ),
+      ),
+    );
+  }
+  void _showSyncSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Sync Preferences',
+                style: AppTypography.light.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'iCloud and Google Drive sync coming in a future update.',
+                style: AppTypography.light.bodyMedium?.copyWith(
+                  color: AppColors.slate,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.forestGreen,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showProfileEditDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          'Edit Profile',
+          style: AppTypography.light.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
+                initialValue: 'Jotham',
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email_outlined),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Date of Birth',
+                  prefixIcon: Icon(Icons.calendar_today_outlined),
+                ),
+                keyboardType: TextInputType.datetime,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.slate),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }

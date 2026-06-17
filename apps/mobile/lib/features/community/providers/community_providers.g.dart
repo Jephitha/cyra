@@ -177,7 +177,7 @@ class _TopicPostsProviderElement
   int get page => (origin as TopicPostsProvider).page;
 }
 
-String _$postDetailHash() => r'6385bf8e8f22c765760ddf19f58e097da7dd8588';
+String _$postDetailHash() => r'9cc9d4d0dc9710f4276254f7488d9bc4c2404c4d';
 
 /// See also [postDetail].
 @ProviderFor(postDetail)
@@ -314,5 +314,21 @@ final myCommunityPostsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef MyCommunityPostsRef = AutoDisposeFutureProviderRef<List<CommunityPost>>;
+String _$joinedTopicsHash() => r'c7112df4495026ddbbfaab6a1674476860820b32';
+
+/// See also [JoinedTopics].
+@ProviderFor(JoinedTopics)
+final joinedTopicsProvider =
+    NotifierProvider<JoinedTopics, Set<String>>.internal(
+      JoinedTopics.new,
+      name: r'joinedTopicsProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$joinedTopicsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$JoinedTopics = Notifier<Set<String>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -8,10 +8,14 @@ import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/confidence_badge.dart';
-import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart';
+import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart' as indicator;
 import 'package:cyra/core/design/widgets/health_stat_card.dart';
 import 'package:cyra/core/utils/extensions.dart';
+import 'package:cyra/core/ml/correlation_engine.dart';
+import 'package:cyra/core/ml/health_insights_engine.dart';
 import 'package:cyra/features/cycle/models/cycle.dart' as models;
+import 'package:cyra/features/insights/providers/insight_providers.dart';
+import 'package:cyra/features/insights/models/insight_models.dart';
 import 'package:cyra/features/insights/screens/topic_detail_screen.dart';
 import 'package:cyra/features/insights/screens/health_tips_screen.dart';
 import 'package:cyra/features/insights/screens/ai_disclaimer_screen.dart';
@@ -21,137 +25,12 @@ final _insightsHubProvider = ChangeNotifierProvider<_InsightsHubState>((ref) {
 });
 
 class _InsightsHubState extends ChangeNotifier {
-  bool isLoading = true;
-  bool hasData = true;
   bool aiDisclaimerAccepted = false;
-  bool emptyState = false;
-
-  int symptomsLogged = 8;
-  int daysTracked = 14;
-  double moodAverage = 3.5;
-  String keyInsight = 'Your symptoms are most intense during the luteal phase. Consider tracking stress levels for a clearer picture.';
-  String healthTip = 'Stay hydrated during your luteal phase to reduce bloating and fatigue.';
-
-  CyclePhase currentPhase = CyclePhase.luteal;
-  int currentCycleDay = 22;
-  int cycleLength = 28;
-
-  models.PredictionResult? prediction;
-  String fertileWindowStatus = 'Fertile window ended 3 days ago';
-  String ovulationStatus = 'Ovulation confirmed on day 14';
-
-  List<_ImpactfulSymptom> topSymptoms = [];
-  String regularityStatus = 'Regular';
-  String cycleTrend = 'Stable';
-  int cycleCount = 6;
-  double averageCycleLength = 28;
-
-  List<_HealthTip> tips = [];
-  List<String> exampleQuestions = [
-    'Why is my cycle irregular?',
-    'When am I most fertile?',
-    'What does my symptom pattern mean?',
-    'How can I manage period pain?',
-  ];
-  String askCyraResponse = '';
-
-  _InsightsHubState() {
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    isLoading = true;
-    notifyListeners();
-
-    prediction = models.PredictionResult(
-      predictedDate: DateTime.now().add(const Duration(days: 6)),
-      confidenceScore: 0.88,
-      variabilityScore: 1.5,
-      predictionRangeStart: DateTime.now().add(const Duration(days: 4)),
-      predictionRangeEnd: DateTime.now().add(const Duration(days: 8)),
-      explanation: 'Based on your last 6 cycles with an average length of 28 days.',
-    );
-
-    topSymptoms = [
-      _ImpactfulSymptom(
-        name: 'Bloating',
-        frequency: 12,
-        severity: 3.2,
-        phaseCorrelation: 'Luteal phase (days 19-22)',
-      ),
-      _ImpactfulSymptom(
-        name: 'Fatigue',
-        frequency: 10,
-        severity: 3.8,
-        phaseCorrelation: 'Late luteal phase (days 22-26)',
-      ),
-      _ImpactfulSymptom(
-        name: 'Cramps',
-        frequency: 8,
-        severity: 2.5,
-        phaseCorrelation: 'Menstrual phase (days 1-3)',
-      ),
-    ];
-
-    tips = [
-      _HealthTip(
-        category: _TipCategory.nutrition,
-        tip: 'Increase iron-rich foods during your menstrual phase to replenish what\'s lost.',
-        phase: 'Menstrual',
-      ),
-      _HealthTip(
-        category: _TipCategory.exercise,
-        tip: 'Gentle yoga and stretching can help ease menstrual cramps.',
-        phase: 'Menstrual',
-      ),
-      _HealthTip(
-        category: _TipCategory.sleep,
-        tip: 'Your progesterone rises in the luteal phase, which may affect sleep. Try a consistent bedtime.',
-        phase: 'Luteal',
-      ),
-    ];
-
-    isLoading = false;
-    notifyListeners();
-  }
 
   void acceptDisclaimer() {
     aiDisclaimerAccepted = true;
     notifyListeners();
   }
-
-  void onAskCyra(String question) {
-    final responses = {
-      'Why is my cycle irregular?': 'Cycle irregularity can be influenced by stress, significant weight changes, hormonal imbalances, or conditions like PCOS. Based on your logs, your cycle length varies by 1-3 days, which is within normal range.',
-      'When am I most fertile?': 'Based on your average 28-day cycle, your fertile window is approximately days 8-19, with ovulation around day 14. This is when you\'re most likely to conceive.',
-      'What does my symptom pattern mean?': 'Your logged symptoms show a pattern: bloating and fatigue peak in the luteal phase, while cramps occur at the start of menstruation. This pattern is common and consistent with normal hormonal fluctuations.',
-      'How can I manage period pain?': 'Based on your logged data, your cramps are mild to moderate. Over-the-counter anti-inflammatories, heat therapy, gentle exercise, and adequate hydration may help. Consult your healthcare provider for persistent pain.',
-    };
-    askCyraResponse = responses[question] ?? 'I can help with cycle-related questions. Try asking about your cycle regularity, fertile window, or symptom patterns.';
-    notifyListeners();
-  }
-}
-
-enum _TipCategory { nutrition, exercise, sleep, stress, symptomManagement }
-
-class _HealthTip {
-  final _TipCategory category;
-  final String tip;
-  final String phase;
-  const _HealthTip({required this.category, required this.tip, required this.phase});
-}
-
-class _ImpactfulSymptom {
-  final String name;
-  final int frequency;
-  final double severity;
-  final String phaseCorrelation;
-  const _ImpactfulSymptom({
-    required this.name,
-    required this.frequency,
-    required this.severity,
-    required this.phaseCorrelation,
-  });
 }
 
 class InsightsHubScreen extends ConsumerWidget {
@@ -160,54 +39,86 @@ class InsightsHubScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(_insightsHubProvider);
+    final dashboardAsync = ref.watch(dashboardInsightsProvider);
+    final weeklyAsync = ref.watch(weeklySummaryProvider);
+    final tipAsync = ref.watch(healthTipProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    if (state.isLoading) return _buildLoadingState(context);
-
-    if (state.emptyState) return _buildEmptyState(context, state, ref, isDark);
-
     if (!state.aiDisclaimerAccepted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => AIDisclaimerScreen(
-              onAccept: () => ref.read(_insightsHubProvider.notifier).acceptDisclaimer(),
-            ),
-          ),
-        );
-      });
+      return AIDisclaimerScreen(
+        onAccept: () => ref.read(_insightsHubProvider.notifier).acceptDisclaimer(),
+      );
     }
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () async {},
+        onRefresh: () => ref.refresh(dashboardInsightsProvider.future),
         color: AppColors.forestGreen,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xxxxl, AppSpacing.lg, AppSpacing.xxxl),
-          children: [
-            _buildHeader(context, state, isDark),
-            const SizedBox(height: AppSpacing.lg),
-            _buildWeeklySummary(context, state, isDark),
-            const SizedBox(height: AppSpacing.lg),
-            _buildSmartPredictions(context, state, isDark),
-            const SizedBox(height: AppSpacing.lg),
-            _buildSymptomInsights(context, state, isDark),
-            const SizedBox(height: AppSpacing.lg),
-            _buildCycleInsights(context, state, isDark),
-            const SizedBox(height: AppSpacing.lg),
-            _buildPersonalizedTips(context, state, isDark, ref),
-            const SizedBox(height: AppSpacing.lg),
-            _buildAskCyra(context, state, isDark, ref),
-            const SizedBox(height: AppSpacing.xxl),
-            _buildDisclaimer(context, isDark),
-          ],
+        child: dashboardAsync.when(
+          data: (dashboard) {
+            if (dashboard.nextPeriod.confidenceScore < 0.01) {
+              return _buildEmptyState(context, isDark, ref);
+            }
+            return _buildContent(context, dashboard, weeklyAsync, tipAsync, isDark, ref);
+          },
+          loading: () => _buildLoadingState(context, isDark),
+          error: (_, __) => _buildEmptyState(context, isDark, ref),
         ),
       ),
     );
   }
 
-  Widget _buildLoadingState(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildContent(
+    BuildContext context,
+    DashboardInsights dashboard,
+    AsyncValue<WeeklySummary> weeklyAsync,
+    AsyncValue<String> tipAsync,
+    bool isDark,
+    WidgetRef ref,
+  ) {
+
+    final prediction = dashboard.nextPeriod;
+    final regularity = dashboard.regularity;
+    final topSymptoms = dashboard.topSymptoms;
+    final fertileWindow = dashboard.fertileWindow;
+
+    String fertileWindowStatus = 'Track your cycle to see your fertile window';
+    if (fertileWindow != null) {
+      if (fertileWindow.isInWindow) {
+        fertileWindowStatus = 'In fertile window';
+      } else {
+        fertileWindowStatus = 'Fertile window: ${_formatDate(fertileWindow.windowStart)} - ${_formatDate(fertileWindow.windowEnd)}';
+      }
+    }
+
+    String ovulationStatus = 'Insufficient data';
+    if (fertileWindow?.ovulationDate != null) {
+      ovulationStatus = 'Ovulation around ${_formatDate(fertileWindow!.ovulationDate!)}';
+    }
+
+    final symptomsLogged = topSymptoms.fold<int>(0, (int a, ImpactfulSymptom b) => a + b.frequency);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xxxxl, AppSpacing.lg, AppSpacing.xxxl),
+      children: [
+        _buildHeader(context, dashboard.currentPhase, isDark),
+        const SizedBox(height: AppSpacing.lg),
+        _buildWeeklySummary(context, dashboard.weeklySummary, symptomsLogged, topSymptoms.length, weeklyAsync, isDark),
+        const SizedBox(height: AppSpacing.lg),
+        _buildSmartPredictions(context, prediction, fertileWindowStatus, ovulationStatus, isDark),
+        const SizedBox(height: AppSpacing.lg),
+        _buildSymptomInsights(context, topSymptoms, isDark),
+        const SizedBox(height: AppSpacing.lg),
+        _buildCycleInsights(context, regularity, isDark),
+        const SizedBox(height: AppSpacing.lg),
+        _buildPersonalizedTips(context, tipAsync, isDark),
+        const SizedBox(height: AppSpacing.lg),
+        _buildDisclaimer(context, isDark),
+      ],
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context, bool isDark) {
     final baseColor = isDark ? AppColors.charcoal.withValues(alpha: 0.3) : AppColors.borderLight;
     final highlightColor = isDark ? AppColors.charcoal.withValues(alpha: 0.5) : AppColors.mistWhite;
 
@@ -243,52 +154,59 @@ class InsightsHubScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, _InsightsHubState state, WidgetRef ref, bool isDark) {
-    return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xxxl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppColors.forestGreen.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.auto_awesome, size: 40, color: AppColors.forestGreen),
+  Widget _buildEmptyState(BuildContext context, bool isDark, WidgetRef ref) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xxxl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.forestGreen.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
               ),
-              const SizedBox(height: AppSpacing.xxl),
-              Text(
-                'Your AI Insights',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Icon(Icons.auto_awesome, size: 40, color: AppColors.forestGreen),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            Text(
+              'Your AI Insights',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                'Track your cycles to unlock personalized AI insights about your patterns and health.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.slate,
-                ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Track your cycles to unlock personalized AI insights about your patterns and health.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColors.slate,
               ),
-              const SizedBox(height: AppSpacing.xxxl),
-              AppButton.primary(
-                'Start Tracking',
-                icon: Icons.add_rounded,
-                onPressed: () {},
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            AppButton.primary(
+              'Start Tracking',
+              icon: Icons.add_rounded,
+              onPressed: () => Navigator.of(context).pushNamed('/calendar'),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, _InsightsHubState state, bool isDark) {
+  indicator.CyclePhase _toIndicatorPhase(models.CyclePhase phase) {
+    switch (phase) {
+      case models.CyclePhase.menstrual: return indicator.CyclePhase.menstrual;
+      case models.CyclePhase.follicular: return indicator.CyclePhase.follicular;
+      case models.CyclePhase.ovulation: return indicator.CyclePhase.ovulation;
+      case models.CyclePhase.luteal: return indicator.CyclePhase.luteal;
+    }
+  }
+
+  Widget _buildHeader(BuildContext context, models.CyclePhase phase, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -321,15 +239,24 @@ class InsightsHubScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        CyclePhaseIndicator(
-          phase: state.currentPhase,
-          size: CyclePhaseIndicatorSize.medium,
+        indicator.CyclePhaseIndicator(
+          phase: _toIndicatorPhase(phase),
+          size: indicator.CyclePhaseIndicatorSize.medium,
         ),
       ],
     );
   }
 
-  Widget _buildWeeklySummary(BuildContext context, _InsightsHubState state, bool isDark) {
+  Widget _buildWeeklySummary(
+    BuildContext context,
+    String weeklySummary,
+    int symptomsLogged,
+    int uniqueSymptoms,
+    AsyncValue<WeeklySummary> weeklyAsync,
+    bool isDark,
+  ) {
+    final weekly = weeklyAsync.asData?.value;
+
     return AppCard.highlighted(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -349,34 +276,47 @@ class InsightsHubScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              HealthStatCard(
-                label: 'Symptoms Logged',
-                value: '${state.symptomsLogged}',
-                icon: Icons.healing_outlined,
-                accentColor: AppColors.sage,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: HealthStatCard(
-                  label: 'Days Tracked',
-                  value: '${state.daysTracked}',
-                  icon: Icons.calendar_today_rounded,
-                  accentColor: AppColors.forestGreen,
+          if (weekly != null) ...[
+            Row(
+              children: [
+                HealthStatCard(
+                  label: 'Symptoms Logged',
+                  value: '${weekly.symptomCount}',
+                  icon: Icons.healing_outlined,
+                  accentColor: AppColors.sage,
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: HealthStatCard(
-                  label: 'Mood Average',
-                  value: state.moodAverage.toStringAsFixed(1),
-                  icon: Icons.favorite_outlined,
-                  accentColor: AppColors.softGold,
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: HealthStatCard(
+                    label: 'Mood Average',
+                    value: weekly.moodAverage.toStringAsFixed(1),
+                    icon: Icons.favorite_outlined,
+                    accentColor: AppColors.softGold,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ] else ...[
+            Row(
+              children: [
+                HealthStatCard(
+                  label: 'Symptoms Logged',
+                  value: '$symptomsLogged',
+                  icon: Icons.healing_outlined,
+                  accentColor: AppColors.sage,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: HealthStatCard(
+                    label: 'Unique Types',
+                    value: '$uniqueSymptoms',
+                    icon: Icons.category_outlined,
+                    accentColor: AppColors.forestGreen,
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: AppSpacing.md),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
@@ -391,7 +331,7 @@ class InsightsHubScreen extends ConsumerWidget {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
-                    state.keyInsight,
+                    weekly?.keyInsight ?? weeklySummary,
                     style: AppTypography.light.bodySmall?.copyWith(
                       color: isDark ? AppColors.textSecondaryDark : AppColors.charcoal,
                     ),
@@ -400,28 +340,36 @@ class InsightsHubScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Icon(Icons.tips_and_updates_outlined, size: 16, color: AppColors.sage),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  state.healthTip,
-                  style: AppTypography.light.bodySmall?.copyWith(
-                    color: AppColors.slate,
-                    fontStyle: FontStyle.italic,
+          if (weekly?.tip != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Icon(Icons.tips_and_updates_outlined, size: 16, color: AppColors.sage),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    weekly!.tip!,
+                    style: AppTypography.light.bodySmall?.copyWith(
+                      color: AppColors.slate,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildSmartPredictions(BuildContext context, _InsightsHubState state, bool isDark) {
+  Widget _buildSmartPredictions(
+    BuildContext context,
+    models.PredictionResult prediction,
+    String fertileWindowStatus,
+    String ovulationStatus,
+    bool isDark,
+  ) {
     return AppCard.standard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -441,12 +389,12 @@ class InsightsHubScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          if (state.prediction != null) ...[
+          if (prediction.predictedDate != DateTime.now()) ...[
             _PredictionRow(
               icon: Icons.water_drop_rounded,
               label: 'Next Period',
-              value: 'In ${DateTime.now().daysUntil(state.prediction!.predictedDate)} days',
-              badge: ConfidenceBadge(confidence: state.prediction!.confidenceScore),
+              value: 'In ${DateTime.now().daysUntil(prediction.predictedDate)} days',
+              badge: ConfidenceBadge(confidence: prediction.confidenceScore),
               isDark: isDark,
             ),
             const Divider(height: AppSpacing.xxl),
@@ -454,14 +402,14 @@ class InsightsHubScreen extends ConsumerWidget {
           _PredictionRow(
             icon: Icons.schedule_rounded,
             label: 'Fertile Window',
-            value: state.fertileWindowStatus,
+            value: fertileWindowStatus,
             isDark: isDark,
           ),
           const Divider(height: AppSpacing.xxl),
           _PredictionRow(
             icon: Icons.circle_outlined,
             label: 'Ovulation',
-            value: state.ovulationStatus,
+            value: ovulationStatus,
             isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -484,7 +432,11 @@ class InsightsHubScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSymptomInsights(BuildContext context, _InsightsHubState state, bool isDark) {
+  Widget _buildSymptomInsights(
+    BuildContext context,
+    List<ImpactfulSymptom> topSymptoms,
+    bool isDark,
+  ) {
     return AppCard.standard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -504,21 +456,37 @@ class InsightsHubScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Text(
-            'Your Top Symptoms',
-            style: AppTypography.light.labelMedium?.copyWith(
-              color: AppColors.slate,
+          if (topSymptoms.isEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+              child: Center(
+                child: Text(
+                  'Track more symptoms to see patterns',
+                  style: AppTypography.light.bodySmall?.copyWith(color: AppColors.slate),
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          ...state.topSymptoms.map((s) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.md),
-            child: _ImpactfulSymptomCard(symptom: s, isDark: isDark),
-          )),
+          ] else ...[
+            Text(
+              'Your Top Symptoms',
+              style: AppTypography.light.labelMedium?.copyWith(
+                color: AppColors.slate,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            ...topSymptoms.take(3).map((s) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: _ImpactfulSymptomCard(symptom: s, isDark: isDark),
+            )),
+          ],
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const TopicDetailScreen(topic: 'symptoms'),
+                ),
+              ),
               child: Text(
                 'See all patterns',
                 style: TextStyle(color: AppColors.forestGreen, fontWeight: FontWeight.w500),
@@ -530,7 +498,18 @@ class InsightsHubScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCycleInsights(BuildContext context, _InsightsHubState state, bool isDark) {
+  Widget _buildCycleInsights(
+    BuildContext context,
+    CycleRegularityResult regularity,
+    bool isDark,
+  ) {
+    final regularityLabel = switch (regularity.regularity) {
+      CycleRegularity.regular => 'Regular',
+      CycleRegularity.slightlyIrregular => 'Slightly Irregular',
+      CycleRegularity.irregular => 'Irregular',
+    };
+    final trendLabel = regularity.trend ?? 'Stable';
+
     return AppCard.standard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -555,7 +534,7 @@ class InsightsHubScreen extends ConsumerWidget {
               Expanded(
                 child: HealthStatCard(
                   label: 'Regularity',
-                  value: state.regularityStatus,
+                  value: regularityLabel,
                   icon: Icons.check_circle_outlined,
                   accentColor: AppColors.success,
                 ),
@@ -564,7 +543,7 @@ class InsightsHubScreen extends ConsumerWidget {
               Expanded(
                 child: HealthStatCard(
                   label: 'Trend',
-                  value: state.cycleTrend,
+                  value: trendLabel,
                   icon: Icons.trending_flat_rounded,
                   accentColor: AppColors.sage,
                 ),
@@ -591,7 +570,11 @@ class InsightsHubScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPersonalizedTips(BuildContext context, _InsightsHubState state, bool isDark, WidgetRef ref) {
+  Widget _buildPersonalizedTips(
+    BuildContext context,
+    AsyncValue<String> tipAsync,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -611,10 +594,42 @@ class InsightsHubScreen extends ConsumerWidget {
             ],
           ),
         ),
-        ...state.tips.map((tip) => Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: _TipCard(tip: tip, isDark: isDark),
-        )),
+        tipAsync.when(
+          data: (tip) => Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: AppCard.standard(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.softGold.withValues(alpha: isDark ? 0.2 : 0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Icon(Icons.tips_and_updates_outlined, size: 20, color: AppColors.softGold),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Text(
+                      tip,
+                      style: AppTypography.light.bodySmall?.copyWith(
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          loading: () => const Padding(
+            padding: EdgeInsets.all(AppSpacing.md),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
         AppButton.ghost(
           'View all tips',
           icon: Icons.arrow_forward,
@@ -624,126 +639,6 @@ class InsightsHubScreen extends ConsumerWidget {
           height: 40,
         ),
       ],
-    );
-  }
-
-  Widget _buildAskCyra(BuildContext context, _InsightsHubState state, bool isDark, WidgetRef ref) {
-    return AppCard.standard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppColors.forestGreen,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: Icon(Icons.chat_rounded, size: 18, color: Colors.white),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Ask Cyra',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Ask a question about your cycle',
-            style: AppTypography.light.bodySmall?.copyWith(color: AppColors.slate),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          ...state.exampleQuestions.map((q) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => ref.read(_insightsHubProvider.notifier).onAskCyra(q),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.help_outline, size: 16, color: AppColors.slate),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          q,
-                          style: AppTypography.light.bodySmall?.copyWith(
-                            color: AppColors.charcoal,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          )),
-          if (state.askCyraResponse.isNotEmpty) ...[
-            const Divider(height: AppSpacing.lg),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.forestGreen.withValues(alpha: isDark ? 0.15 : 0.08),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: AppColors.forestGreen,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.smart_toy_outlined, size: 14, color: Colors.white),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        'Cyra',
-                        style: AppTypography.light.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.forestGreen,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    state.askCyraResponse,
-                    style: AppTypography.light.bodySmall?.copyWith(
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.charcoal,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'This is not medical advice. Consult your healthcare provider for personal medical concerns.',
-                    style: AppTypography.light.labelSmall?.copyWith(
-                      color: AppColors.slate,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
     );
   }
 
@@ -760,6 +655,14 @@ class InsightsHubScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}';
   }
 }
 
@@ -810,7 +713,7 @@ class _PredictionRow extends StatelessWidget {
 }
 
 class _ImpactfulSymptomCard extends StatelessWidget {
-  final _ImpactfulSymptom symptom;
+  final ImpactfulSymptom symptom;
   final bool isDark;
 
   const _ImpactfulSymptomCard({required this.symptom, required this.isDark});
@@ -830,31 +733,20 @@ class _ImpactfulSymptomCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                symptom.name,
+                symptom.symptomName,
                 style: AppTypography.light.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
                 ),
               ),
               const Spacer(),
-              _SeverityBadge(severity: symptom.severity),
+              _SeverityBadge(severity: symptom.averageSeverity),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            '${symptom.frequency} times this cycle \u00b7 Severity ${symptom.severity.toStringAsFixed(1)}',
+            '${symptom.frequency} times this cycle \u00b7 Severity ${symptom.averageSeverity.toStringAsFixed(1)}',
             style: AppTypography.light.bodySmall?.copyWith(color: AppColors.slate),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Row(
-            children: [
-              Icon(Icons.repeat_rounded, size: 14, color: AppColors.sage),
-              const SizedBox(width: AppSpacing.xs),
-              Text(
-                'Correlates with: ${symptom.phaseCorrelation}',
-                style: AppTypography.light.labelSmall?.copyWith(color: AppColors.sage),
-              ),
-            ],
           ),
         ],
       ),
@@ -878,95 +770,6 @@ class _SeverityBadge extends StatelessWidget {
       child: Text(
         severity.toStringAsFixed(1),
         style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
-      ),
-    );
-  }
-}
-
-class _TipCard extends StatelessWidget {
-  final _HealthTip tip;
-  final bool isDark;
-
-  const _TipCard({required this.tip, required this.isDark});
-
-  IconData _categoryIcon() {
-    switch (tip.category) {
-      case _TipCategory.nutrition:
-        return Icons.restaurant_outlined;
-      case _TipCategory.exercise:
-        return Icons.fitness_center_outlined;
-      case _TipCategory.sleep:
-        return Icons.bedtime_outlined;
-      case _TipCategory.stress:
-        return Icons.self_improvement_outlined;
-      case _TipCategory.symptomManagement:
-        return Icons.healing_outlined;
-    }
-  }
-
-  Color _categoryColor() {
-    switch (tip.category) {
-      case _TipCategory.nutrition:
-        return AppColors.forestGreen;
-      case _TipCategory.exercise:
-        return AppColors.sage;
-      case _TipCategory.sleep:
-        return const Color(0xFF5B6ABF);
-      case _TipCategory.stress:
-        return AppColors.softGold;
-      case _TipCategory.symptomManagement:
-        return const Color(0xFFE86B6B);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard.standard(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: _categoryColor().withValues(alpha: isDark ? 0.2 : 0.1),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Icon(_categoryIcon(), size: 20, color: _categoryColor()),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tip.tip,
-                  style: AppTypography.light.bodySmall?.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Row(
-                  children: [
-                    CyclePhaseIndicator(
-                      phase: CyclePhase.luteal,
-                      size: CyclePhaseIndicatorSize.small,
-                      showLabel: false,
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      tip.phase,
-                      style: AppTypography.light.labelSmall?.copyWith(
-                        color: AppColors.slate,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

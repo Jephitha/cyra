@@ -30,6 +30,12 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     super.initState();
     _likeCount = widget.post.likeCount;
     _replies = widget.post.replies;
+    _initLikeStatus();
+  }
+
+  Future<void> _initLikeStatus() async {
+    final liked = await ref.read(communityRepositoryProvider).hasUserLikedPost(widget.post.id);
+    if (mounted) setState(() => _isLiked = liked);
   }
 
   @override
@@ -109,13 +115,30 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final reason = controller.text.trim();
+              if (reason.isEmpty) return;
               Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Report submitted. Thank you.'),
-                ),
-              );
+              try {
+                await ref.read(communityRepositoryProvider).reportContent(
+                  contentType: type,
+                  contentId: id,
+                  reason: reason,
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Report submitted. Thank you.'),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to submit report: $e')),
+                  );
+                }
+              }
             },
             child: const Text('Submit'),
           ),

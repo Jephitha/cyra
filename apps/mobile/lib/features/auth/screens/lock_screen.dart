@@ -150,7 +150,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
     final isValid = await pinAuth.verifyPin(_enteredPin);
 
     if (isValid) {
-      await ref.read(authStateNotifierProvider.notifier).authenticate();
+      ref.read(authStateNotifierProvider.notifier).authenticate();
       if (!mounted) return;
       ref.read(failedPinAttemptsProvider.notifier).reset();
       context.go('/dashboard');

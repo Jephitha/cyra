@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/app_typography.dart';
 import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/providers/settings_providers.dart';
 import 'package:cyra/core/security/biometric_auth_service.dart';
 import 'package:cyra/core/security/data_export_service.dart';
 import 'package:cyra/core/security/privacy_service.dart';
+import 'package:cyra/features/auth/providers/auth_providers.dart';
 import 'package:cyra/features/privacy/screens/emergency_setup_screen.dart';
-import 'package:cyra/features/settings/providers/settings_notifier.dart';
 
 class PrivacyControlsScreen extends ConsumerStatefulWidget {
   const PrivacyControlsScreen({super.key});
@@ -76,114 +76,91 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
   }
 
   Widget _buildBiometricToggle() {
-    final biometricAsync = ref.watch(biometricEnabledProvider);
+    final enabled = ref.watch(
+      privacySettingsProvider.select((c) => c.biometricEnabled),
+    );
     final authService = ref.watch(biometricAuthServiceProvider);
 
-    return biometricAsync.when(
-      data: (enabled) {
-        return _SettingRow(
-          icon: Icons.fingerprint,
-          label: 'Biometric Lock',
-          subtitle: 'Unlock with Face ID or fingerprint',
-          trailing: Switch.adaptive(
-            value: enabled,
-            activeTrackColor: AppColors.forestGreen,
-            onChanged: (value) async {
-              if (value) {
-                final available = await authService.isBiometricAvailable();
-                if (!available && mounted) {
-                  context.showSnackBar('Biometric authentication is not available on this device', isError: true);
-                  return;
-                }
-                final authenticated = await authService.authenticateWithBiometrics(
-                  reason: 'Enable biometric lock',
-                );
-                if (!authenticated && mounted) {
-                  context.showSnackBar('Authentication failed', isError: true);
-                  return;
-                }
-              }
-              if (mounted) {
-                ref.read(biometricEnabledProvider.notifier).setEnabled(value);
-                context.showSnackBar(value ? 'Biometric lock enabled' : 'Biometric lock disabled');
-              }
-            },
-          ),
-        );
-      },
-      loading: () => const _SettingRow(
-        icon: Icons.fingerprint,
-        label: 'Biometric Lock',
-        subtitle: 'Unlock with Face ID or fingerprint',
-        trailing: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)),
-      ),
-      error: (e, _) => _SettingRow(
-        icon: Icons.fingerprint,
-        label: 'Biometric Lock',
-        subtitle: 'Unlock with Face ID or fingerprint',
-        trailing: Icon(Icons.error_outline, color: AppColors.error, size: 20),
+    return _SettingRow(
+      icon: Icons.fingerprint,
+      label: 'Biometric Lock',
+      subtitle: 'Unlock with Face ID or fingerprint',
+      trailing: Switch.adaptive(
+        value: enabled,
+        activeTrackColor: AppColors.forestGreen,
+        onChanged: (value) async {
+          if (value) {
+            final available = await authService.isBiometricAvailable();
+            if (!available && mounted) {
+              context.showSnackBar(
+                'Biometric authentication is not available on this device',
+                isError: true,
+              );
+              return;
+            }
+            final authenticated = await authService.authenticateWithBiometrics(
+              reason: 'Enable biometric lock',
+            );
+            if (!authenticated && mounted) {
+              context.showSnackBar('Authentication failed', isError: true);
+              return;
+            }
+          }
+          if (mounted) {
+            ref.read(privacySettingsProvider.notifier).updateBiometric(value);
+            context.showSnackBar(
+              value ? 'Biometric lock enabled' : 'Biometric lock disabled',
+            );
+          }
+        },
       ),
     );
   }
 
   Widget _buildPinToggle() {
-    final pinAsync = ref.watch(pinEnabledProvider);
+    final enabled = ref.watch(
+      privacySettingsProvider.select((c) => c.pinEnabled),
+    );
     final authService = ref.watch(biometricAuthServiceProvider);
 
-    return pinAsync.when(
-      data: (enabled) {
-        return _SettingRow(
-          icon: Icons.pin_outlined,
-          label: 'PIN Code',
-          subtitle: enabled ? 'Change your PIN code' : 'Set a PIN code for extra security',
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (enabled)
-                TextButton(
-                  onPressed: () => _showPinChangeDialog(context, authService),
-                  child: const Text('Change'),
-                ),
-              Switch.adaptive(
-                value: enabled,
-                activeTrackColor: AppColors.forestGreen,
-                onChanged: (value) async {
-                  if (value) {
-                    final result = await _showPinSetupDialog(context, authService);
-                    if (result == true && mounted) {
-                      ref.read(pinEnabledProvider.notifier).setEnabled(true);
-                      context.showSnackBar('PIN code enabled');
-                    }
-                  } else {
-                    final confirmed = await _showConfirmDialog(
-                      context,
-                      title: 'Disable PIN Code?',
-                      message: 'Your data will no longer be protected by a PIN. You can re-enable this at any time.',
-                    );
-                    if (confirmed == true && mounted) {
-                      await authService.clearPinCode();
-                      if (!mounted) return;
-                      ref.read(pinEnabledProvider.notifier).setEnabled(false);
-                      context.showSnackBar('PIN code disabled');
-                    }
-                  }
-                },
-              ),
-            ],
+    return _SettingRow(
+      icon: Icons.pin_outlined,
+      label: 'PIN Code',
+      subtitle: enabled ? 'Change your PIN code' : 'Set a PIN code for extra security',
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (enabled)
+            TextButton(
+              onPressed: () => context.push('/settings/pin'),
+              child: const Text('Change'),
+            ),
+          Switch.adaptive(
+            value: enabled,
+            activeTrackColor: AppColors.forestGreen,
+            onChanged: (value) async {
+              if (value) {
+                final result = await context.push<bool>('/settings/pin');
+                if (result == true && mounted) {
+                  ref.read(privacySettingsProvider.notifier).updatePin(true);
+                  context.showSnackBar('PIN code enabled');
+                }
+              } else {
+                final confirmed = await _showConfirmDialog(
+                  context,
+                  title: 'Disable PIN Code?',
+                  message: 'Your data will no longer be protected by a PIN. You can re-enable this at any time.',
+                );
+                if (confirmed == true && mounted) {
+                  await authService.clearPinCode();
+                  if (!mounted) return;
+                  ref.read(privacySettingsProvider.notifier).updatePin(false);
+                  context.showSnackBar('PIN code disabled');
+                }
+              }
+            },
           ),
-        );
-      },
-      loading: () => const _SettingRow(
-        icon: Icons.pin_outlined,
-        label: 'PIN Code',
-        subtitle: 'Set a PIN code for extra security',
-        trailing: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)),
-      ),
-      error: (e, _) => _SettingRow(
-        icon: Icons.pin_outlined,
-        label: 'PIN Code',
-        subtitle: 'Set a PIN code for extra security',
-        trailing: Icon(Icons.error_outline, color: AppColors.error, size: 20),
+        ],
       ),
     );
   }
@@ -212,8 +189,9 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
   }
 
   Widget _buildPrivateModeToggle() {
-    final privateMode =
-        ref.watch(privateModeSettingProvider).valueOrNull ?? false;
+    final privateMode = ref.watch(
+      privacySettingsProvider.select((c) => c.privateModeEnabled),
+    );
     final privacyService = ref.watch(privacyServiceProvider);
 
     return _SettingRow(
@@ -230,7 +208,7 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
             await privacyService.disablePrivateMode();
           }
           if (mounted) {
-            ref.read(privateModeSettingProvider.notifier).toggle();
+            ref.read(privacySettingsProvider.notifier).updatePrivateMode(value);
             context.showSnackBar(value ? 'Private mode enabled' : 'Private mode disabled');
           }
         },
@@ -239,28 +217,53 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
   }
 
   Widget _buildHiddenAppIconToggle() {
+    final hiddenAppIcon = ref.watch(
+      privacySettingsProvider.select((c) => c.hiddenAppIconEnabled),
+    );
+
     return _SettingRow(
       icon: Icons.apps_outlined,
       label: 'Hidden App Icon',
       subtitle: 'Change app icon to neutral "Health" icon',
       trailing: Switch.adaptive(
-        value: false,
+        value: hiddenAppIcon,
         activeTrackColor: AppColors.forestGreen,
         onChanged: (value) {
-          context.showSnackBar('Hidden app icon requires platform-specific setup', isError: true);
+          ref.read(privacySettingsProvider.notifier).updateHiddenAppIcon(value);
+          context.showSnackBar(
+            value
+                ? 'Hidden app icon enabled'
+                : 'Hidden app icon disabled',
+          );
         },
       ),
     );
   }
 
   Widget _buildEmergencyLockRow(BuildContext context) {
+    final emergencyLock = ref.watch(
+      privacySettingsProvider.select((c) => c.emergencyLockEnabled),
+    );
+
     return _SettingRow(
       icon: Icons.shield_outlined,
       label: 'Emergency Lock',
-      subtitle: 'Configure emergency lock gesture',
-      trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const EmergencySetupScreen()),
+      subtitle: emergencyLock
+          ? 'Configure emergency lock gesture'
+          : 'Enable emergency lock gesture',
+      trailing: Switch.adaptive(
+        value: emergencyLock,
+        activeTrackColor: AppColors.forestGreen,
+        onChanged: (value) {
+          ref.read(privacySettingsProvider.notifier).updateEmergencyLock(value);
+          if (value) {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const EmergencySetupScreen(),
+              ),
+            );
+          }
+        },
       ),
     );
   }
@@ -460,26 +463,6 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
     }
   }
 
-  Future<bool?> _showPinSetupDialog(BuildContext context, BiometricAuthService authService) {
-    return showDialog<bool>(
-      context: context,
-      builder: (ctx) => _PinSetupDialog(authService: authService),
-    );
-  }
-
-  Future<void> _showPinChangeDialog(BuildContext context, BiometricAuthService authService) async {
-    final verified = await authService.authenticateWithBiometricsOrPin(
-      reason: 'Verify your identity to change PIN',
-    );
-    if (!verified) {
-      if (context.mounted) context.showSnackBar('Verification failed', isError: true);
-      return;
-    }
-    if (context.mounted) {
-      await _showPinSetupDialog(context, authService);
-    }
-  }
-
   Future<bool?> _showConfirmDialog(
     BuildContext context, {
     required String title,
@@ -537,56 +520,48 @@ class _SettingRow extends StatelessWidget {
   final String label;
   final String subtitle;
   final Widget? trailing;
-  final VoidCallback? onTap;
 
   const _SettingRow({
     required this.icon,
     required this.label,
     required this.subtitle,
     this.trailing,
-    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 22, color: AppColors.forestGreen),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: AppTypography.light.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: AppTypography.light.bodySmall?.copyWith(
-                        color: AppColors.slate,
-                      ),
-                    ),
-                  ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 22, color: AppColors.forestGreen),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AppTypography.light.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              if (trailing != null) trailing!,
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: AppTypography.light.bodySmall?.copyWith(
+                    color: AppColors.slate,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(width: AppSpacing.sm),
+          if (trailing != null) trailing!,
+        ],
       ),
     );
   }
@@ -658,18 +633,20 @@ class _ActionRow extends StatelessWidget {
 class _AutoLockDropdown extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentDuration = ref.watch(autoLockDurationNotifierProvider);
-    final durationOptions = <Duration, String>{
-      Duration.zero: 'Immediately',
-      const Duration(minutes: 1): '1 min',
-      const Duration(minutes: 5): '5 min',
-      const Duration(minutes: 15): '15 min',
-      const Duration(minutes: 30): '30 min',
+    final currentMinutes = ref.watch(
+      privacySettingsProvider.select((c) => c.autoLockMinutes),
+    );
+    final durationOptions = <int, String>{
+      0: 'Immediately',
+      1: '1 min',
+      5: '5 min',
+      15: '15 min',
+      30: '30 min',
     };
 
     return DropdownButtonHideUnderline(
       child: DropdownButton<String>(
-        value: durationOptions[currentDuration] ?? '5 min',
+        value: durationOptions[currentMinutes] ?? '5 min',
         isDense: true,
         style: AppTypography.light.bodyMedium?.copyWith(
           color: AppColors.forestGreen,
@@ -682,118 +659,15 @@ class _AutoLockDropdown extends ConsumerWidget {
           );
         }).toList(),
         onChanged: (value) {
-          final duration = durationOptions.entries
-              .firstWhere((e) => e.value == value,
-                  orElse: () => MapEntry(const Duration(minutes: 5), '5 min'))
+          final minutes = durationOptions.entries
+              .firstWhere(
+                (e) => e.value == value,
+                orElse: () => const MapEntry(5, '5 min'),
+              )
               .key;
-          ref.read(autoLockDurationNotifierProvider.notifier).setDuration(duration);
+          ref.read(privacySettingsProvider.notifier).updateAutoLock(minutes);
         },
       ),
-    );
-  }
-}
-
-class _PinSetupDialog extends ConsumerStatefulWidget {
-  final BiometricAuthService authService;
-
-  const _PinSetupDialog({required this.authService});
-
-  @override
-  ConsumerState<_PinSetupDialog> createState() => _PinSetupDialogState();
-}
-
-class _PinSetupDialogState extends ConsumerState<_PinSetupDialog> {
-  final _pinController = TextEditingController();
-  final _confirmController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _obscurePin = true;
-  bool _obscureConfirm = true;
-
-  @override
-  void dispose() {
-    _pinController.dispose();
-    _confirmController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Set PIN Code'),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Enter a 4-8 digit PIN code to secure your app.',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            TextFormField(
-              controller: _pinController,
-              obscureText: _obscurePin,
-              keyboardType: TextInputType.number,
-              maxLength: 8,
-              decoration: InputDecoration(
-                labelText: 'PIN',
-                counterText: '',
-                suffixIcon: IconButton(
-                  icon: Icon(_obscurePin ? Icons.visibility_off : Icons.visibility),
-                  onPressed: () => setState(() => _obscurePin = !_obscurePin),
-                ),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) return 'Please enter a PIN';
-                if (value.length < 4) return 'PIN must be at least 4 digits';
-                if (!RegExp(r'^\d+$').hasMatch(value)) return 'PIN must contain only digits';
-                return null;
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextFormField(
-              controller: _confirmController,
-              obscureText: _obscureConfirm,
-              keyboardType: TextInputType.number,
-              maxLength: 8,
-              decoration: InputDecoration(
-                labelText: 'Confirm PIN',
-                counterText: '',
-                suffixIcon: IconButton(
-                  icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
-                  onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
-                ),
-              ),
-              validator: (value) {
-                if (value != _pinController.text) return 'PINs do not match';
-                return null;
-              },
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () async {
-            if (!_formKey.currentState!.validate()) return;
-            try {
-              await widget.authService.setPinCode(_pinController.text);
-              if (context.mounted) Navigator.of(context).pop(true);
-            } catch (e) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to set PIN: $e')),
-                );
-              }
-            }
-          },
-          child: const Text('Save'),
-        ),
-      ],
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:cyra/app/bootstrap.dart';
 
 part 'auth_providers.freezed.dart';
 part 'auth_providers.g.dart';
@@ -35,33 +34,58 @@ class OnboardingState extends _$OnboardingState {
 
 @Riverpod(keepAlive: true)
 class AuthStateNotifier extends _$AuthStateNotifier {
+  /// Tracks whether the user has locally authenticated (PIN/biometrics).
+  /// Prevents Supabase stream from overriding to unauthenticated
+  /// when the user has already passed onboarding/privacy setup.
+  bool _localAuthenticated = false;
+
   @override
   AuthStatus build() {
-    final auth = Supabase.instance.client.auth;
-    final subscription = auth.onAuthStateChange.listen((event) {
-      final hasSession = event.session != null;
-      if (hasSession) {
-        state = AuthStatus.authenticated;
-      } else if (state != AuthStatus.locked) {
-        state = AuthStatus.unauthenticated;
-      }
-    });
-    ref.onDispose(subscription.cancel);
+    try {
+      final auth = Supabase.instance.client.auth;
+      final subscription = auth.onAuthStateChange.listen((event) {
+        final hasSession = event.session != null;
+        if (hasSession) {
+          state = AuthStatus.authenticated;
+        } else if (!_localAuthenticated && state != AuthStatus.locked) {
+          state = AuthStatus.unauthenticated;
+        }
+      });
+      ref.onDispose(subscription.cancel);
 
-    return auth.currentSession == null
-        ? AuthStatus.unauthenticated
-        : AuthStatus.authenticated;
+      return auth.currentSession == null
+          ? AuthStatus.unauthenticated
+          : AuthStatus.authenticated;
+    } catch (_) {
+      return AuthStatus.unauthenticated;
+    }
   }
 
-  Future<void> authenticate() async {
+  void authenticate() {
+    _localAuthenticated = true;
     state = AuthStatus.authenticated;
-    await ensureSupabaseSession();
+  }
+
+  Future<void> ensureAuthenticated() async {
+    _localAuthenticated = true;
+    state = AuthStatus.authenticated;
+    try {
+      final client = Supabase.instance.client;
+      if (client.auth.currentSession == null) {
+        await client.auth.signInAnonymously();
+      }
+    } catch (_) {}
   }
 
   void lock() => state = AuthStatus.locked;
 
   Future<void> unauthenticate() async {
-    await Supabase.instance.client.auth.signOut();
+    _localAuthenticated = false;
+    try {
+      await Supabase.instance.client.auth.signOut();
+    } catch (_) {
+      // Allow offline sign-out
+    }
     state = AuthStatus.unauthenticated;
   }
 }

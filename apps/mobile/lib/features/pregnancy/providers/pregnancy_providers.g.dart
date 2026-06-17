@@ -79,7 +79,7 @@ final fetalMeasurementsProvider =
 // ignore: unused_element
 typedef FetalMeasurementsRef =
     AutoDisposeFutureProviderRef<List<FetalMeasurement>>;
-String _$kickLogsHash() => r'62f96d617c602f0a2b9e39439732739cb479c750';
+String _$kickLogsHash() => r'f9a1114a2c0b28034543eab06fe9baca32918f21';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -112,13 +112,13 @@ class KickLogsFamily extends Family<AsyncValue<List<KickLog>>> {
   const KickLogsFamily();
 
   /// See also [kickLogs].
-  KickLogsProvider call({DateTime? from, DateTime? to}) {
-    return KickLogsProvider(from: from, to: to);
+  KickLogsProvider call({DateTime? startDate, DateTime? endDate}) {
+    return KickLogsProvider(startDate: startDate, endDate: endDate);
   }
 
   @override
   KickLogsProvider getProviderOverride(covariant KickLogsProvider provider) {
-    return call(from: provider.from, to: provider.to);
+    return call(startDate: provider.startDate, endDate: provider.endDate);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -139,9 +139,13 @@ class KickLogsFamily extends Family<AsyncValue<List<KickLog>>> {
 /// See also [kickLogs].
 class KickLogsProvider extends AutoDisposeFutureProvider<List<KickLog>> {
   /// See also [kickLogs].
-  KickLogsProvider({DateTime? from, DateTime? to})
+  KickLogsProvider({DateTime? startDate, DateTime? endDate})
     : this._internal(
-        (ref) => kickLogs(ref as KickLogsRef, from: from, to: to),
+        (ref) => kickLogs(
+          ref as KickLogsRef,
+          startDate: startDate,
+          endDate: endDate,
+        ),
         from: kickLogsProvider,
         name: r'kickLogsProvider',
         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -149,8 +153,8 @@ class KickLogsProvider extends AutoDisposeFutureProvider<List<KickLog>> {
             : _$kickLogsHash,
         dependencies: KickLogsFamily._dependencies,
         allTransitiveDependencies: KickLogsFamily._allTransitiveDependencies,
-        from: from,
-        to: to,
+        startDate: startDate,
+        endDate: endDate,
       );
 
   KickLogsProvider._internal(
@@ -160,12 +164,12 @@ class KickLogsProvider extends AutoDisposeFutureProvider<List<KickLog>> {
     required super.allTransitiveDependencies,
     required super.debugGetCreateSourceHash,
     required super.from,
-    required this.from,
-    required this.to,
+    required this.startDate,
+    required this.endDate,
   }) : super.internal();
 
-  final DateTime? from;
-  final DateTime? to;
+  final DateTime? startDate;
+  final DateTime? endDate;
 
   @override
   Override overrideWith(
@@ -180,8 +184,8 @@ class KickLogsProvider extends AutoDisposeFutureProvider<List<KickLog>> {
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
-        from: from,
-        to: to,
+        startDate: startDate,
+        endDate: endDate,
       ),
     );
   }
@@ -193,14 +197,16 @@ class KickLogsProvider extends AutoDisposeFutureProvider<List<KickLog>> {
 
   @override
   bool operator ==(Object other) {
-    return other is KickLogsProvider && other.from == from && other.to == to;
+    return other is KickLogsProvider &&
+        other.startDate == startDate &&
+        other.endDate == endDate;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, from.hashCode);
-    hash = _SystemHash.combine(hash, to.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -209,11 +215,11 @@ class KickLogsProvider extends AutoDisposeFutureProvider<List<KickLog>> {
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 mixin KickLogsRef on AutoDisposeFutureProviderRef<List<KickLog>> {
-  /// The parameter `from` of this provider.
-  DateTime? get from;
+  /// The parameter `startDate` of this provider.
+  DateTime? get startDate;
 
-  /// The parameter `to` of this provider.
-  DateTime? get to;
+  /// The parameter `endDate` of this provider.
+  DateTime? get endDate;
 }
 
 class _KickLogsProviderElement
@@ -222,9 +228,9 @@ class _KickLogsProviderElement
   _KickLogsProviderElement(super.provider);
 
   @override
-  DateTime? get from => (origin as KickLogsProvider).from;
+  DateTime? get startDate => (origin as KickLogsProvider).startDate;
   @override
-  DateTime? get to => (origin as KickLogsProvider).to;
+  DateTime? get endDate => (origin as KickLogsProvider).endDate;
 }
 
 String _$pregnancyProgressHash() => r'2dd51019a40202ebb4ffbe243a959946f147485e';

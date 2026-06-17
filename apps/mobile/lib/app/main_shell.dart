@@ -18,6 +18,7 @@ class MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserver {
   int _currentIndex = 0;
   bool _isPrivateMode = false;
+  bool _isEmergencyLockEnabled = false;
   int _tripleTapCount = 0;
   DateTime? _lastBackPress;
   final _navigatorKeys = List.generate(5, (_) => GlobalKey<NavigatorState>());
@@ -50,6 +51,7 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _syncEmergencyLockState();
   }
 
   @override
@@ -62,7 +64,19 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       setState(() => _tripleTapCount = 0);
+      _syncEmergencyLockState();
     }
+  }
+
+  Future<void> _syncEmergencyLockState() async {
+    final privacyService = ref.read(privacyServiceProvider);
+    final enabled = privacyService.isEmergencyLockActive;
+    final privateMode = privacyService.isPrivateMode;
+    if (!mounted) return;
+    setState(() {
+      _isEmergencyLockEnabled = enabled;
+      _isPrivateMode = enabled && privateMode;
+    });
   }
 
   void _onTabTapped(int index) {
@@ -119,7 +133,11 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
     try {
       final privacyService = ref.read(privacyServiceProvider);
       await privacyService.activateEmergencyLock();
-      setState(() => _isPrivateMode = true);
+      if (!mounted) return;
+      setState(() {
+        _isEmergencyLockEnabled = true;
+        _isPrivateMode = true;
+      });
 
       if (mounted) {
         showDialog<void>(
@@ -247,9 +265,11 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
                     ),
                   ],
                   const Spacer(),
-                  _buildEmergencyLockButton(),
-                  const SizedBox(width: AppSpacing.sm),
-                  PrivacyLockIcon(isLocked: false),
+                  if (_isEmergencyLockEnabled) ...[
+                    _buildEmergencyLockButton(),
+                    const SizedBox(width: AppSpacing.sm),
+                    const PrivacyLockIcon(isLocked: true),
+                  ],
                 ],
               ),
             ),
@@ -261,16 +281,18 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
 
   Widget _buildEmergencyLockButton() {
     return Semantics(
-      label: 'Activate emergency lock',
+      label: _isEmergencyLockEnabled ? 'Emergency lock active' : 'Activate emergency lock',
       child: Tooltip(
-        message: 'Emergency Lock',
+        message: _isEmergencyLockEnabled ? 'Emergency Lock Active' : 'Emergency Lock',
         child: GestureDetector(
-          onLongPress: _activateEmergencyLock,
+          onLongPress: _isEmergencyLockEnabled ? null : _activateEmergencyLock,
           child: Container(
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.error.withValues(alpha: 0.1),
+              color: _isEmergencyLockEnabled
+                  ? AppColors.forestGreen.withValues(alpha: 0.1)
+                  : AppColors.error.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -452,7 +474,11 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
                     final privacyService = ref.read(privacyServiceProvider);
                     try {
                       await privacyService.deactivateEmergencyLock();
-                      setState(() => _isPrivateMode = false);
+                      if (!mounted) return;
+                      setState(() {
+                        _isPrivateMode = false;
+                        _isEmergencyLockEnabled = false;
+                      });
                     } catch (e) {
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(

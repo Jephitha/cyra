@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/app_typography.dart';
@@ -8,6 +9,7 @@ import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/features/community/models/community_models.dart';
 import 'package:cyra/features/community/providers/community_providers.dart';
+import 'package:cyra/features/community/repositories/community_repository.dart';
 import 'package:cyra/features/community/screens/topic_screen.dart';
 import 'package:cyra/features/community/screens/community_guidelines_screen.dart';
 
@@ -37,7 +39,7 @@ class CommunityHubScreen extends ConsumerWidget {
             topicsAsync.when(
               data: (topics) => topics.isEmpty
                   ? _buildEmptyState(context, isDark)
-                  : _buildTopicGrid(context, topics, isDark),
+                  : _buildTopicGrid(context, topics, isDark, ref),
               loading: () => _buildTopicGridShimmer(isDark),
               error: (e, _) => _buildErrorState(context, e.toString(), isDark),
             ),
@@ -46,7 +48,7 @@ class CommunityHubScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
             _buildMyActivity(context, isDark),
             const SizedBox(height: AppSpacing.xxl),
-            _buildLinks(context, isDark),
+            _buildLinks(context, ref, isDark),
           ],
         ),
       ),
@@ -112,19 +114,36 @@ class CommunityHubScreen extends ConsumerWidget {
           color: AppColors.sage.withValues(alpha: 0.3),
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.shield_outlined,
-            size: 20,
-            color: AppColors.sage,
+          Row(
+            children: [
+              Icon(
+                Icons.shield_outlined,
+                size: 20,
+                color: AppColors.sage,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  'Your identity is protected. No personal information is shared.',
+                  style: AppTypography.light.bodySmall?.copyWith(
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.charcoal,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text(
-              'Your identity is protected. No personal information is shared.',
-              style: AppTypography.light.bodySmall?.copyWith(
-                color: isDark ? AppColors.textSecondaryDark : AppColors.charcoal,
+          const SizedBox(height: AppSpacing.sm),
+          TextButton.icon(
+            onPressed: () => context.go('/sign-in'),
+            icon: Icon(Icons.login_rounded, size: 16, color: AppColors.forestGreen),
+            label: Text(
+              'Sign in to sync your activity',
+              style: AppTypography.light.labelSmall?.copyWith(
+                color: AppColors.forestGreen,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -147,6 +166,7 @@ class CommunityHubScreen extends ConsumerWidget {
     BuildContext context,
     List<CommunityTopic> topics,
     bool isDark,
+    WidgetRef ref,
   ) {
     return GridView.builder(
       shrinkWrap: true,
@@ -159,7 +179,7 @@ class CommunityHubScreen extends ConsumerWidget {
       ),
       itemCount: topics.length,
       itemBuilder: (context, index) =>
-          _buildTopicCard(context, topics[index], isDark),
+          _buildTopicCard(context, topics[index], isDark, ref),
     );
   }
 
@@ -167,6 +187,7 @@ class CommunityHubScreen extends ConsumerWidget {
     BuildContext context,
     CommunityTopic topic,
     bool isDark,
+    WidgetRef ref,
   ) {
     final iconMap = {
       'Trying to Conceive': Icons.favorite_outline_rounded,
@@ -179,6 +200,8 @@ class CommunityHubScreen extends ConsumerWidget {
     };
 
     final icon = iconMap[topic.name] ?? Icons.forum_outlined;
+    final joinedTopics = ref.watch(joinedTopicsProvider);
+    final isJoined = joinedTopics.contains(topic.id);
 
     return AppCard.interactive(
       onTap: () => Navigator.of(context).push(
@@ -237,6 +260,43 @@ class CommunityHubScreen extends ConsumerWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Align(
+            alignment: Alignment.centerRight,
+            child: GestureDetector(
+              onTap: () {
+                if (isJoined) {
+                  ref.read(joinedTopicsProvider.notifier).leave(topic.id);
+                  ref.read(communityRepositoryProvider).leaveTopic(topic.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Left topic')),
+                  );
+                } else {
+                  ref.read(joinedTopicsProvider.notifier).join(topic.id);
+                  ref.read(communityRepositoryProvider).joinTopic(topic.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Joined topic! You can now participate.')),
+                  );
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isJoined ? AppColors.forestGreen : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.forestGreen),
+                ),
+                child: Text(
+                  isJoined ? 'Joined' : 'Join',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isJoined ? Colors.white : AppColors.forestGreen,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -407,7 +467,7 @@ class CommunityHubScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLinks(BuildContext context, bool isDark) {
+  Widget _buildLinks(BuildContext context, WidgetRef ref, bool isDark) {
     return Column(
       children: [
         _buildLinkRow(
@@ -426,7 +486,7 @@ class CommunityHubScreen extends ConsumerWidget {
           context,
           icon: Icons.flag_outlined,
           label: 'Report a Concern',
-          onTap: () => _showReportDialog(context),
+          onTap: () => _showReportDialog(context, ref),
           isDark: isDark,
         ),
       ],
@@ -461,33 +521,111 @@ class CommunityHubScreen extends ConsumerWidget {
     );
   }
 
-  void _showReportDialog(BuildContext context) {
+  void _showReportDialog(BuildContext context, WidgetRef ref) {
+    final reasonController = TextEditingController();
+    String selectedType = 'general';
+
     showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Report a Concern'),
-        content: const Text(
-          'If you see something that violates our community guidelines, '
-          'please describe what happened. All reports are reviewed '
-          'anonymously and kept confidential.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Your report has been submitted. Thank you.'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Report a Concern'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'If you see something that violates our community guidelines, '
+                  'please describe what happened. All reports are reviewed '
+                  'anonymously and kept confidential.',
+                  style: TextStyle(fontSize: 14),
                 ),
-              );
-            },
-            child: const Text('Submit Report'),
+                const SizedBox(height: 16),
+                const Text('What would you like to report?',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedType,
+                  items: const [
+                    DropdownMenuItem(value: 'general', child: Text('General Concern')),
+                    DropdownMenuItem(value: 'post', child: Text('A Specific Post')),
+                    DropdownMenuItem(value: 'reply', child: Text('A Specific Reply')),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) setDialogState(() => selectedType = v);
+                  },
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+                if (selectedType == 'post' || selectedType == 'reply') ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    ),
+                    child: const Text(
+                      'To report a specific post or reply, please navigate to that content and use the report option there.',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                TextField(
+                  controller: reasonController,
+                  decoration: const InputDecoration(
+                    labelText: 'Describe your concern',
+                    border: OutlineInputBorder(),
+                    hintText: 'Please provide details...',
+                  ),
+                  maxLines: 3,
+                ),
+              ],
+            ),
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final reason = reasonController.text.trim();
+                if (reason.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please describe your concern')),
+                  );
+                  return;
+                }
+                Navigator.of(ctx).pop();
+                try {
+                  await ref.read(communityRepositoryProvider).reportContent(
+                    contentType: selectedType,
+                    contentId: '',
+                    reason: reason,
+                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Your report has been submitted. Thank you.')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to submit report: $e')),
+                    );
+                  }
+                }
+              },
+              child: const Text('Submit Report'),
+            ),
+          ],
+        ),
       ),
     );
   }

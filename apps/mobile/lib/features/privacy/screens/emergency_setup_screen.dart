@@ -6,7 +6,7 @@ import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
-import 'package:cyra/core/providers/security_providers.dart';
+import 'package:cyra/features/auth/providers/auth_providers.dart';
 
 class EmergencySetupScreen extends ConsumerStatefulWidget {
   const EmergencySetupScreen({super.key});
@@ -16,6 +16,7 @@ class EmergencySetupScreen extends ConsumerStatefulWidget {
 }
 
 class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
+  // Persistent settings from provider
   String? _selectedTrigger;
   String _decoyAppName = 'Health Tracker';
   String _lockScreenMessage = 'This app is locked for your privacy.';
@@ -50,17 +51,18 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    final config = ref.read(privacySettingsProvider);
+    _selectedTrigger = config.emergencyLockEnabled ? 'triple_tap' : null;
+  }
+
+  @override
   Widget build(BuildContext context) {
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Emergency Lock Setup'),
-        actions: [
-          TextButton(
-            onPressed: _handleSave,
-            child: const Text('Save'),
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -341,9 +343,7 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
 
   Future<void> _handleTest() async {
     try {
-      final privacyService = ref.read(privacyServiceProvider);
-      await privacyService.activateEmergencyLock();
-
+      ref.read(isEmergencyLockedProvider.notifier).activate();
       setState(() {
         _testSuccess = true;
         _showTestResult = true;
@@ -358,44 +358,42 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
 
   Future<void> _handleDeactivateTest() async {
     try {
-      final privacyService = ref.read(privacyServiceProvider);
-      await privacyService.deactivateEmergencyLock();
-
+      ref.read(isEmergencyLockedProvider.notifier).deactivate();
       setState(() {
         _testSuccess = false;
         _showTestResult = false;
       });
-
       if (mounted) {
-        context.showSnackBar('Emergency lock deactivated');
+        _showSnackBar(context, 'Emergency lock deactivated');
       }
     } catch (e) {
       if (mounted) {
-        context.showSnackBar('Failed to deactivate: ${e.toString()}', isError: true);
+        _showSnackBar(context, 'Failed to deactivate: ${e.toString()}', isError: true);
       }
     }
   }
 
   void _handleSave() {
     if (_selectedTrigger == null) {
-      context.showSnackBar('Please select a trigger method', isError: true);
+      _showSnackBar(context, 'Please select a trigger method', isError: true);
       return;
     }
 
-    context.showSnackBar('Emergency lock settings saved');
+    // Persist via privacy settings provider
+    ref.read(privacySettingsProvider.notifier).updateEmergencyLock(true);
+
+    _showSnackBar(context, 'Emergency lock settings saved');
     Navigator.of(context).pop();
   }
 }
 
-extension on BuildContext {
-  void showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(this)
-      ..clearSnackBars()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: isError ? AppColors.error : null,
-        ),
-      );
-  }
+void _showSnackBar(BuildContext context, String message, {bool isError = false}) {
+  ScaffoldMessenger.of(context)
+    ..clearSnackBars()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? AppColors.error : null,
+      ),
+    );
 }

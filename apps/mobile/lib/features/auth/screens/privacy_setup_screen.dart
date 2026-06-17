@@ -27,6 +27,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   int _currentStep = 0;
   bool _biometricAvailable = false;
   bool _biometricEnrolled = false;
+  bool _skipBiometricStep = false;
   String _pin = '';
   String _confirmPin = '';
   bool _showPinError = false;
@@ -34,6 +35,8 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
 
   final _pinController = TextEditingController();
   final _confirmPinController = TextEditingController();
+  final _pinFocusNode = FocusNode();
+  final _confirmPinFocusNode = FocusNode();
   final _localAuth = LocalAuthentication();
 
   final _steps = const [
@@ -47,15 +50,13 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
     ),
     _PrivacyStep(
       title: 'Set a Passcode',
-      subtitle: 'Create a 4-6 digit PIN for an extra layer of security.',
+      subtitle: 'Create a 6 digit PIN for added security.',
     ),
     _PrivacyStep(
       title: "You're all set",
       subtitle: "Here's a summary of your privacy choices.",
     ),
   ];
-
-  PrivacyConfig get _config => ref.read(privacySettingsProvider);
 
   @override
   void initState() {
@@ -67,21 +68,35 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   void dispose() {
     _pinController.dispose();
     _confirmPinController.dispose();
+    _pinFocusNode.dispose();
+    _confirmPinFocusNode.dispose();
     super.dispose();
   }
 
   Future<void> _checkBiometrics() async {
     try {
-      final available = await _localAuth.canCheckBiometrics;
-      final enrolled = await _localAuth.isDeviceSupported();
+      final enrolled = await _localAuth.canCheckBiometrics;
+      final deviceSupported = await _localAuth.isDeviceSupported();
       if (mounted) {
         setState(() {
-          _biometricAvailable = available && enrolled;
+          _biometricAvailable = enrolled;
+          _skipBiometricStep = !deviceSupported || !enrolled;
+          if (_skipBiometricStep) {
+            _biometricEnrolled = false;
+            ref.read(privacySettingsProvider.notifier).updateBiometric(false);
+            if (_currentStep == 1) {
+              _currentStep = 2;
+            }
+          }
         });
       }
     } catch (_) {
       if (mounted) {
-        setState(() => _biometricAvailable = false);
+        setState(() {
+          _biometricAvailable = false;
+          _skipBiometricStep = true;
+          _biometricEnrolled = false;
+        });
       }
     }
   }
@@ -118,7 +133,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
       });
     } else {
       ref.read(onboardingStateProvider.notifier).complete();
-      await ref.read(authStateNotifierProvider.notifier).authenticate();
+      ref.read(authStateNotifierProvider.notifier).ensureAuthenticated();
       if (!mounted) return;
       context.go('/dashboard');
     }
@@ -184,7 +199,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             _buildProgressIndicator(),
             Expanded(
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 350),
+                duration: const Duration(milliseconds: 200),
                 transitionBuilder: (child, animation) {
                   return FadeTransition(
                     opacity: animation,
@@ -259,7 +274,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
               _steps.length,
               (index) => Expanded(
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 150),
                   height: 3,
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   decoration: BoxDecoration(
@@ -289,32 +304,36 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   Widget _buildStepContent() {
     return Padding(
       key: ValueKey(_currentStep),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+      padding: EdgeInsets.symmetric(
+        horizontal: _currentStep == 0 ? AppSpacing.md : AppSpacing.xxl,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: _currentStep == 0 ? AppSpacing.sm : AppSpacing.xl),
           Text(
             _steps[_currentStep].title,
             style: const TextStyle(
-                            fontSize: 26,
+              fontSize: 24,
               fontWeight: FontWeight.w600,
               height: 1.25,
               color: AppColors.charcoal,
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             _steps[_currentStep].subtitle,
             style: TextStyle(
-                            fontSize: 15,
+              fontSize: 14,
               fontWeight: FontWeight.w400,
               height: 1.5,
               color: AppColors.slate,
             ),
           ),
-          const SizedBox(height: AppSpacing.xxxl),
-          Expanded(child: _buildStepBody()),
+          SizedBox(height: _currentStep == 0 ? AppSpacing.sm : AppSpacing.xxxl),
+          Expanded(
+            child: _buildStepBody(),
+          ),
         ],
       ),
     );
@@ -336,61 +355,68 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   }
 
   Widget _buildPrivacyOptions() {
-    final options = [
-      _PrivacyOption(
-        key: 'biometric',
-        icon: Icons.fingerprint,
-        title: 'Biometric Lock',
-        description:
-            'Unlock Cyra with Face ID or fingerprint. Quick and secure.',
-        enabled: _config.biometricEnabled,
-      ),
-      _PrivacyOption(
-        key: 'privateMode',
-        icon: Icons.visibility_off_rounded,
-        title: 'Private Mode',
-        description: 'Hide sensitive content from previews and notifications.',
-        enabled: _config.privateModeEnabled,
-      ),
-      _PrivacyOption(
-        key: 'hiddenAppIcon',
-        icon: Icons.app_shortcut_outlined,
-        title: 'Hide App Icon',
-        description:
-            'Replace the Cyra icon with a neutral icon on your home screen.',
-        enabled: _config.hiddenAppIconEnabled,
-      ),
-      _PrivacyOption(
-        key: 'emergencyLock',
-        icon: Icons.shield_outlined,
-        title: 'Emergency Privacy Gesture',
-        description:
-            'Quickly disguise Cyra as a calculator app with a secret gesture.',
-        enabled: _config.emergencyLockEnabled,
-      ),
-    ];
+    return Consumer(
+      builder: (context, consumerRef, child) {
+        final config = consumerRef.watch(privacySettingsProvider);
+        final options = [
+          _PrivacyOption(
+            key: 'biometric',
+            icon: Icons.fingerprint,
+            title: 'Biometric Lock',
+            description:
+                'Unlock Cyra with Face ID or fingerprint. Quick and secure.',
+            enabled: _skipBiometricStep ? false : config.biometricEnabled,
+          ),
+          _PrivacyOption(
+            key: 'privateMode',
+            icon: Icons.visibility_off_rounded,
+            title: 'Private Mode',
+            description: 'Hide sensitive content from previews and notifications.',
+            enabled: config.privateModeEnabled,
+          ),
+          _PrivacyOption(
+            key: 'hiddenAppIcon',
+            icon: Icons.app_shortcut_outlined,
+            title: 'Hide App Icon',
+            description:
+                'Replace the Cyra icon with a neutral icon on your home screen.',
+            enabled: config.hiddenAppIconEnabled,
+          ),
+          _PrivacyOption(
+            key: 'emergencyLock',
+            icon: Icons.shield_outlined,
+            title: 'Emergency Privacy Gesture',
+            description:
+                'Quickly disguise Cyra as a calculator app with a secret gesture.',
+            enabled: config.emergencyLockEnabled,
+          ),
+        ];
 
-    return ListView.separated(
-      itemCount: options.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-      itemBuilder: (context, index) {
-        final option = options[index];
-        return _PrivacyOptionCard(
-          option: option,
-          onToggle: (value) => _togglePrivacyOption(option.key, value),
+        return ListView.separated(
+          itemCount: options.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+          itemBuilder: (context, index) {
+            final option = options[index];
+            return _PrivacyOptionCard(
+              option: option,
+              onToggle: (value) => _togglePrivacyOption(option.key, value),
+            );
+          },
         );
       },
     );
   }
 
   Widget _buildBiometricStep() {
-    if (!_biometricAvailable) {
+    if (_skipBiometricStep) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.smartphone_outlined,
+              Icons.fingerprint_outlined,
               size: 64,
               color: AppColors.slate.withValues(alpha: 0.5),
             ),
@@ -398,17 +424,52 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             Text(
               'Biometrics not available',
               style: TextStyle(
-                                fontSize: 18,
+                fontSize: 18,
                 fontWeight: FontWeight.w500,
                 color: AppColors.slate,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Your device does not support biometric authentication.\nYou can set a passcode instead.',
+              'Tap Continue to set a passcode',
               textAlign: TextAlign.center,
               style: TextStyle(
-                                fontSize: 14,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                height: 1.5,
+                color: AppColors.slate.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (!_biometricAvailable) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.fingerprint_outlined,
+              size: 64,
+              color: AppColors.slate.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Text(
+              'No biometrics enrolled',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: AppColors.slate,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Your device supports biometric authentication, but no fingerprints or faces are registered yet.\nRegister them in Settings, or set a passcode instead.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
                 fontWeight: FontWeight.w400,
                 height: 1.5,
                 color: AppColors.slate.withValues(alpha: 0.7),
@@ -442,7 +503,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
           Text(
             _biometricEnrolled ? 'Biometrics Enrolled' : 'Enroll Biometrics',
             style: const TextStyle(
-                            fontSize: 20,
+              fontSize: 20,
               fontWeight: FontWeight.w600,
               color: AppColors.charcoal,
             ),
@@ -454,7 +515,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
                 : 'Use your fingerprint or Face ID to unlock Cyra.',
             textAlign: TextAlign.center,
             style: TextStyle(
-                            fontSize: 14,
+              fontSize: 14,
               fontWeight: FontWeight.w400,
               height: 1.5,
               color: AppColors.slate,
@@ -475,62 +536,82 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   }
 
   Widget _buildPinStep() {
-    return Column(
-      children: [
-        _buildPinField(
-          controller: _pinController,
-          label: 'Enter PIN',
-          value: _pin,
-          onChanged: (v) {
-            if (v.length <= 6) {
-              setState(() {
-                _pin = v;
-                _showPinError = false;
-              });
-            }
-          },
-        ),
-        const SizedBox(height: AppSpacing.xxl),
-        _buildPinField(
-          controller: _confirmPinController,
-          label: 'Confirm PIN',
-          value: _confirmPin,
-          onChanged: (v) {
-            if (v.length <= 6) {
-              setState(() {
-                _confirmPin = v;
-                _showPinError = false;
-              });
-            }
-          },
-        ),
-        if (_showPinError)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.lg),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 16, color: AppColors.error),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  'PINs do not match. Please try again.',
-                  style: TextStyle(
-                                        fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.error,
-                  ),
-                ),
-              ],
-            ),
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
+    final compactMode = keyboardInset > 0;
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(bottom: keyboardInset * 0.2),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildPinField(
+            controller: _pinController,
+            focusNode: _pinFocusNode,
+            label: 'Enter PIN',
+            value: _pin,
+            dense: compactMode,
+            onChanged: (v) {
+              if (v.length <= 6) {
+                setState(() {
+                  _pin = v;
+                  _showPinError = false;
+                });
+              } else {
+                _pinController.text = v.substring(0, 6);
+                _pinController.selection = TextSelection.collapsed(offset: 6);
+              }
+            },
           ),
-      ],
+          SizedBox(height: compactMode ? 4 : AppSpacing.lg),
+          _buildPinField(
+            controller: _confirmPinController,
+            focusNode: _confirmPinFocusNode,
+            label: 'Confirm PIN',
+            dense: compactMode,
+            value: _confirmPin,
+            onChanged: (v) {
+              if (v.length <= 6) {
+                setState(() {
+                  _confirmPin = v;
+                  _showPinError = false;
+                });
+              } else {
+                _confirmPinController.text = v.substring(0, 6);
+                _confirmPinController.selection = TextSelection.collapsed(offset: 6);
+              }
+            },
+          ),
+          if (_showPinError)
+            Padding(
+              padding: EdgeInsets.only(top: compactMode ? 0 : AppSpacing.lg),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 16, color: AppColors.error),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    'PINs do not match. Please try again.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.error,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 
   Widget _buildPinField({
     required TextEditingController controller,
+    required FocusNode focusNode,
     required String label,
     required String value,
+    required bool dense,
     required ValueChanged<String> onChanged,
   }) {
     return Column(
@@ -539,53 +620,91 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
         Text(
           label,
           style: const TextStyle(
-                        fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.w500,
             color: AppColors.charcoal,
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.mistWhite,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(
-              color: _showPinError ? AppColors.error : AppColors.borderLight,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+        SizedBox(height: dense ? 4 : AppSpacing.sm),
+        GestureDetector(
+          onTap: () => focusNode.requestFocus(),
+          behavior: HitTestBehavior.opaque,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              const SizedBox(height: 64),
-              ...List.generate(6, (i) {
-                final isFilled = i < value.length;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isFilled
-                        ? AppColors.forestGreen
-                        : AppColors.borderLight,
-                    border: isFilled
-                        ? null
-                        : Border.all(
-                            color: AppColors.slate.withValues(alpha: 0.3),
-                          ),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.mistWhite,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color: _showPinError ? AppColors.error : AppColors.borderLight,
                   ),
-                );
-              }),
-              const SizedBox(height: 64),
+                ),
+                height: dense ? 48 : 60,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ...List.generate(6, (i) {
+                      final isFilled = i < value.length;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 80),
+                        margin: EdgeInsets.symmetric(horizontal: dense ? 5 : 8),
+                        width: dense ? 11 : 14,
+                        height: dense ? 11 : 14,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isFilled
+                              ? AppColors.forestGreen
+                              : AppColors.borderLight,
+                          border: isFilled
+                              ? null
+                              : Border.all(
+                                  color: AppColors.slate.withValues(alpha: 0.3),
+                                ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+              Positioned.fill(
+                child: Opacity(
+                  opacity: 0.0,
+                  child: TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    textInputAction: TextInputAction.next,
+                    obscureText: true,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    textAlign: TextAlign.center,
+                    onEditingComplete: () {
+                      if (focusNode == _pinFocusNode) {
+                        _confirmPinFocusNode.requestFocus();
+                      }
+                    },
+                    style: const TextStyle(fontSize: 1),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      counterText: '',
+                    ),
+                    onChanged: onChanged,
+                    buildCounter: (
+                      _, {required currentLength, required isFocused, maxLength}
+                    ) => null,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        SizedBox(height: dense ? 2 : AppSpacing.sm),
         Text(
-          '4-6 digits',
+          '6 digits',
           style: TextStyle(
-                        fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.w400,
             color: AppColors.slate.withValues(alpha: 0.6),
           ),
@@ -595,124 +714,134 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   }
 
   Widget _buildSummaryStep() {
-    final items = [
-      _SummaryItem(
-        icon: _config.biometricEnabled
-            ? Icons.fingerprint
-            : Icons.fingerprint_outlined,
-        title: 'Biometric Lock',
-        value: _config.biometricEnabled ? 'Enabled' : 'Not set',
-        enabled: _config.biometricEnabled,
-      ),
-      _SummaryItem(
-        icon: _config.pinEnabled ? Icons.lock : Icons.lock_outline,
-        title: 'Passcode',
-        value: _config.pinEnabled ? 'Enabled' : 'Not set',
-        enabled: _config.pinEnabled,
-      ),
-      _SummaryItem(
-        icon: _config.privateModeEnabled
-            ? Icons.visibility_off_rounded
-            : Icons.visibility_outlined,
-        title: 'Private Mode',
-        value: _config.privateModeEnabled ? 'Active' : 'Off',
-        enabled: _config.privateModeEnabled,
-      ),
-      _SummaryItem(
-        icon: _config.hiddenAppIconEnabled
-            ? Icons.app_shortcut_rounded
-            : Icons.app_shortcut_outlined,
-        title: 'Hidden App Icon',
-        value: _config.hiddenAppIconEnabled ? 'Active' : 'Off',
-        enabled: _config.hiddenAppIconEnabled,
-      ),
-      _SummaryItem(
-        icon: _config.emergencyLockEnabled
-            ? Icons.shield
-            : Icons.shield_outlined,
-        title: 'Emergency Privacy Gesture',
-        value: _config.emergencyLockEnabled ? 'Active' : 'Off',
-        enabled: _config.emergencyLockEnabled,
-      ),
-    ];
+    return Consumer(
+      builder: (context, consumerRef, child) {
+        final config = consumerRef.watch(privacySettingsProvider);
+        final biometricEnabled = _skipBiometricStep ? false : config.biometricEnabled;
+        final items = [
+          _SummaryItem(
+            icon: biometricEnabled
+                ? Icons.fingerprint
+                : Icons.fingerprint_outlined,
+            title: 'Biometric Lock',
+            value: biometricEnabled ? 'Enabled' : 'Not set',
+            enabled: biometricEnabled,
+          ),
+          _SummaryItem(
+            icon: config.pinEnabled ? Icons.lock : Icons.lock_outline,
+            title: 'Passcode',
+            value: config.pinEnabled ? 'Enabled' : 'Not set',
+            enabled: config.pinEnabled,
+          ),
+          _SummaryItem(
+            icon: config.privateModeEnabled
+                ? Icons.visibility_off_rounded
+                : Icons.visibility_outlined,
+            title: 'Private Mode',
+            value: config.privateModeEnabled ? 'Active' : 'Off',
+            enabled: config.privateModeEnabled,
+          ),
+          _SummaryItem(
+            icon: config.hiddenAppIconEnabled
+                ? Icons.app_shortcut_rounded
+                : Icons.app_shortcut_outlined,
+            title: 'Hidden App Icon',
+            value: config.hiddenAppIconEnabled ? 'Active' : 'Off',
+            enabled: config.hiddenAppIconEnabled,
+          ),
+          _SummaryItem(
+            icon: config.emergencyLockEnabled
+                ? Icons.shield
+                : Icons.shield_outlined,
+            title: 'Emergency Privacy Gesture',
+            value: config.emergencyLockEnabled ? 'Active' : 'Off',
+            enabled: config.emergencyLockEnabled,
+          ),
+        ];
 
-    return Column(
-      children: [
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.forestGreen.withValues(alpha: 0.1),
-          ),
-          child: const Icon(
-            Icons.check,
-            size: 36,
-            color: AppColors.forestGreen,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xxl),
-        Expanded(
-          child: ListView.separated(
-            itemCount: items.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: AppSpacing.md,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      item.icon,
-                      size: 22,
-                      color: item.enabled
-                          ? AppColors.forestGreen
-                          : AppColors.slate.withValues(alpha: 0.4),
+        return Column(
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.forestGreen.withValues(alpha: 0.1),
+              ),
+              child: const Icon(
+                Icons.check,
+                size: 36,
+                color: AppColors.forestGreen,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            Expanded(
+              child: ListView.separated(
+                itemCount: items.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                      vertical: AppSpacing.md,
                     ),
-                    const SizedBox(width: AppSpacing.lg),
-                    Expanded(
-                      child: Text(
-                        item.title,
-                        style: TextStyle(
-                                                    fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.charcoal,
+                    child: Row(
+                      children: [
+                        Icon(
+                          item.icon,
+                          size: 22,
+                          color: item.enabled
+                              ? AppColors.forestGreen
+                              : AppColors.slate.withValues(alpha: 0.4),
                         ),
-                      ),
+                        const SizedBox(width: AppSpacing.lg),
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.charcoal,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          item.value,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: item.enabled
+                                ? AppColors.forestGreen
+                                : AppColors.slate.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      item.value,
-                      style: TextStyle(
-                                                fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: item.enabled
-                            ? AppColors.forestGreen
-                            : AppColors.slate.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildBottomBar() {
     final canProceed =
         _currentStep != 2 || (_pin.length >= 4 && _pin == _confirmPin);
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
+    final compactBottom = keyboardInset > 0;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.xxl,
-        AppSpacing.lg,
+        compactBottom ? 2 : AppSpacing.lg,
         AppSpacing.xxl,
-        AppSpacing.xxxl,
+        compactBottom ? 4 : AppSpacing.xxxl,
       ),
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
@@ -729,7 +858,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
         onPressed: canProceed && !_isLoading ? _goNext : null,
         isLoading: _isLoading,
         width: double.infinity,
-        height: 54,
+        height: compactBottom ? 42 : 54,
       ),
     );
   }
@@ -751,108 +880,92 @@ class _PrivacyOption {
   });
 }
 
-class _PrivacyOptionCard extends StatefulWidget {
+class _PrivacyOptionCard extends StatelessWidget {
   final _PrivacyOption option;
   final ValueChanged<bool> onToggle;
 
   const _PrivacyOptionCard({required this.option, required this.onToggle});
 
   @override
-  State<_PrivacyOptionCard> createState() => _PrivacyOptionCardState();
-}
-
-class _PrivacyOptionCardState extends State<_PrivacyOptionCard> {
-  bool _expanded = false;
-
-  @override
   Widget build(BuildContext context) {
-    final option = widget.option;
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: option.enabled
-              ? AppColors.forestGreen.withValues(alpha: 0.3)
-              : AppColors.borderLight,
+    return InkWell(
+      onTap: () => onToggle(!option.enabled),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surfaceLight,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(
+            color: option.enabled
+                ? AppColors.forestGreen.withAlpha(76)
+                : AppColors.borderLight,
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          InkWell(
-            onTap: () => setState(() => _expanded = !_expanded),
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Row(
-                children: [
-                  Icon(
-                    option.icon,
-                    size: 24,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                option.icon,
+                size: 20,
+                color: option.enabled
+                    ? AppColors.forestGreen
+                    : AppColors.slate,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      option.title,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.charcoal,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      option.description,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w400,
+                        height: 1.25,
+                        color: AppColors.slate,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: option.enabled
+                      ? AppColors.forestGreen
+                      : Colors.transparent,
+                  border: Border.all(
                     color: option.enabled
                         ? AppColors.forestGreen
-                        : AppColors.slate,
+                        : AppColors.slate.withAlpha(102),
+                    width: 2,
                   ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          option.title,
-                          style: TextStyle(
-                                                        fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.charcoal,
-                          ),
-                        ),
-                        if (_expanded) ...[
-                          const SizedBox(height: AppSpacing.sm),
-                          Text(
-                            option.description,
-                            style: TextStyle(
-                                                            fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                              height: 1.45,
-                              color: AppColors.slate,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  GestureDetector(
-                    onTap: () => widget.onToggle(!option.enabled),
-                    child: Container(
-                      width: 26,
-                      height: 26,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: option.enabled
-                            ? AppColors.forestGreen
-                            : Colors.transparent,
-                        border: Border.all(
-                          color: option.enabled
-                              ? AppColors.forestGreen
-                              : AppColors.slate.withValues(alpha: 0.4),
-                          width: 2,
-                        ),
-                      ),
-                      child: option.enabled
-                          ? const Icon(
-                              Icons.check,
-                              size: 16,
-                              color: Colors.white,
-                            )
-                          : null,
-                    ),
-                  ),
-                ],
+                ),
+                child: option.enabled
+                    ? const Icon(
+                        Icons.check,
+                        size: 16,
+                        color: Colors.white,
+                      )
+                    : null,
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

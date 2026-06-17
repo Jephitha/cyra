@@ -322,3 +322,18 @@ BEGIN
 
   END IF;
 END $$;
+
+-- ============================================================
+-- SAMPLE MODERATION NOTIFICATIONS
+-- ============================================================
+-- These serve as examples for testing; the test anonymous_user_id
+-- should match a real anonymous user in the system when running locally.
+-- Insert only if the table exists and is empty.
+INSERT INTO community_moderation_notifications (anonymous_user_id, content_type, content_id, action, reason, is_read, created_at)
+SELECT * FROM (VALUES
+  ('test_anon_user_1', 'post', 'post_seed_demo_1', 'approved', 'No harmful content detected', false, NOW() - INTERVAL '2 days'),
+  ('test_anon_user_1', 'reply', 'reply_seed_demo_1', 'flagged', 'Content flagged for review: spam', false, NOW() - INTERVAL '1 day'),
+  ('test_anon_user_2', 'post', 'post_seed_demo_2', 'removed', 'Content violates community guidelines: harassment', true, NOW() - INTERVAL '3 days')
+) AS v(anonymous_user_id, content_type, content_id, action, reason, is_read, created_at)
+WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'community_moderation_notifications')
+  AND (SELECT COUNT(*) FROM community_moderation_notifications) = 0;

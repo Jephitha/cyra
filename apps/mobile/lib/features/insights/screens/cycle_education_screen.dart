@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/app_typography.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
@@ -423,13 +424,40 @@ class _CycleEducationScreenState extends State<CycleEducationScreen> {
           Icon(Icons.source_outlined, size: 16, color: AppColors.slate),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Text(
-              'Based on evidence-based guidelines from the American College of Obstetricians and '
-              'Gynecologists (ACOG), the World Health Organization (WHO), and peer-reviewed research '
-              'on menstrual health and endocrinology.',
-              style: AppTypography.light.labelSmall?.copyWith(
-                color: AppColors.slate,
-                height: 1.4,
+            child: RichText(
+              text: TextSpan(
+                style: AppTypography.light.labelSmall?.copyWith(color: AppColors.slate, height: 1.4),
+                children: [
+                  const TextSpan(text: 'Based on evidence-based guidelines from the '),
+                  WidgetSpan(
+                    child: GestureDetector(
+                      onTap: () => launchUrl(Uri.parse('https://www.acog.org'), mode: LaunchMode.externalApplication),
+                      child: Text(
+                        'American College of Obstetricians and Gynecologists (ACOG)',
+                        style: TextStyle(
+                          color: AppColors.forestGreen,
+                          decoration: TextDecoration.underline,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const TextSpan(text: ', the '),
+                  WidgetSpan(
+                    child: GestureDetector(
+                      onTap: () => launchUrl(Uri.parse('https://www.who.int'), mode: LaunchMode.externalApplication),
+                      child: Text(
+                        'World Health Organization (WHO)',
+                        style: TextStyle(
+                          color: AppColors.forestGreen,
+                          decoration: TextDecoration.underline,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const TextSpan(text: ', and peer-reviewed research on menstrual health and endocrinology.'),
+                ],
               ),
             ),
           ),

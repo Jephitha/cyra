@@ -24,12 +24,23 @@ Future<List<CommunityPost>> topicPosts(
 @riverpod
 Future<CommunityPost> postDetail(PostDetailRef ref, String postId) async {
   final repo = ref.watch(communityRepositoryProvider);
-  final posts = await repo.getPostsForTopic('', page: 0);
-  return posts.firstWhere((p) => p.id == postId);
+  final post = await repo.getPost(postId);
+  if (post == null) throw Exception('Post not found');
+  return post;
 }
 
 @riverpod
 Future<List<CommunityPost>> myCommunityPosts(MyCommunityPostsRef ref) async {
   final repo = ref.watch(communityRepositoryProvider);
   return repo.getMyPosts();
+}
+
+@Riverpod(keepAlive: true)
+class JoinedTopics extends _$JoinedTopics {
+  @override
+  Set<String> build() => <String>{};
+
+  void join(String topicId) => state = {...state, topicId};
+  void leave(String topicId) => state = Set<String>.from(state)..remove(topicId);
+  bool isJoined(String topicId) => state.contains(topicId);
 }

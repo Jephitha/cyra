@@ -59,6 +59,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void initState() {
     super.initState();
     _pageController.addListener(() {
+      if (!_pageController.hasClients) return;
       final page = _pageController.page ?? 0;
       setState(() {
         _currentPage = page.round();
@@ -88,6 +89,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _completeOnboarding() {
+    ref.read(authStateNotifierProvider.notifier).ensureAuthenticated();
     ref.read(onboardingStateProvider.notifier).complete();
     context.go('/privacy-setup');
   }
@@ -98,7 +100,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       body: AnimatedBuilder(
         animation: _pageController,
         builder: (context, _) {
-          final progress = _pageController.page ?? 0;
+          final progress = _pageController.hasClients ? _pageController.page ?? 0 : 0.0;
           final index = progress.floor();
           final fraction = progress - index;
           final nextIndex = (index + 1).clamp(0, _gradients.length - 1);

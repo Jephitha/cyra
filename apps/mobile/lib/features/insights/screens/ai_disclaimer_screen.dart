@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/app_typography.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
@@ -353,7 +354,6 @@ class AIDisclaimerScreen extends StatelessWidget {
         if (onAccept != null) {
           onAccept!();
         }
-        Navigator.of(context).pop();
       },
     );
   }
@@ -455,31 +455,24 @@ class _ExternalLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {},
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-        child: Row(
-          children: [
-            Icon(
-              url != null ? Icons.open_in_new_outlined : Icons.article_outlined,
-              size: 16,
-              color: AppColors.forestGreen,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.forestGreen,
-                  fontWeight: FontWeight.w500,
-                  decoration: TextDecoration.underline,
+    return Semantics(
+      label: 'External link: $label',
+      child: InkWell(
+        onTap: url != null ? () => launchUrl(Uri.parse(url!), mode: LaunchMode.externalApplication) : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Icon(url != null ? Icons.open_in_new_outlined : Icons.link_off, size: 16, color: AppColors.forestGreen),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(color: AppColors.forestGreen, decoration: TextDecoration.underline),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

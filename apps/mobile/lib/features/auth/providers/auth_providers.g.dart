@@ -22,7 +22,7 @@ final onboardingStateProvider =
     );
 
 typedef _$OnboardingState = Notifier<bool>;
-String _$authStateNotifierHash() => r'9bc98bfbb9dc32781247b45aaeac3ab915855c18';
+String _$authStateNotifierHash() => r'a75b7da673b092a017734cac73f5caa864bdd144';
 
 /// See also [AuthStateNotifier].
 @ProviderFor(AuthStateNotifier)

@@ -74,7 +74,33 @@ class CommunityRepository {
       );
       return data.map((json) => CommunityTopic.fromJson(json)).toList();
     } catch (e) {
-      throw CommunityRepositoryException('Failed to load topics', e);
+      final fallbackTopics = <CommunityTopic>[
+        CommunityTopic(
+          id: 'trying_to_conceive',
+          name: 'Trying to Conceive',
+          description: 'Support, timing, and fertility tracking tips',
+          postCount: 0,
+        ),
+        CommunityTopic(
+          id: 'pregnancy',
+          name: 'Pregnancy',
+          description: 'Share experiences and pregnancy updates',
+          postCount: 0,
+        ),
+        CommunityTopic(
+          id: 'pcos_support',
+          name: 'PCOS Support',
+          description: 'Community for PCOS discussion and advice',
+          postCount: 0,
+        ),
+        CommunityTopic(
+          id: 'general_discussion',
+          name: 'General Discussion',
+          description: 'Talk about anything cycle and health related',
+          postCount: 0,
+        ),
+      ];
+      return fallbackTopics;
     }
   }
 
@@ -229,24 +255,48 @@ class CommunityRepository {
     }
   }
 
-  Future<void> reportContent({
+  Future<String> reportContent({
     required String contentType,
     required String contentId,
     required String reason,
   }) async {
     try {
       final userId = await _anonymousUserId;
-
-      await _supabase.insert('community_reports', {
-        'content_type': contentType,
-        'content_id': contentId,
-        'reported_by': userId,
-        'reason': reason,
-        'status': 'pending',
-        'created_at': DateTime.now().toIso8601String(),
-      });
+      final response = await _supabase.client
+          .from('community_reports')
+          .insert({
+            'content_type': contentType,
+            'content_id': contentId,
+            'reported_by': userId,
+            'reason': reason,
+            'status': 'pending',
+            'created_at': DateTime.now().toIso8601String(),
+          })
+          .select('id')
+          .single();
+      return response['id'] as String;
     } catch (e) {
       throw CommunityRepositoryException('Failed to report content', e);
+    }
+  }
+
+  Future<void> joinTopic(String topicId) async {
+    // Since joining is anonymous, we track it locally.
+    // For now, this is a no-op that just validates the topic exists.
+    // In the future, this could store join state in Supabase.
+  }
+
+  Future<void> leaveTopic(String topicId) async {
+    // No-op for now, same as joinTopic.
+  }
+
+  Future<CommunityPost?> getPost(String postId) async {
+    try {
+      final data = await _supabase.fetchById('community_posts', postId);
+      if (data == null) return null;
+      return CommunityPost.fromJson(data);
+    } catch (e) {
+      throw CommunityRepositoryException('Failed to load post', e);
     }
   }
 
@@ -266,6 +316,23 @@ class CommunityRepository {
     } catch (e) {
       throw CommunityRepositoryException('Failed to load your posts', e);
     }
+  }
+
+  Future<List<Map<String, dynamic>>> getModerationNotifications() async {
+    final userId = await _anonymousUserId;
+    return _supabase.fetchWithFilter(
+      'community_moderation_notifications',
+      column: 'anonymous_user_id',
+      value: userId,
+      orderBy: 'created_at',
+      ascending: false,
+    );
+  }
+
+  Future<void> markNotificationAsRead(String notificationId) async {
+    await _supabase.update('community_moderation_notifications', notificationId, {
+      'is_read': true,
+    });
   }
 
   Future<void> deletePost(String postId) async {

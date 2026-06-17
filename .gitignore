@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+.packages
+.pub-cache/
+.pub/
+
+# Build outputs
+build/
+.next/
+out/
+dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env (keep .env.example but ignore actual .env)
+.env
+.env.local
+.env.*.local
+!apps/mobile/.env.example
+
+# Supabase
+apps/backend/supabase/.temp/
+
+# Screenshots / debug artifacts
+apps/mobile/device_current*
+apps/mobile/privacy_step*
+apps/mobile/screenshot*
+
+# Logs
+*.log
+/tmp/

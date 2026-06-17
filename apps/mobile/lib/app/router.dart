@@ -8,6 +8,7 @@ import 'package:cyra/features/auth/screens/lock_screen.dart';
 import 'package:cyra/features/auth/screens/privacy_setup_screen.dart';
 import 'package:cyra/features/auth/screens/emergency_lock_screen.dart';
 import 'package:cyra/features/auth/screens/pin_setup_screen.dart';
+import 'package:cyra/features/auth/screens/sign_in_screen.dart';
 import 'package:cyra/features/community/screens/community_hub_screen.dart';
 import 'package:cyra/features/cycle/screens/dashboard_screen.dart' as cycle;
 import 'package:cyra/features/cycle/screens/calendar_screen.dart' as cycle;
@@ -15,15 +16,39 @@ import 'package:cyra/features/insights/screens/insights_hub_screen.dart';
 import 'package:cyra/features/settings/screens/settings_screen.dart' as settings;
 import 'package:cyra/features/privacy/screens/privacy_controls_screen.dart';
 
+/// Tells GoRouter to re-evaluate redirects when auth/onboarding/emergency state changes.
+class _RouterRefresh extends ChangeNotifier {
+  _RouterRefresh(this._ref) {
+    _authSub = _ref.listen(authStateNotifierProvider, (_, __) => notifyListeners());
+    _onBoardSub = _ref.listen(onboardingStateProvider, (_, __) => notifyListeners());
+    _emergencySub = _ref.listen(isEmergencyLockedProvider, (_, __) => notifyListeners());
+  }
+
+  final Ref _ref;
+  late final ProviderSubscription _authSub;
+  late final ProviderSubscription _onBoardSub;
+  late final ProviderSubscription _emergencySub;
+
+  @override
+  void dispose() {
+    _authSub.close();
+    _onBoardSub.close();
+    _emergencySub.close();
+    super.dispose();
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateNotifierProvider);
-  final onboardingComplete = ref.watch(onboardingStateProvider);
-  final isEmergencyLocked = ref.watch(isEmergencyLockedProvider);
+  final goRefresh = _RouterRefresh(ref);
 
   return GoRouter(
     initialLocation: '/onboarding',
+    refreshListenable: goRefresh,
     redirect: (context, state) {
       final location = state.uri.toString();
+
+      final authState = ref.read(authStateNotifierProvider);
+      final isEmergencyLocked = ref.read(isEmergencyLockedProvider);
 
       if (isEmergencyLocked) {
         if (location != '/emergency-lock') return '/emergency-lock';
@@ -36,6 +61,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       if (authState == AuthStatus.unauthenticated) {
+        final onboardingComplete = ref.read(onboardingStateProvider);
         if (!onboardingComplete) {
           if (location != '/onboarding') return '/onboarding';
           return null;
@@ -73,6 +99,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/emergency-lock',
         builder: (_, __) => const EmergencyLockScreen(),
+      ),
+      GoRoute(
+        path: '/sign-in',
+        builder: (_, __) => const SignInScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) => MainShell(
@@ -123,6 +153,7 @@ bool _isPublicRoute(String location) {
     '/privacy-setup',
     '/lock',
     '/emergency-lock',
+    '/sign-in',
   };
   return publicRoutes.contains(location);
 }

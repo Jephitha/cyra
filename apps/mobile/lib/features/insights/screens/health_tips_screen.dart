@@ -1,162 +1,161 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/app_typography.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart';
+import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart' as indicator;
+import 'package:cyra/features/cycle/models/cycle.dart';
+import 'package:cyra/features/insights/providers/insight_providers.dart';
 
 enum TipCategory { nutrition, exercise, sleep, stress, symptomManagement }
 
-class HealthTip {
-  final TipCategory category;
-  final String tip;
-  final CyclePhase phase;
-  final String whyThisHelps;
-  final String source;
-  final String? sourceUrl;
-
-  const HealthTip({
-    required this.category,
-    required this.tip,
-    required this.phase,
-    required this.whyThisHelps,
-    required this.source,
-    this.sourceUrl,
-  });
+indicator.CyclePhase _toCyclePhase(CyclePhase phase) {
+  switch (phase) {
+    case CyclePhase.menstrual: return indicator.CyclePhase.menstrual;
+    case CyclePhase.follicular: return indicator.CyclePhase.follicular;
+    case CyclePhase.ovulation: return indicator.CyclePhase.ovulation;
+    case CyclePhase.luteal: return indicator.CyclePhase.luteal;
+  }
 }
 
 class _TipCardData {
-  final HealthTip tip;
+  final String tip;
+  final String? whyThisHelps;
+  final String? source;
+  final CyclePhase? phase;
+  final TipCategory category;
+  final String id;
   bool isRead;
   bool isExpanded;
 
-  _TipCardData({required this.tip}) : isRead = false, isExpanded = false;
+  _TipCardData({
+    required this.tip,
+    this.whyThisHelps,
+    this.source,
+    this.phase,
+    required this.category,
+    required this.id,
+  }) : isRead = false, isExpanded = false;
 }
 
-class HealthTipsScreen extends StatefulWidget {
+const _sourceUrls = <String, String>{
+  'National Institutes of Health (NIH) - Iron Fact Sheet': 'https://ods.od.nih.gov/factsheets/Iron-HealthProfessional/',
+  'American College of Obstetricians and Gynecologists (ACOG) - Exercise During Menstruation': 'https://www.acog.org/womens-health/healthy-living/exercise-during-menstruation',
+  'World Health Organization (WHO) - Nutrition Guidelines': 'https://www.who.int/health-topics/nutrition',
+  'Journal of Clinical Sleep Medicine': 'https://jcsm.aasm.org/',
+  'Harvard Medical School - Hydration': 'https://www.health.harvard.edu/staying-healthy/the-importance-of-staying-hydrated',
+  'American Heart Association': 'https://www.heart.org/',
+  'Mayo Clinic Proceedings': 'https://www.mayoclinicproceedings.org/',
+  'Journal of Affective Disorders': 'https://www.sciencedirect.com/journal/journal-of-affective-disorders',
+  'National Institute of Mental Health': 'https://www.nimh.nih.gov/',
+  'Cochrane Review on Exercise and Mental Health': 'https://www.cochrane.org/',
+};
+
+class HealthTipsScreen extends ConsumerStatefulWidget {
   const HealthTipsScreen({super.key});
 
   @override
-  State<HealthTipsScreen> createState() => _HealthTipsScreenState();
+  ConsumerState<HealthTipsScreen> createState() => _HealthTipsScreenState();
 }
 
-class _HealthTipsScreenState extends State<HealthTipsScreen> {
-  final List<_TipCardData> _tips = [
+class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
+  final List<_TipCardData> _staticTips = [
     _TipCardData(
-      tip: const HealthTip(
-        category: TipCategory.nutrition,
-        tip: 'Increase iron-rich foods like spinach, lentils, and lean red meat during your menstrual phase to replenish iron stores lost through bleeding.',
-        phase: CyclePhase.menstrual,
-        whyThisHelps: 'Iron is essential for producing hemoglobin, which carries oxygen in your blood. '
-            'Menstrual blood loss can deplete iron stores, leading to fatigue. Pair iron-rich foods with '
-            'vitamin C sources like citrus fruits to enhance absorption.',
-        source: 'National Institutes of Health (NIH) - Iron Fact Sheet',
-      ),
+      id: 'iron',
+      category: TipCategory.nutrition,
+      phase: CyclePhase.menstrual,
+      tip: 'Increase iron-rich foods like spinach, lentils, and lean red meat during your menstrual phase to replenish iron stores lost through bleeding.',
+      whyThisHelps: 'Iron is essential for producing hemoglobin, which carries oxygen in your blood. Menstrual blood loss can deplete iron stores, leading to fatigue. Pair iron-rich foods with vitamin C sources like citrus fruits to enhance absorption.',
+      source: 'National Institutes of Health (NIH) - Iron Fact Sheet',
     ),
     _TipCardData(
-      tip: const HealthTip(
-        category: TipCategory.exercise,
-        tip: 'Gentle yoga, walking, and stretching can help ease menstrual cramps and improve mood during your period.',
-        phase: CyclePhase.menstrual,
-        whyThisHelps: 'Exercise releases endorphins, which are natural pain relievers. Gentle movement also '
-            'improves blood circulation to the pelvic region, which can reduce cramping. Avoid high-intensity '
-            'workouts if you feel fatigued.',
-        source: 'American College of Obstetricians and Gynecologists (ACOG) - Exercise During Menstruation',
-      ),
+      id: 'gentle_movement',
+      category: TipCategory.exercise,
+      phase: CyclePhase.menstrual,
+      tip: 'Gentle yoga, walking, and stretching can help ease menstrual cramps and improve mood during your period.',
+      whyThisHelps: 'Exercise releases endorphins, which are natural pain relievers. Gentle movement also improves blood circulation to the pelvic region, which can reduce cramping.',
+      source: 'American College of Obstetricians and Gynecologists (ACOG) - Exercise During Menstruation',
     ),
     _TipCardData(
-      tip: const HealthTip(
-        category: TipCategory.nutrition,
-        tip: 'Focus on complex carbohydrates and lean proteins during the follicular phase to support rising energy levels.',
-        phase: CyclePhase.follicular,
-        whyThisHelps: 'During the follicular phase, estrogen levels rise, increasing energy and metabolism. '
-            'Complex carbohydrates provide sustained energy, while protein supports tissue repair and growth. '
-            'This is a good time for higher-intensity workouts.',
-        source: 'Journal of the International Society of Sports Nutrition - Menstrual Cycle and Nutrition',
-      ),
+      id: 'follicular_fuel',
+      category: TipCategory.nutrition,
+      phase: CyclePhase.follicular,
+      tip: 'Focus on complex carbohydrates and lean proteins during the follicular phase to support rising energy levels.',
+      whyThisHelps: 'During the follicular phase, estrogen levels rise, increasing energy and metabolism. Complex carbohydrates provide sustained energy, while protein supports tissue repair and growth.',
+      source: 'Journal of the International Society of Sports Nutrition - Menstrual Cycle and Nutrition',
     ),
     _TipCardData(
-      tip: const HealthTip(
-        category: TipCategory.sleep,
-        tip: 'Your progesterone rises in the luteal phase, which may affect sleep quality. Try a consistent bedtime routine and avoid caffeine after 2 PM.',
-        phase: CyclePhase.luteal,
-        whyThisHelps: 'Progesterone has a mild sedative effect but can also disrupt sleep architecture. '
-            'A consistent sleep schedule helps regulate your circadian rhythm. Reducing caffeine intake '
-            'in the afternoon can improve sleep onset and quality.',
-        source: 'Sleep Foundation - How Hormones Affect Women\'s Sleep',
-      ),
+      id: 'luteal_sleep',
+      category: TipCategory.sleep,
+      phase: CyclePhase.luteal,
+      tip: 'Your progesterone rises in the luteal phase, which may affect sleep quality. Try a consistent bedtime routine and avoid caffeine after 2 PM.',
+      whyThisHelps: 'Progesterone has a mild sedative effect but can also disrupt sleep architecture. A consistent sleep schedule helps regulate your circadian rhythm.',
+      source: 'Sleep Foundation - How Hormones Affect Women\'s Sleep',
     ),
     _TipCardData(
-      tip: const HealthTip(
-        category: TipCategory.stress,
-        tip: 'Practice mindfulness or deep breathing exercises during the luteal phase to manage mood changes and irritability.',
-        phase: CyclePhase.luteal,
-        whyThisHelps: 'The luteal phase is associated with higher sensitivity to stress due to hormonal '
-            'fluctuations. Mindfulness practices have been shown to reduce cortisol levels and improve '
-            'emotional regulation. Even 5-10 minutes daily can make a difference.',
-        source: 'Harvard Health Publishing - Mindfulness for Stress Reduction',
-      ),
+      id: 'luteal_stress',
+      category: TipCategory.stress,
+      phase: CyclePhase.luteal,
+      tip: 'Practice mindfulness or deep breathing exercises during the luteal phase to manage mood changes and irritability.',
+      whyThisHelps: 'The luteal phase is associated with higher sensitivity to stress due to hormonal fluctuations. Mindfulness practices have been shown to reduce cortisol levels and improve emotional regulation.',
+      source: 'Harvard Health Publishing - Mindfulness for Stress Reduction',
     ),
     _TipCardData(
-      tip: const HealthTip(
-        category: TipCategory.symptomManagement,
-        tip: 'Apply a heating pad or warm compress to your lower abdomen when cramps start. Heat therapy is as effective as ibuprofen for some people.',
-        phase: CyclePhase.menstrual,
-        whyThisHelps: 'Heat therapy works by relaxing the uterine muscles and improving blood flow to the '
-            'pelvic area. Studies show that continuous low-level heat therapy can be as effective as '
-            'over-the-counter pain medications for menstrual cramp relief.',
-        source: 'Cochrane Review - Heat Therapy for Dysmenorrhea',
-      ),
+      id: 'heat_therapy',
+      category: TipCategory.symptomManagement,
+      phase: CyclePhase.menstrual,
+      tip: 'Apply a heating pad or warm compress to your lower abdomen when cramps start. Heat therapy is as effective as ibuprofen for some people.',
+      whyThisHelps: 'Heat therapy works by relaxing the uterine muscles and improving blood flow to the pelvic area. Studies show that continuous low-level heat therapy can be as effective as over-the-counter pain medications.',
+      source: 'Cochrane Review - Heat Therapy for Dysmenorrhea',
     ),
     _TipCardData(
-      tip: const HealthTip(
-        category: TipCategory.nutrition,
-        tip: 'Stay hydrated and consider magnesium-rich foods like dark chocolate, nuts, and seeds during the luteal phase to reduce bloating.',
-        phase: CyclePhase.luteal,
-        whyThisHelps: 'Magnesium helps regulate muscle function and may reduce water retention associated '
-            'with PMS. Adequate hydration supports kidney function and helps flush excess sodium, '
-            'which can contribute to bloating.',
-        source: 'Nutrients Journal - Magnesium and Premenstrual Syndrome',
-      ),
+      id: 'luteal_magnesium',
+      category: TipCategory.nutrition,
+      phase: CyclePhase.luteal,
+      tip: 'Stay hydrated and consider magnesium-rich foods like dark chocolate, nuts, and seeds during the luteal phase to reduce bloating.',
+      whyThisHelps: 'Magnesium helps regulate muscle function and may reduce water retention associated with PMS. Adequate hydration supports kidney function and helps flush excess sodium.',
+      source: 'Nutrients Journal - Magnesium and Premenstrual Syndrome',
     ),
     _TipCardData(
-      tip: const HealthTip(
-        category: TipCategory.exercise,
-        tip: 'Moderate cardio and strength training are most effective during the follicular phase when energy levels naturally peak.',
-        phase: CyclePhase.follicular,
-        whyThisHelps: 'Rising estrogen levels during the follicular phase increase muscle recovery, '
-            'endurance, and overall energy. This is an ideal time for challenging workouts. '
-            'Listening to your body remains important regardless of cycle phase.',
-        source: 'Sports Medicine - Menstrual Cycle and Athletic Performance',
-      ),
+      id: 'follicular_gains',
+      category: TipCategory.exercise,
+      phase: CyclePhase.follicular,
+      tip: 'Moderate cardio and strength training are most effective during the follicular phase when energy levels naturally peak.',
+      whyThisHelps: 'Rising estrogen levels during the follicular phase increase muscle recovery, endurance, and overall energy. This is an ideal time for challenging workouts.',
+      source: 'Sports Medicine - Menstrual Cycle and Athletic Performance',
     ),
     _TipCardData(
-      tip: const HealthTip(
-        category: TipCategory.symptomManagement,
-        tip: 'Track your symptoms daily to identify patterns. Knowledge of when symptoms typically occur helps you prepare and manage them proactively.',
-        phase: CyclePhase.luteal,
-        whyThisHelps: 'Symptom tracking helps you understand your unique cycle patterns. Recognizing that '
-            'certain symptoms consistently appear in specific phases allows you to plan self-care strategies '
-            'in advance and have more informed conversations with your healthcare provider.',
-        source: 'Journal of Women\'s Health - Benefits of Menstrual Cycle Tracking',
-      ),
+      id: 'tracking',
+      category: TipCategory.symptomManagement,
+      phase: CyclePhase.luteal,
+      tip: 'Track your symptoms daily to identify patterns. Knowledge of when symptoms typically occur helps you prepare and manage them proactively.',
+      whyThisHelps: 'Symptom tracking helps you understand your unique cycle patterns. Recognizing that certain symptoms consistently appear in specific phases allows you to plan self-care strategies in advance.',
+      source: 'Journal of Women\'s Health - Benefits of Menstrual Cycle Tracking',
     ),
     _TipCardData(
-      tip: const HealthTip(
-        category: TipCategory.exercise,
-        tip: 'During the luteal phase, focus on lower-intensity activities like walking, swimming, or Pilates to accommodate lower energy levels.',
-        phase: CyclePhase.luteal,
-        whyThisHelps: 'Progesterone dominance in the luteal phase can increase body temperature, heart rate, '
-            'and perceived exertion. Lower-intensity exercise helps maintain physical activity without '
-            'overtaxing your body, supporting both physical and mental well-being.',
-        source: 'ACSM\'s Health & Fitness Journal - Exercise Across the Menstrual Cycle',
-      ),
+      id: 'luteal_gentle',
+      category: TipCategory.exercise,
+      phase: CyclePhase.luteal,
+      tip: 'During the luteal phase, focus on lower-intensity activities like walking, swimming, or Pilates to accommodate lower energy levels.',
+      whyThisHelps: 'Progesterone dominance in the luteal phase can increase body temperature, heart rate, and perceived exertion. Lower-intensity exercise helps maintain physical activity without overtaxing your body.',
+      source: 'ACSM\'s Health & Fitness Journal - Exercise Across the Menstrual Cycle',
     ),
   ];
 
+  TipCategory? _selectedCategory;
+
+  List<_TipCardData> get _filteredTips {
+    if (_selectedCategory == null) return _staticTips;
+    return _staticTips.where((t) => t.category == _selectedCategory).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final personalizedTip = ref.watch(healthTipProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -172,14 +171,18 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
       ),
       body: Column(
         children: [
-          _buildFilterBar(),
+          _buildFilterBar(context),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xxxl),
               children: [
                 _buildHeader(context),
+                if (personalizedTip.valueOrNull != null) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildPersonalizedTip(context, personalizedTip.valueOrNull!),
+                ],
                 const SizedBox(height: AppSpacing.lg),
-                ...List.generate(_tips.length, (i) => _buildTipCard(context, i)),
+                ...List.generate(_filteredTips.length, (i) => _buildTipCard(context, _filteredTips[i])),
                 const SizedBox(height: AppSpacing.xxl),
                 _buildDisclaimers(context),
               ],
@@ -204,72 +207,81 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Tips are contextual to your current cycle phase and based on medical guidelines. '
-          '$_unreadCount unread',
+          'Tips are contextual to your current cycle phase and based on medical guidelines.',
           style: AppTypography.light.bodySmall?.copyWith(color: AppColors.slate),
         ),
       ],
     );
   }
 
-  String get _unreadCount => '${_tips.where((t) => !t.isRead).length}';
+  Widget _buildPersonalizedTip(BuildContext context, String tip) {
+    return AppCard.standard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.auto_awesome_rounded, size: 18, color: AppColors.softGold),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Personalized For You',
+                style: AppTypography.light.labelMedium?.copyWith(
+                  color: AppColors.softGold,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            tip,
+            style: AppTypography.light.bodySmall?.copyWith(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.charcoal,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _buildFilterBar() {
+  Widget _buildFilterBar(BuildContext context) {
+    final filters = [
+      (null as TipCategory?, 'All', null as IconData?),
+      (TipCategory.nutrition, 'Nutrition', Icons.restaurant_outlined),
+      (TipCategory.exercise, 'Exercise', Icons.fitness_center_outlined),
+      (TipCategory.sleep, 'Sleep', Icons.bedtime_outlined),
+      (TipCategory.stress, 'Stress', Icons.self_improvement_outlined),
+      (TipCategory.symptomManagement, 'Symptoms', Icons.healing_outlined),
+    ];
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: [
-            _FilterChip(
-              label: 'All',
-              isSelected: true,
-              onTap: () {},
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            _FilterChip(
-              label: 'Nutrition',
-              isSelected: false,
-              icon: Icons.restaurant_outlined,
-              onTap: () {},
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            _FilterChip(
-              label: 'Exercise',
-              isSelected: false,
-              icon: Icons.fitness_center_outlined,
-              onTap: () {},
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            _FilterChip(
-              label: 'Sleep',
-              isSelected: false,
-              icon: Icons.bedtime_outlined,
-              onTap: () {},
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            _FilterChip(
-              label: 'Stress',
-              isSelected: false,
-              icon: Icons.self_improvement_outlined,
-              onTap: () {},
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            _FilterChip(
-              label: 'Symptoms',
-              isSelected: false,
-              icon: Icons.healing_outlined,
-              onTap: () {},
-            ),
-          ],
+          children: filters.map((f) {
+            final (category, label, icon) = f;
+            final selected = _selectedCategory == category;
+            return Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
+              child: _FilterChip(
+                label: label,
+                isSelected: selected,
+                icon: icon,
+                onTap: () => setState(() => _selectedCategory = category),
+              ),
+            );
+          }).toList(),
         ),
       ),
     );
   }
 
-  Widget _buildTipCard(BuildContext context, int index) {
-    final tipData = _tips[index];
-    final tip = tipData.tip;
+  Widget _buildTipCard(BuildContext context, _TipCardData tipData) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
@@ -282,7 +294,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _CategoryIcon(category: tip.category, isDark: isDark),
+                _CategoryIcon(category: tipData.category, isDark: isDark),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
@@ -290,7 +302,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
                     children: [
                       Row(
                         children: [
-                          _CategoryLabel(category: tip.category),
+                          _CategoryLabel(category: tipData.category),
                           const Spacer(),
                           if (!tipData.isRead)
                             Container(
@@ -305,7 +317,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
-                        tip.tip,
+                        tipData.tip,
                         style: AppTypography.light.bodySmall?.copyWith(
                           color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
                           height: 1.5,
@@ -314,10 +326,11 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
                       const SizedBox(height: AppSpacing.sm),
                       Row(
                         children: [
-                          CyclePhaseIndicator(
-                            phase: tip.phase,
-                            size: CyclePhaseIndicatorSize.small,
-                          ),
+                          if (tipData.phase != null)
+                            indicator.CyclePhaseIndicator(
+                              phase: _toCyclePhase(tipData.phase!),
+                              size: indicator.CyclePhaseIndicatorSize.small,
+                            ),
                           const Spacer(),
                           TextButton.icon(
                             onPressed: () => setState(() {
@@ -343,8 +356,8 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
-            _buildExpandableSection(context, tipData, isDark),
+            if (tipData.whyThisHelps != null)
+              _buildExpandableSection(context, tipData, isDark),
           ],
         ),
       ),
@@ -392,28 +405,35 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    tipData.tip.whyThisHelps,
+                    tipData.whyThisHelps!,
                     style: AppTypography.light.bodySmall?.copyWith(
                       color: isDark ? AppColors.textSecondaryDark : AppColors.charcoal,
                       height: 1.6,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: [
-                      Icon(Icons.source_outlined, size: 14, color: AppColors.slate),
-                      const SizedBox(width: AppSpacing.xs),
-                      Expanded(
-                        child: Text(
-                          'Source: ${tipData.tip.source}',
-                          style: AppTypography.light.labelSmall?.copyWith(
-                            color: AppColors.slate,
-                            fontStyle: FontStyle.italic,
+                  if (tipData.source != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: [
+                        Icon(Icons.source_outlined, size: 14, color: AppColors.slate),
+                        const SizedBox(width: AppSpacing.xs),
+                        Expanded(
+                          child: InkWell(
+                            onTap: tipData.source != null && _sourceUrls.containsKey(tipData.source)
+                                ? () => launchUrl(Uri.parse(_sourceUrls[tipData.source]!), mode: LaunchMode.externalApplication)
+                                : null,
+                            child: Text(
+                              'Source: ${tipData.source}',
+                              style: AppTypography.light.labelSmall?.copyWith(
+                                color: _sourceUrls.containsKey(tipData.source) ? AppColors.forestGreen : AppColors.slate,
+                                decoration: _sourceUrls.containsKey(tipData.source) ? TextDecoration.underline : null,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

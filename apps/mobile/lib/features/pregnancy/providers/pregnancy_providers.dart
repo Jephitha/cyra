@@ -36,11 +36,11 @@ Future<List<FetalMeasurement>> fetalMeasurements(
 }
 
 @riverpod
-Future<List<KickLog>> kickLogs(KickLogsRef ref, {DateTime? from, DateTime? to}) async {
+Future<List<KickLog>> kickLogs(KickLogsRef ref, {DateTime? startDate, DateTime? endDate}) async {
   final pregnancy = await ref.watch(currentPregnancyProvider.future);
   if (pregnancy == null) return [];
   final repo = ref.watch(pregnancyRepositoryProvider);
-  return repo.getKickLogs(pregnancy.id, from: from, to: to);
+  return repo.getKickLogs(pregnancy.id, from: startDate, to: endDate);
 }
 
 @riverpod

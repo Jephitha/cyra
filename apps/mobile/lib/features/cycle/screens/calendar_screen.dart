@@ -51,28 +51,6 @@ class _CalendarState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void previousMonth() {
-    if (month == 1) {
-      month = 12;
-      year--;
-    } else {
-      month--;
-    }
-    selectedDate = DateTime(year, month, 1);
-    notifyListeners();
-  }
-
-  void nextMonth() {
-    if (month == 12) {
-      month = 1;
-      year++;
-    } else {
-      month++;
-    }
-    selectedDate = DateTime(year, month, 1);
-    notifyListeners();
-  }
-
   void goToToday() {
     final now = DateTime.now();
     year = now.year;
@@ -190,25 +168,6 @@ class CalendarScreen extends ConsumerWidget {
         const SizedBox(height: AppSpacing.lg),
         if (state.selectedDate != null)
           _buildSelectedDayDetail(context, state, isDark, ref),
-        const SizedBox(height: AppSpacing.xxl),
-        Center(
-          child:           Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppButton.secondary(
-                'Previous',
-                icon: Icons.chevron_left,
-                onPressed: () => ref.read(_calendarProvider.notifier).previousMonth(),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              AppButton.secondary(
-                'Next',
-                icon: Icons.chevron_right,
-                onPressed: () => ref.read(_calendarProvider.notifier).nextMonth(),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }

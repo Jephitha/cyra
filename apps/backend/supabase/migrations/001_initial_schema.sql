@@ -340,7 +340,7 @@ CREATE TRIGGER update_education_articles_updated_at
 -- COMMUNITY POSTS
 -- ============================================================
 CREATE TABLE IF NOT EXISTS community_posts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id TEXT PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT,
   content TEXT NOT NULL,
