@@ -21,6 +21,9 @@ jobs:
           channel: 'stable'
       - run: flutter pub get
         working-directory: apps/mobile
+      - name: Create env file for test assets
+        run: touch .env
+        working-directory: apps/mobile
       - run: flutter test --coverage --coverage-path=coverage/lcov.info
         working-directory: apps/mobile
       - uses: codecov/codecov-action@v5
@@ -39,6 +42,9 @@ jobs:
           channel: 'stable'
       - run: flutter pub get
         working-directory: apps/mobile
+      - name: Create env file for test assets
+        run: touch .env
+        working-directory: apps/mobile
       - run: flutter test --tags=widget
         working-directory: apps/mobile
 
@@ -54,6 +60,9 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
       - run: flutter pub get
+        working-directory: apps/mobile
+      - name: Create env file for test assets
+        run: touch .env
         working-directory: apps/mobile
       - uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -74,6 +83,9 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
       - run: flutter pub get
+        working-directory: apps/mobile
+      - name: Create env file for test assets
+        run: touch .env
         working-directory: apps/mobile
       - name: Run benchmark tests
         run: flutter test --tags=benchmark --dart-define=benchmark=true

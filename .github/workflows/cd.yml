@@ -21,6 +21,9 @@ jobs:
           channel: 'stable'
       - run: flutter pub get
         working-directory: apps/mobile
+      - name: Create env file for build assets
+        run: touch .env
+        working-directory: apps/mobile
       - run: flutter build appbundle --release
         working-directory: apps/mobile
       - uses: r0adkll/upload-google-play@v1
@@ -43,6 +46,9 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
       - run: flutter pub get
+        working-directory: apps/mobile
+      - name: Create env file for build assets
+        run: touch .env
         working-directory: apps/mobile
       - run: flutter build ios --release --no-codesign
         working-directory: apps/mobile

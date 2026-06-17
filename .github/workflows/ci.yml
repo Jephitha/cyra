@@ -20,6 +20,9 @@ jobs:
           channel: 'stable'
       - run: flutter pub get
         working-directory: apps/mobile
+      - name: Create env file for analysis assets
+        run: touch .env
+        working-directory: apps/mobile
       - run: flutter analyze
         working-directory: apps/mobile
       - run: dart format --set-exit-if-changed lib/ test/
@@ -35,6 +38,9 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
       - run: flutter pub get
+        working-directory: apps/mobile
+      - name: Create env file for analysis assets
+        run: touch .env
         working-directory: apps/mobile
       - run: flutter test --coverage --coverage-path=coverage/lcov.info
         working-directory: apps/mobile
@@ -55,6 +61,9 @@ jobs:
           channel: 'stable'
       - run: flutter pub get
         working-directory: apps/mobile
+      - name: Create env file for build assets
+        run: touch .env
+        working-directory: apps/mobile
       - run: flutter build apk --release
         working-directory: apps/mobile
       - uses: actions/upload-artifact@v6
@@ -73,6 +82,9 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
       - run: flutter pub get
+        working-directory: apps/mobile
+      - name: Create env file for build assets
+        run: touch .env
         working-directory: apps/mobile
       - run: flutter build ios --release --no-codesign
         working-directory: apps/mobile
