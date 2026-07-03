@@ -70,14 +70,25 @@ This is the most important finding and is easy to miss just by using the app:
   `symptomRepositoryProvider` on save, with loading/error states. Data flows from
   tap-save → Drift DB → (provider invalidation) → downstream screens.
 - **`SeedDataService`** (`core/seed/seed_data_service.dart`) generates ~7 synthetic cycles over
-  6+ months on first debug run (`kDebugMode` gated) — useful for demoing the design system, but
-  masks the fact that the dashboard/calendar don't actually read even this seed data; the seed
-  data populates the real DB via repositories, while the screens read neither the seed data nor
-  live data.
+  6+ months on first debug run (`kDebugMode` gated) — useful for demoing the design system.
+  Now that T1-T4 are complete, the seed data coexists with real user data and the core loop
+  (log → dashboard → calendar → restart) works correctly end-to-end.
+
+**T4 smoke test verified:** Fresh install → onboarding → privacy setup → log period → dashboard
+shows real data → calendar shows period day → force-quit/relaunch → data persists. Three bugs
+found and fixed during T4:
+1. `log_period_screen.dart` `_save()` was not invalidating `cycleDaysProvider`, so calendar
+   never refreshed after log.
+2. `logPeriodStart` silently attached to any existing active cycle regardless of date distance,
+   so logging a period weeks after the seed cycle's start didn't create a new cycle.
+3. `getCycleDay(date)` used `getSingleOrNull()` which threw "Too many elements" when multiple
+   cycles had cycle_day rows on the same date (seed data creates overlapping cycles).
+   Fixed by adding `getCycleDayForCycle(cycleId, date)` for cycle-scoped lookups and using
+   `limit(1)` for the unqualified `getCycleDay`.
 
 **Practical implication:** the prediction engine, encryption, and DB schema are production-quality,
-but a real user's actual logged data currently has no path from "tap save" to "show on dashboard."
-This should be the #1 priority — it's wiring, not new engineering.
+and the core loop (log → dashboard → calendar → persist) now works end-to-end.
+P0 is complete.
 
 ## 3. Features with data layer but no UI at all
 

@@ -113,6 +113,7 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
       ref.invalidate(allCyclesProvider);
       ref.invalidate(cycleSummaryProvider);
       ref.invalidate(nextPeriodPredictionProvider);
+      ref.invalidate(cycleDaysProvider(activeCycle!.id));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

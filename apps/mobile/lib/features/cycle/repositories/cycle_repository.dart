@@ -165,11 +165,11 @@ class CycleRepository {
 
   Future<CycleDay> saveCycleDay(CycleDay day) async {
     final now = DateTime.now();
-    final existing = await getCycleDay(day.date);
+    final existing = await getCycleDayForCycle(day.cycleId, day.date);
 
     if (existing != null) {
       await (_db.update(_db.cycleDays)
-            ..where((t) => t.date.equals(day.date)))
+            ..where((t) => t.cycleId.equals(day.cycleId) & t.date.equals(day.date)))
           .write(db.CycleDaysCompanion(
         flowIntensity: day.flowIntensity > 0
             ? Value(day.flowIntensity)
@@ -213,12 +213,21 @@ class CycleRepository {
     return day;
   }
 
-  Future<CycleDay?> getCycleDay(DateTime date) async {
+  Future<CycleDay?> getCycleDayForCycle(String cycleId, DateTime date) async {
     final result = await (_db.select(_db.cycleDays)
-          ..where((t) => t.date.equals(date)))
+          ..where((t) => t.cycleId.equals(cycleId) & t.date.equals(date)))
         .getSingleOrNull();
     if (result == null) return null;
     return _toDomainCycleDay(result);
+  }
+
+  Future<CycleDay?> getCycleDay(DateTime date) async {
+    final results = await (_db.select(_db.cycleDays)
+          ..where((t) => t.date.equals(date))
+          ..limit(1))
+        .get();
+    if (results.isEmpty) return null;
+    return _toDomainCycleDay(results.first);
   }
 
   Future<List<CycleDay>> getCycleDays(String cycleId) async {
@@ -247,18 +256,25 @@ class CycleRepository {
     final active = await getActiveCycle();
 
     if (active != null) {
-      final cycleDays = await getCycleDays(active.id);
-      final hasFlow = cycleDays.any((d) => d.flowIntensity > 0 || d.spotting);
-      if (!hasFlow) {
-        final dayId = '${active.id}_${date.toIso8601String()}';
-        await saveCycleDay(CycleDay(
-          id: dayId,
-          cycleId: active.id,
-          date: date,
-          flowIntensity: flowIntensity ?? 1,
-        ));
+      // If the date is within a reasonable window of the active cycle's start,
+      // treat it as part of the same cycle.
+      final daysSinceCycleStart = date.difference(active.startDate).inDays;
+      if (daysSinceCycleStart >= 0 && daysSinceCycleStart <= 10) {
+        final cycleDays = await getCycleDays(active.id);
+        final hasFlow = cycleDays.any((d) => d.flowIntensity > 0 || d.spotting);
+        if (!hasFlow) {
+          final dayId = '${active.id}_${date.toIso8601String()}';
+          await saveCycleDay(CycleDay(
+            id: dayId,
+            cycleId: active.id,
+            date: date,
+            flowIntensity: flowIntensity ?? 1,
+          ));
+        }
+        return;
       }
-      return;
+      // Date is too far from the active cycle: close the old one and start fresh.
+      await logPeriodEnd(date);
     }
 
     final newId = DateTime.now().microsecondsSinceEpoch.toString();

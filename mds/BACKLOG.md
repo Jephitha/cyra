@@ -35,7 +35,7 @@ synthesizing fake values. Empty-state (zero cycles logged) is handled gracefully
 `DateTime.now()`.
 **Files:** `features/cycle/screens/calendar_screen.dart`
 
-### T4. End-to-end smoke test of the core loop
+### [x] T4. End-to-end smoke test of the core loop
 **Done when:** A fresh install → onboarding → log a period → dashboard shows it → calendar shows
 it → app restart → data still there, works with zero crashes and no mock data visible.
 
