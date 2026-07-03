@@ -28,7 +28,7 @@ synthesizing fake values. Empty-state (zero cycles logged) is handled gracefully
 "track 3 cycles for a prediction" messaging already built into `CyclePredictor`.
 **Files:** `features/cycle/screens/dashboard_screen.dart`, `core/ml/health_insights_engine.dart`, `features/cycle/providers/cycle_providers.dart`
 
-### T3. Wire `CalendarScreen` to real data
+### [x] T3. Wire `CalendarScreen` to real data
 **Problem:** Same mock-state issue as dashboard.
 **Done when:** Calendar day statuses (period/fertile/ovulation) are derived from
 `cycleDaysProvider` + `OvulationDetector`/fertile-window calculation, not synthetic offsets from

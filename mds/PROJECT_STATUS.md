@@ -61,9 +61,10 @@ This is the most important finding and is easy to miss just by using the app:
   `nextPeriodPredictionProvider`, and `dashboardInsightsProvider` (wraps
   `HealthInsightsEngine.generateDashboardInsights`). Empty-state handled.
   Mock `_DashboardState` removed entirely.
-- **`CalendarScreen`** (`features/cycle/screens/calendar_screen.dart`) — same pattern:
-  a private `_CalendarState` synthesizes fake period/fertile/ovulation days from
-  `DateTime.now()`, not from the database.
+- **`CalendarScreen`** (`features/cycle/screens/calendar_screen.dart`) — **WIRED (T3 done).**
+  Now a `ConsumerStatefulWidget` watching `activeCycleProvider`, `cycleSummaryProvider`,
+  and `cycleDaysProvider`. Day statuses from real `CycleDay` data +
+  `OvulationDetector.calculateFertileWindow()`. Mock `_CalendarState` removed entirely.
 - **`LogPeriodScreen`** (`features/cycle/screens/log_period_screen.dart`) — **WIRED (T1 done).**
   Now a `ConsumerStatefulWidget` that persists via `cycleRepositoryProvider` and
   `symptomRepositoryProvider` on save, with loading/error states. Data flows from
