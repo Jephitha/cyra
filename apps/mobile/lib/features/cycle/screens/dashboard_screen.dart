@@ -21,6 +21,7 @@ import 'package:cyra/features/cycle/screens/prediction_detail_screen.dart';
 import 'package:cyra/features/cycle/screens/cycle_history_screen.dart';
 import 'package:cyra/features/cycle/screens/calendar_screen.dart';
 import 'package:cyra/features/cycle/screens/log_period_screen.dart';
+import 'package:cyra/features/symptoms/screens/log_symptom_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -314,22 +315,42 @@ class DashboardScreen extends ConsumerWidget {
             },
           ),
           const SizedBox(height: AppSpacing.lg),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const LogPeriodScreen(),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const LogPeriodScreen(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.water_drop_rounded, size: 18),
+                  label: const Text('Log Period'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.forestGreen,
+                    side: const BorderSide(color: AppColors.forestGreen),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  ),
                 ),
               ),
-              child: Text(
-                'Open full log',
-                style: TextStyle(
-                  color: AppColors.forestGreen,
-                  fontWeight: FontWeight.w500,
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const LogSymptomScreen(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.healing_rounded, size: 18),
+                  label: const Text('Log Symptoms'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.sage,
+                    side: const BorderSide(color: AppColors.sage),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),

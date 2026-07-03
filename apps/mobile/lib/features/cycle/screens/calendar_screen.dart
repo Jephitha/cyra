@@ -17,6 +17,7 @@ import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/features/cycle/models/cycle.dart' as models;
 import 'package:cyra/features/cycle/providers/cycle_providers.dart';
 import 'package:cyra/features/cycle/screens/log_period_screen.dart';
+import 'package:cyra/features/symptoms/screens/log_symptom_screen.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -439,11 +440,22 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ],
           const SizedBox(height: AppSpacing.lg),
           AppButton.secondary(
-            'Log data for this day',
-            icon: Icons.add_rounded,
+            'Log Period',
+            icon: Icons.water_drop_rounded,
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => LogPeriodScreen(initialDate: date),
+              ),
+            ),
+            width: double.infinity,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppButton.secondary(
+            'Log Symptoms',
+            icon: Icons.healing_rounded,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => LogSymptomScreen(initialDate: date),
               ),
             ),
             width: double.infinity,

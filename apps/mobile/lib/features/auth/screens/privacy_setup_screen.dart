@@ -31,6 +31,8 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   String _pin = '';
   String _confirmPin = '';
   bool _showPinError = false;
+  bool _pinFocused = false;
+  bool _confirmPinFocused = false;
   bool _isLoading = false;
 
   final _pinController = TextEditingController();
@@ -62,6 +64,12 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   void initState() {
     super.initState();
     _checkBiometrics();
+    _pinFocusNode.addListener(() {
+      if (mounted) setState(() => _pinFocused = _pinFocusNode.hasFocus);
+    });
+    _confirmPinFocusNode.addListener(() {
+      if (mounted) setState(() => _confirmPinFocused = _confirmPinFocusNode.hasFocus);
+    });
   }
 
   @override
@@ -554,6 +562,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             label: 'Enter PIN',
             value: _pin,
             dense: compactMode,
+            isFocused: _pinFocused,
             onChanged: (v) {
               if (v.length <= 5) {
                 setState(() {
@@ -572,6 +581,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             focusNode: _confirmPinFocusNode,
             label: 'Confirm PIN',
             dense: compactMode,
+            isFocused: _confirmPinFocused,
             value: _confirmPin,
             onChanged: (v) {
               if (v.length <= 5) {
@@ -615,6 +625,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
     required String label,
     required String value,
     required bool dense,
+    required bool isFocused,
     required ValueChanged<String> onChanged,
   }) {
     return Column(
@@ -640,7 +651,12 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
                   color: AppColors.mistWhite,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(
-                    color: _showPinError ? AppColors.error : AppColors.borderLight,
+                    color: _showPinError
+                        ? AppColors.error
+                        : isFocused
+                            ? AppColors.forestGreen
+                            : AppColors.borderLight,
+                    width: isFocused ? 2 : 1,
                   ),
                 ),
                 height: dense ? 48 : 60,

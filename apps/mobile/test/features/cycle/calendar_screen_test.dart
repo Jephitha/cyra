@@ -142,31 +142,33 @@ void main() {
       expect(find.textContaining('Day'), findsWidgets);
     });
 
-    testWidgets('shows Log data button in detail card', (tester) async {
-      await tester.pumpWidget(_createPopulatedApp());
-      await tester.pumpAndSettle();
-
-      await tester.scrollUntilVisible(
-        find.text('Log data for this day'),
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
-
-      expect(find.text('Log data for this day'), findsOneWidget);
-    });
-
-    testWidgets('tapping Log data navigates to LogPeriodScreen',
+    testWidgets('shows Log Period and Log Symptoms buttons in detail card',
         (tester) async {
       await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 
       await tester.scrollUntilVisible(
-        find.text('Log data for this day'),
+        find.text('Log Period'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      expect(find.text('Log Period'), findsOneWidget);
+      expect(find.text('Log Symptoms'), findsOneWidget);
+    });
+
+    testWidgets('tapping Log Period navigates to LogPeriodScreen',
+        (tester) async {
+      await tester.pumpWidget(_createPopulatedApp());
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Log Period'),
         500,
         scrollable: find.byType(Scrollable).first,
       );
 
-      await tester.tap(find.text('Log data for this day'));
+      await tester.tap(find.text('Log Period'));
       await tester.pumpAndSettle();
 
       expect(find.byType(LogPeriodScreen), findsOneWidget);

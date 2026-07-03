@@ -21,26 +21,29 @@ class SymptomOption {
   });
 
   static List<SymptomOption> defaultSymptoms() => const [
-    SymptomOption(id: 'cramping', name: 'Cramping', icon: Icons.healing, category: 'Pain'),
-    SymptomOption(id: 'bloating', name: 'Bloating', icon: Icons.water_drop, category: 'Digestive'),
-    SymptomOption(id: 'headache', name: 'Headache', icon: Icons.face, category: 'Pain'),
-    SymptomOption(id: 'fatigue', name: 'Fatigue', icon: Icons.battery_alert, category: 'Energy'),
-    SymptomOption(id: 'nausea', name: 'Nausea', icon: Icons.sick, category: 'Digestive'),
-    SymptomOption(id: 'breast_tenderness', name: 'Breast Tenderness', icon: Icons.favorite, category: 'Physical'),
-    SymptomOption(id: 'mood_swings', name: 'Mood Swings', icon: Icons.mood_bad, category: 'Emotional'),
-    SymptomOption(id: 'spotting', name: 'Spotting', icon: Icons.colorize, category: 'Bleeding'),
-    SymptomOption(id: 'backache', name: 'Backache', icon: Icons.accessibility_new, category: 'Pain'),
-    SymptomOption(id: 'acne', name: 'Acne', icon: Icons.face_retouching_natural, category: 'Skin'),
-    SymptomOption(id: 'cravings', name: 'Cravings', icon: Icons.restaurant, category: 'Digestive'),
-    SymptomOption(id: 'insomnia', name: 'Insomnia', icon: Icons.bedtime, category: 'Sleep'),
-    SymptomOption(id: 'dizziness', name: 'Dizziness', icon: Icons.air, category: 'Physical'),
-    SymptomOption(id: 'ovulation_pain', name: 'Ovulation Pain', icon: Icons.circle, category: 'Pain'),
-    SymptomOption(id: 'increased_appetite', name: 'Increased Appetite', icon: Icons.restaurant_menu, category: 'Digestive'),
-    SymptomOption(id: 'leg_cramps', name: 'Leg Cramps', icon: Icons.directions_walk, category: 'Pain'),
-    SymptomOption(id: 'hot_flashes', name: 'Hot Flashes', icon: Icons.whatshot, category: 'Physical'),
-    SymptomOption(id: 'anxiety', name: 'Anxiety', icon: Icons.psychology, category: 'Emotional'),
-    SymptomOption(id: 'constipation', name: 'Constipation', icon: Icons.hourglass_bottom, category: 'Digestive'),
-    SymptomOption(id: 'gas', name: 'Gas', icon: Icons.bubble_chart, category: 'Digestive'),
+    // Physical
+    SymptomOption(id: 'cramping', name: 'Cramping', icon: Icons.healing, category: 'physical'),
+    SymptomOption(id: 'headache', name: 'Headache', icon: Icons.face, category: 'physical'),
+    SymptomOption(id: 'backache', name: 'Backache', icon: Icons.accessibility_new, category: 'physical'),
+    SymptomOption(id: 'breast_tenderness', name: 'Breast Tenderness', icon: Icons.favorite, category: 'physical'),
+    SymptomOption(id: 'bloating', name: 'Bloating', icon: Icons.water_drop, category: 'physical'),
+    SymptomOption(id: 'ovulation_pain', name: 'Ovulation Pain', icon: Icons.circle, category: 'physical'),
+    SymptomOption(id: 'acne', name: 'Acne', icon: Icons.face_retouching_natural, category: 'physical'),
+    SymptomOption(id: 'dizziness', name: 'Dizziness', icon: Icons.air, category: 'physical'),
+    SymptomOption(id: 'hot_flashes', name: 'Hot Flashes', icon: Icons.whatshot, category: 'physical'),
+    SymptomOption(id: 'leg_cramps', name: 'Leg Cramps', icon: Icons.directions_walk, category: 'physical'),
+    SymptomOption(id: 'nausea', name: 'Nausea', icon: Icons.sick, category: 'physical'),
+    // Emotional
+    SymptomOption(id: 'mood_swings', name: 'Mood Swings', icon: Icons.mood_bad, category: 'emotional'),
+    SymptomOption(id: 'anxiety', name: 'Anxiety', icon: Icons.psychology, category: 'emotional'),
+    // Lifestyle
+    SymptomOption(id: 'fatigue', name: 'Fatigue', icon: Icons.battery_alert, category: 'lifestyle'),
+    SymptomOption(id: 'insomnia', name: 'Insomnia', icon: Icons.bedtime, category: 'lifestyle'),
+    SymptomOption(id: 'cravings', name: 'Cravings', icon: Icons.restaurant, category: 'lifestyle'),
+    SymptomOption(id: 'increased_appetite', name: 'Increased Appetite', icon: Icons.restaurant_menu, category: 'lifestyle'),
+    SymptomOption(id: 'constipation', name: 'Constipation', icon: Icons.hourglass_bottom, category: 'lifestyle'),
+    SymptomOption(id: 'gas', name: 'Gas', icon: Icons.bubble_chart, category: 'lifestyle'),
+    SymptomOption(id: 'spotting', name: 'Spotting', icon: Icons.colorize, category: 'lifestyle'),
   ];
 }
 

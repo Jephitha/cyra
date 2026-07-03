@@ -43,7 +43,7 @@ it → app restart → data still there, works with zero crashes and no mock dat
 
 ## P1 — Fill in missing logging UI (data layer already exists for these)
 
-### T5. Symptom logging screen
+### [x] T5. Symptom logging screen
 Build a dedicated screen (or confirm `LogPeriodScreen`'s embedded `SymptomSelector` is sufficient
 for now) that writes to `symptom_logs_table` via `SymptomRepository`, independent of period
 logging — symptoms should be loggable on non-period days too.

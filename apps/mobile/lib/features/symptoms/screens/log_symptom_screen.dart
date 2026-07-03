@@ -60,9 +60,9 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
       child: Scaffold(
         appBar: _buildAppBar(context, isDark),
         body: todaySymptomsAsync.when(
-          data: (existing) => _buildBody(isDark, existing),
+          data: (_) => _buildBody(isDark),
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => _buildBody(isDark, []),
+          error: (_, __) => _buildBody(isDark),
         ),
       ),
     );
@@ -85,11 +85,7 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
     );
   }
 
-  Widget _buildBody(bool isDark, List<SymptomEntry> existing) {
-    if (existing.isNotEmpty && _selectedSymptomIds.isEmpty) {
-      _preSelectExisting(existing);
-    }
-
+  Widget _buildBody(bool isDark) {
     return Column(
       children: [
         _buildDateSelector(isDark),
@@ -110,17 +106,6 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
         _buildBottomBar(isDark),
       ],
     );
-  }
-
-  void _preSelectExisting(List<SymptomEntry> existing) {
-    for (final entry in existing) {
-      _selectedSymptomIds.add(entry.symptomId);
-      _severities[entry.symptomId] = entry.severity;
-      if (entry.notes != null && entry.notes!.isNotEmpty) {
-        _noteControllers[entry.symptomId] =
-            TextEditingController(text: entry.notes);
-      }
-    }
   }
 
   Widget _buildDateSelector(bool isDark) {
@@ -280,8 +265,9 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
   }
 
   List<SymptomOption> get _selectedSymptomsWithDetails {
+    final category = _tabs[_selectedTabIndex].toLowerCase();
     return _allSymptoms
-        .where((s) => _selectedSymptomIds.contains(s.id))
+        .where((s) => _selectedSymptomIds.contains(s.id) && s.category == category)
         .toList();
   }
 

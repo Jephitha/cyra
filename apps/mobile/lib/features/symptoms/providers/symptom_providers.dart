@@ -80,6 +80,9 @@ class SymptomLogger extends _$SymptomLogger {
     ref.invalidate(todaySymptomsProvider);
     ref.invalidate(symptomPatternsProvider);
     ref.invalidate(symptomStreakProvider);
+    for (final entry in entries) {
+      ref.invalidate(symptomsForDateProvider(entry.date));
+    }
   }
 
   Future<void> deleteSymptom(String id) async {
