@@ -6,8 +6,7 @@ import 'app/bootstrap.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Preload Google Fonts to ensure they're available in release builds
+
   await GoogleFonts.pendingFonts([
     GoogleFonts.inter(),
     GoogleFonts.inter(fontWeight: FontWeight.w300),
@@ -15,7 +14,16 @@ Future<void> main() async {
     GoogleFonts.inter(fontWeight: FontWeight.w500),
     GoogleFonts.inter(fontWeight: FontWeight.w600),
   ]);
-  
+
   await bootstrapApp();
-  runApp(const ProviderScope(child: CyraApp()));
+
+  final container = ProviderContainer();
+  await bootstrapServices(container);
+
+  runApp(
+    UncontrolledProviderScope(
+      container: container,
+      child: const CyraApp(),
+    ),
+  );
 }

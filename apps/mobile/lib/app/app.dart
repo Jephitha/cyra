@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cyra/app/bootstrap.dart';
 import 'package:cyra/app/router.dart';
 import 'package:cyra/core/design/app_theme.dart';
 import 'package:cyra/core/providers/settings_providers.dart';
@@ -17,7 +16,6 @@ class _CyraAppState extends ConsumerState<CyraApp> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => bootstrapServices(ref));
     Future.microtask(() => loadSeedData());
   }
 

@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:cyra/core/security/secure_storage_service.dart';
 
 part 'auth_providers.freezed.dart';
 part 'auth_providers.g.dart';
@@ -28,8 +29,17 @@ class OnboardingState extends _$OnboardingState {
   @override
   bool build() => false;
 
-  void complete() => state = true;
-  void reset() => state = false;
+  void complete() {
+    state = true;
+    ref
+        .read(secureStorageServiceProvider)
+        .storeString('onboarding_complete', 'true');
+  }
+
+  void reset() {
+    state = false;
+    ref.read(secureStorageServiceProvider).deleteKey('onboarding_complete');
+  }
 }
 
 @Riverpod(keepAlive: true)

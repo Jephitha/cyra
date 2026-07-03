@@ -31,8 +31,8 @@ class PinAuthService {
   static const int _saltLength = 32;
   static const int _maxAttempts = 5;
   static const Duration _lockoutDuration = Duration(seconds: 30);
-  static const int _pinMinLength = 4;
-  static const int _pinMaxLength = 8;
+  static const int _pinMinLength = 5;
+  static const int _pinMaxLength = 5;
 
   PinAuthService(this._secureStorage);
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
@@ -89,9 +88,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _completeOnboarding() {
-    ref.read(authStateNotifierProvider.notifier).ensureAuthenticated();
     ref.read(onboardingStateProvider.notifier).complete();
-    context.go('/privacy-setup');
   }
 
   @override

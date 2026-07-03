@@ -72,21 +72,21 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
 
     setState(() {
       if (_isConfirming) {
-        if (_confirmPin.length < 6) {
+        if (_confirmPin.length < 5) {
           _confirmPin += digit;
           _showError = false;
         }
       } else {
-        if (_pin.length < 6) {
+        if (_pin.length < 5) {
           _pin += digit;
           _showError = false;
         }
       }
     });
 
-    if (_isConfirming && _confirmPin.length >= 4) {
+    if (_isConfirming && _confirmPin.length >= 5) {
       _validateConfirmation();
-    } else if (!_isConfirming && _pin.length >= 4) {
+    } else if (!_isConfirming && _pin.length >= 5) {
       if (widget.mode == PinScreenMode.verify) {
         _verifyPin();
       } else {
@@ -303,8 +303,8 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
           _isConfirming
               ? 'Enter the same passcode again'
               : widget.mode == PinScreenMode.verify
-              ? 'Enter your 4-6 digit passcode'
-              : 'Choose a 4-6 digit passcode',
+              ? 'Enter your 5-digit passcode'
+              : 'Choose a 5-digit passcode',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
@@ -321,7 +321,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
-        6,
+5,
         (i) => AnimatedContainer(
           duration: const Duration(milliseconds: 120),
           margin: const EdgeInsets.symmetric(horizontal: 7),

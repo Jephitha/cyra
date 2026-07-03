@@ -103,7 +103,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
 
   Future<void> _goNext() async {
     if (_currentStep == 2) {
-      if (_pin.length < 4) return;
+      if (_pin.length < 5) return;
       if (_pin != _confirmPin) {
         setState(() {
           _showPinError = true;
@@ -134,6 +134,9 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
     } else {
       ref.read(onboardingStateProvider.notifier).complete();
       ref.read(authStateNotifierProvider.notifier).ensureAuthenticated();
+      ref
+          .read(secureStorageServiceProvider)
+          .storeString('privacy_setup_complete', 'true');
       if (!mounted) return;
       context.go('/dashboard');
     }
@@ -552,14 +555,14 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             value: _pin,
             dense: compactMode,
             onChanged: (v) {
-              if (v.length <= 6) {
+              if (v.length <= 5) {
                 setState(() {
                   _pin = v;
                   _showPinError = false;
                 });
               } else {
-                _pinController.text = v.substring(0, 6);
-                _pinController.selection = TextSelection.collapsed(offset: 6);
+                _pinController.text = v.substring(0, 5);
+                _pinController.selection = TextSelection.collapsed(offset: 5);
               }
             },
           ),
@@ -571,14 +574,14 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             dense: compactMode,
             value: _confirmPin,
             onChanged: (v) {
-              if (v.length <= 6) {
+              if (v.length <= 5) {
                 setState(() {
                   _confirmPin = v;
                   _showPinError = false;
                 });
               } else {
-                _confirmPinController.text = v.substring(0, 6);
-                _confirmPinController.selection = TextSelection.collapsed(offset: 6);
+                _confirmPinController.text = v.substring(0, 5);
+                _confirmPinController.selection = TextSelection.collapsed(offset: 5);
               }
             },
           ),
@@ -644,7 +647,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ...List.generate(6, (i) {
+                    ...List.generate(5, (i) {
                       final isFilled = i < value.length;
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 80),
@@ -702,7 +705,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
         ),
         SizedBox(height: dense ? 2 : AppSpacing.sm),
         Text(
-          '6 digits',
+          '5 digits',
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w400,
@@ -832,7 +835,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
 
   Widget _buildBottomBar() {
     final canProceed =
-        _currentStep != 2 || (_pin.length >= 4 && _pin == _confirmPin);
+        _currentStep != 2 || (_pin.length >= 5 && _pin == _confirmPin);
     final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
     final compactBottom = keyboardInset > 0;
 

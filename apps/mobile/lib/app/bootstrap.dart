@@ -5,6 +5,8 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:cyra/core/database/daos/cycle_dao.dart';
 import 'package:cyra/core/networking/supabase_client.dart';
 import 'package:cyra/core/security/encryption_service.dart';
+import 'package:cyra/core/security/pin_auth_service.dart';
+import 'package:cyra/core/security/secure_storage_service.dart';
 import 'package:cyra/core/seed/seed_data_service.dart';
 import 'package:cyra/features/auth/providers/auth_providers.dart';
 import 'package:cyra/features/cycle/providers/cycle_providers.dart';
@@ -16,45 +18,49 @@ Future<void> bootstrapApp() async {
   try {
     await SupabaseClientService.initialize();
   } catch (e, st) {
-    // Log error but don't prevent app from starting
-    // The app can work in offline mode
     debugPrint('Supabase initialization failed: $e\n$st');
   }
   tz.initializeTimeZones();
 }
 
-/// Restores local auth state from an existing Supabase session.
-void restoreAuthFromSession(WidgetRef ref) {
-  try {
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session != null) {
-      ref.read(onboardingStateProvider.notifier).complete();
-      ref.read(authStateNotifierProvider.notifier).authenticate();
+/// Restores local auth state from secure storage and Supabase session.
+/// Must run before [runApp] so the router redirects correctly on launch.
+Future<void> bootstrapServices(ProviderContainer container) async {
+  await container.read(encryptionServiceProvider).initialize();
+
+  final secureStorage = container.read(secureStorageServiceProvider);
+
+  final onboardingComplete =
+      await secureStorage.readString('onboarding_complete');
+  if (onboardingComplete == 'true') {
+    container.read(onboardingStateProvider.notifier).complete();
+  }
+
+  final privacySetupComplete =
+      await secureStorage.readString('privacy_setup_complete');
+  if (privacySetupComplete == 'true') {
+    final hasPin = await container.read(pinAuthServiceProvider).hasPin();
+    if (hasPin) {
+      container.read(authStateNotifierProvider.notifier).lock();
+    } else {
+      container
+          .read(authStateNotifierProvider.notifier)
+          .authenticate();
     }
-  } catch (_) {
-    // Offline: skip session restoration
+  } else {
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session != null) {
+        container.read(authStateNotifierProvider.notifier).authenticate();
+      }
+    } catch (_) {}
   }
-}
 
-/// Ensures a Supabase session exists after local unlock.
-Future<void> ensureSupabaseSession() async {
-  try {
-    final client = Supabase.instance.client;
-    if (client.auth.currentSession != null) return;
-    await client.auth.signInAnonymously();
-  } catch (e, st) {
-    debugPrint('Supabase anonymous sign-in failed: $e\n$st');
-  }
-}
-
-Future<void> bootstrapServices(WidgetRef ref) async {
-  await ref.read(encryptionServiceProvider).initialize();
-  restoreAuthFromSession(ref);
   await SeedDataService(
-    ref.read(cycleRepositoryProvider),
-    ref.read(ovulationRepositoryProvider),
-    ref.read(symptomRepositoryProvider),
-    ref.read(journalRepositoryProvider),
-    ref.read(symptomDaoProvider),
+    container.read(cycleRepositoryProvider),
+    container.read(ovulationRepositoryProvider),
+    container.read(symptomRepositoryProvider),
+    container.read(journalRepositoryProvider),
+    container.read(symptomDaoProvider),
   ).loadIfNeeded();
 }

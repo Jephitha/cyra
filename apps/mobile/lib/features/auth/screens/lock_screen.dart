@@ -125,14 +125,14 @@ class _LockScreenState extends ConsumerState<LockScreen>
 
   void _onPinDigit(String digit) {
     if (_isLockedOut) return;
-    if (_enteredPin.length >= 6) return;
+    if (_enteredPin.length >= 5) return;
 
     setState(() {
       _enteredPin += digit;
       _showError = false;
     });
 
-    if (_enteredPin.length >= 4) {
+    if (_enteredPin.length >= 5) {
       _verifyPin();
     }
   }
@@ -310,7 +310,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            6,
+            5,
             (i) => AnimatedContainer(
               duration: const Duration(milliseconds: 120),
               margin: const EdgeInsets.symmetric(horizontal: 6),

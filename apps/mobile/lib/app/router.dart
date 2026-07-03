@@ -66,9 +66,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           if (location != '/onboarding') return '/onboarding';
           return null;
         }
-        if (location != '/privacy-setup' && !_isPublicRoute(location)) {
-          return '/privacy-setup';
-        }
+        if (location != '/privacy-setup') return '/privacy-setup';
         return null;
       }
 
@@ -146,17 +144,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
-
-bool _isPublicRoute(String location) {
-  const publicRoutes = <String>{
-    '/onboarding',
-    '/privacy-setup',
-    '/lock',
-    '/emergency-lock',
-    '/sign-in',
-  };
-  return publicRoutes.contains(location);
-}
 
 class MainShell extends StatelessWidget {
   final String location;

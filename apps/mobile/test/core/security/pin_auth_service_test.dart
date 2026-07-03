@@ -36,7 +36,7 @@ void main() {
 
     group('setPin', () {
       test('stores PIN hash and salt', () async {
-        await pinAuth.setPin('1234');
+        await pinAuth.setPin('12345');
 
         final storedSalt = await mockStorage.readString('cyra_pin_salt');
         final storedHash = await mockStorage.readString('cyra_pin_hash');
@@ -69,7 +69,7 @@ void main() {
 
       test('resets failed attempts on new PIN', () async {
         await mockStorage.storeString('cyra_pin_failed_attempts', '3');
-        await pinAuth.setPin('5678');
+        await pinAuth.setPin('56789');
 
         final attempts = await pinAuth.getFailedAttempts();
         expect(attempts, 0);
@@ -78,17 +78,17 @@ void main() {
 
     group('verifyPin', () {
       setUp(() async {
-        await pinAuth.setPin('1234');
+        await pinAuth.setPin('12345');
       });
 
       test('verifies correct PIN', () async {
-        final result = await pinAuth.verifyPin('1234');
+        final result = await pinAuth.verifyPin('12345');
 
         expect(result, isTrue);
       });
 
       test('rejects wrong PIN', () async {
-        final result = await pinAuth.verifyPin('0000');
+        final result = await pinAuth.verifyPin('00000');
 
         expect(result, isFalse);
       });
@@ -106,9 +106,9 @@ void main() {
       });
 
       test('resets failed attempts on successful verification', () async {
-        await pinAuth.verifyPin('0000');
-        await pinAuth.verifyPin('0000');
-        await pinAuth.verifyPin('1234');
+        await pinAuth.verifyPin('00000');
+        await pinAuth.verifyPin('00000');
+        await pinAuth.verifyPin('12345');
 
         final attempts = await pinAuth.getFailedAttempts();
         expect(attempts, 0);
@@ -117,12 +117,12 @@ void main() {
 
     group('rate limiting', () {
       setUp(() async {
-        await pinAuth.setPin('1234');
+        await pinAuth.setPin('12345');
       });
 
       test('tracks failed attempts', () async {
-        await pinAuth.verifyPin('0000');
-        await pinAuth.verifyPin('0000');
+        await pinAuth.verifyPin('00000');
+        await pinAuth.verifyPin('00000');
 
         final attempts = await pinAuth.getFailedAttempts();
         expect(attempts, 2);
@@ -130,7 +130,7 @@ void main() {
 
       test('locks after 5 failed attempts', () async {
         for (int i = 0; i < 5; i++) {
-          await pinAuth.verifyPin('9999');
+          await pinAuth.verifyPin('99999');
         }
 
         final locked = await pinAuth.isLocked();
@@ -139,13 +139,13 @@ void main() {
         final remaining = await pinAuth.getRemainingAttempts();
         expect(remaining, 0);
 
-        final result = await pinAuth.verifyPin('1234');
+        final result = await pinAuth.verifyPin('12345');
         expect(result, isFalse);
       });
 
       test('stops counting after max attempts', () async {
         for (int i = 0; i < 7; i++) {
-          await pinAuth.verifyPin('9999');
+          await pinAuth.verifyPin('99999');
         }
 
         final attempts = await pinAuth.getFailedAttempts();
@@ -157,7 +157,7 @@ void main() {
 
       test('lockout clears after timeout', () async {
         for (int i = 0; i < 5; i++) {
-          await pinAuth.verifyPin('9999');
+          await pinAuth.verifyPin('99999');
         }
 
         final lockedAfter = await pinAuth.isLocked();
@@ -170,13 +170,13 @@ void main() {
 
       test('rejects PIN after partial lockout then verify', () async {
         for (int i = 0; i < 4; i++) {
-          await pinAuth.verifyPin('9999');
+          await pinAuth.verifyPin('99999');
         }
 
         final remaining = await pinAuth.getRemainingAttempts();
         expect(remaining, 1);
 
-        final result = await pinAuth.verifyPin('9999');
+        final result = await pinAuth.verifyPin('99999');
         expect(result, isFalse);
 
         final afterFifth = await pinAuth.isLocked();
@@ -190,14 +190,14 @@ void main() {
       });
 
       test('returns true after PIN is set', () async {
-        await pinAuth.setPin('1234');
+        await pinAuth.setPin('12345');
         expect(await pinAuth.hasPin(), isTrue);
       });
     });
 
     group('clearPin', () {
       test('removes all stored PIN data', () async {
-        await pinAuth.setPin('1234');
+        await pinAuth.setPin('12345');
         await pinAuth.clearPin();
 
         expect(await pinAuth.hasPin(), isFalse);
@@ -207,9 +207,9 @@ void main() {
 
     group('resetFailedAttempts', () {
       test('resets the failed attempts counter', () async {
-        await pinAuth.setPin('1234');
-        await pinAuth.verifyPin('0000');
-        await pinAuth.verifyPin('0000');
+        await pinAuth.setPin('12345');
+        await pinAuth.verifyPin('00000');
+        await pinAuth.verifyPin('00000');
         await pinAuth.resetFailedAttempts();
 
         final attempts = await pinAuth.getFailedAttempts();
@@ -217,9 +217,9 @@ void main() {
       });
 
       test('clears lockout', () async {
-        await pinAuth.setPin('1234');
+        await pinAuth.setPin('12345');
         for (int i = 0; i < 5; i++) {
-          await pinAuth.verifyPin('9999');
+          await pinAuth.verifyPin('99999');
         }
 
         expect(await pinAuth.isLocked(), isTrue);
@@ -233,14 +233,14 @@ void main() {
 
     group('utility methods', () {
       test('verifyInteractively returns true when PIN is set', () async {
-        await pinAuth.setPin('1234');
+        await pinAuth.setPin('12345');
         expect(await pinAuth.verifyInteractively(), isTrue);
       });
 
       test('verifyInteractively returns false when locked', () async {
-        await pinAuth.setPin('1234');
+        await pinAuth.setPin('12345');
         for (int i = 0; i < 5; i++) {
-          await pinAuth.verifyPin('9999');
+          await pinAuth.verifyPin('99999');
         }
 
         expect(await pinAuth.verifyInteractively(), isFalse);
