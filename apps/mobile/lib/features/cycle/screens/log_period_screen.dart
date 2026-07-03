@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
@@ -8,17 +11,22 @@ import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/flow_intensity_picker.dart';
 import 'package:cyra/core/design/widgets/symptom_selector.dart';
 import 'package:cyra/core/constants/cycle_constants.dart';
+import 'package:cyra/core/utils/extensions.dart';
+import 'package:cyra/features/cycle/models/cycle.dart';
+import 'package:cyra/features/cycle/providers/cycle_providers.dart';
+import 'package:cyra/features/symptoms/models/symptom_models.dart';
+import 'package:cyra/features/symptoms/providers/symptom_providers.dart';
 
-class LogPeriodScreen extends StatefulWidget {
+class LogPeriodScreen extends ConsumerStatefulWidget {
   final DateTime? initialDate;
 
   const LogPeriodScreen({super.key, this.initialDate});
 
   @override
-  State<LogPeriodScreen> createState() => _LogPeriodScreenState();
+  ConsumerState<LogPeriodScreen> createState() => _LogPeriodScreenState();
 }
 
-class _LogPeriodScreenState extends State<LogPeriodScreen> {
+class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
   int _currentStep = 0;
   final int _totalSteps = 5;
 
@@ -31,6 +39,7 @@ class _LogPeriodScreenState extends State<LogPeriodScreen> {
   bool _showFullSymptoms = false;
 
   final TextEditingController _notesController = TextEditingController();
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -58,8 +67,73 @@ class _LogPeriodScreenState extends State<LogPeriodScreen> {
     }
   }
 
-  void _save() {
-    Navigator.of(context).pop(true);
+  Future<void> _save() async {
+    if (_isSaving) return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      final cycleRepo = ref.read(cycleRepositoryProvider);
+      final symptomRepo = ref.read(symptomRepositoryProvider);
+      final date = _selectedDate.startOfDay;
+      final notes = _notesController.text.trim();
+      final symptoms = _selectedSymptoms.toList();
+
+      final isSpottingOnly = _flowIntensity == 5;
+      final effectiveFlow = isSpottingOnly ? null : _flowIntensity;
+      final spotting = _isSpotting || isSpottingOnly;
+
+      await cycleRepo.logPeriodStart(date, flowIntensity: effectiveFlow);
+
+      final activeCycle = await cycleRepo.getActiveCycle();
+      if (activeCycle != null) {
+        final dayId = '${activeCycle.id}_${date.toIso8601String()}';
+        await cycleRepo.saveCycleDay(CycleDay(
+          id: dayId,
+          cycleId: activeCycle.id,
+          date: date,
+          flowIntensity: effectiveFlow ?? 0,
+          spotting: spotting,
+          symptomsJson: symptoms.isNotEmpty ? jsonEncode(symptoms) : null,
+          notes: notes.isNotEmpty ? notes : null,
+        ));
+      }
+
+      for (final symptomId in symptoms) {
+        await symptomRepo.createSymptomEntry(SymptomEntry(
+          id: '${symptomId}_${DateTime.now().microsecondsSinceEpoch}',
+          date: date,
+          symptomId: symptomId,
+          symptomName: _symptomLabel(symptomId),
+          severity: 2,
+        ));
+      }
+
+      ref.invalidate(activeCycleProvider);
+      ref.invalidate(allCyclesProvider);
+      ref.invalidate(cycleSummaryProvider);
+      ref.invalidate(nextPeriodPredictionProvider);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Period logged successfully.'),
+            backgroundColor: AppColors.forestGreen,
+          ),
+        );
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -97,7 +171,7 @@ class _LogPeriodScreenState extends State<LogPeriodScreen> {
       ),
       leading: IconButton(
         icon: const Icon(Icons.close),
-        onPressed: () => Navigator.of(context).maybePop(),
+        onPressed: _isSaving ? null : () => Navigator.of(context).maybePop(),
       ),
       centerTitle: true,
     );
@@ -676,6 +750,8 @@ class _LogPeriodScreenState extends State<LogPeriodScreen> {
           'Save',
           icon: Icons.save_rounded,
           onPressed: _save,
+          isLoading: _isSaving,
+          isDisabled: _isSaving,
           width: double.infinity,
         ),
         const SizedBox(height: AppSpacing.md),
@@ -732,6 +808,7 @@ class _LogPeriodScreenState extends State<LogPeriodScreen> {
   }
 
   Widget _buildBottomBar(bool isDark) {
+    final isLastStep = _currentStep == _totalSteps - 1;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -749,19 +826,23 @@ class _LogPeriodScreenState extends State<LogPeriodScreen> {
               AppButton.ghost(
                 'Back',
                 icon: Icons.chevron_left,
-                onPressed: _goBack,
+                onPressed: _isSaving ? null : _goBack,
+                isDisabled: _isSaving,
               ),
             if (_currentStep == 0)
               AppButton.ghost(
                 'Back',
                 icon: Icons.chevron_left,
-                onPressed: _goBack,
+                onPressed: _isSaving ? null : _goBack,
+                isDisabled: _isSaving,
               ),
             const Spacer(),
             AppButton.primary(
-              _currentStep == _totalSteps - 1 ? 'Save' : 'Next',
-              icon: _currentStep == _totalSteps - 1 ? Icons.check : Icons.chevron_right,
-              onPressed: _currentStep == _totalSteps - 1 ? _save : _goNext,
+              isLastStep ? 'Save' : 'Next',
+              icon: isLastStep ? Icons.check : Icons.chevron_right,
+              onPressed: isLastStep ? _save : _goNext,
+              isLoading: _isSaving && isLastStep,
+              isDisabled: _isSaving,
             ),
           ],
         ),
