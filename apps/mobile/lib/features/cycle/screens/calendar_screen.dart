@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -9,79 +11,119 @@ import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/cycle_calendar.dart';
 import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart';
 import 'package:cyra/core/constants/cycle_constants.dart';
+import 'package:cyra/core/prediction/cycle_predictor.dart';
+import 'package:cyra/core/prediction/ovulation_detector.dart';
 import 'package:cyra/core/utils/extensions.dart';
+import 'package:cyra/features/cycle/models/cycle.dart' as models;
+import 'package:cyra/features/cycle/providers/cycle_providers.dart';
 import 'package:cyra/features/cycle/screens/log_period_screen.dart';
 
-final _calendarProvider = ChangeNotifierProvider<_CalendarState>((ref) {
-  return _CalendarState();
-});
+class CalendarScreen extends ConsumerStatefulWidget {
+  const CalendarScreen({super.key});
 
-class _CalendarState extends ChangeNotifier {
-  int year;
-  int month;
-  DateTime? selectedDate;
-  Map<DateTime, CycleDayStatus> dayStatuses = {};
-  bool hasData = false;
+  @override
+  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
+}
 
-  _CalendarState() : year = DateTime.now().year, month = DateTime.now().month {
-    selectedDate = DateTime.now();
-    _loadData();
+class _CalendarScreenState extends ConsumerState<CalendarScreen> {
+  int _year = DateTime.now().year;
+  int _month = DateTime.now().month;
+  DateTime? _selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = DateTime.now();
   }
 
-  void _loadData() {
+  void _goToToday() {
     final now = DateTime.now();
-    final periodStart = now.subtract(const Duration(days: 13));
+    setState(() {
+      _year = now.year;
+      _month = now.month;
+      _selectedDate = now;
+    });
+  }
 
-    for (int i = 0; i < 5; i++) {
-      final d = periodStart.add(Duration(days: i));
-      dayStatuses[DateTime(d.year, d.month, d.day)] = CycleDayStatus.period;
+  void _selectDate(DateTime date) {
+    setState(() => _selectedDate = date);
+  }
+
+  Map<DateTime, CycleDayStatus> _buildDayStatuses(
+    models.Cycle activeCycle,
+    List<models.CycleDay> cycleDays,
+    int cycleLength,
+  ) {
+    final statuses = <DateTime, CycleDayStatus>{};
+
+    for (final day in cycleDays) {
+      final d = DateTime(day.date.year, day.date.month, day.date.day);
+      if (day.flowIntensity > 0 || day.spotting) {
+        statuses[d] = CycleDayStatus.period;
+      }
     }
 
-    final fertileStart = periodStart.add(const Duration(days: 9));
-    for (int i = 0; i < 5; i++) {
-      final d = fertileStart.add(Duration(days: i));
-      dayStatuses[DateTime(d.year, d.month, d.day)] = CycleDayStatus.fertile;
+    final detector = OvulationDetector();
+    final (fertileStart, fertileEnd) = detector.calculateFertileWindow(
+      periodStart: activeCycle.startDate,
+      cycleLength: cycleLength,
+    );
+
+    final ovulationDate = fertileEnd;
+
+    for (DateTime d = fertileStart;
+        !d.isAfter(fertileEnd);
+        d = d.add(const Duration(days: 1))) {
+      final key = DateTime(d.year, d.month, d.day);
+      if (statuses[key] == null) {
+        statuses[key] = CycleDayStatus.fertile;
+      }
     }
 
-    final ovulationDay = periodStart.add(const Duration(days: 14));
-    dayStatuses[DateTime(ovulationDay.year, ovulationDay.month, ovulationDay.day)] =
-        CycleDayStatus.ovulation;
+    final ovKey = DateTime(
+      ovulationDate.year,
+      ovulationDate.month,
+      ovulationDate.day,
+    );
+    if (statuses[ovKey] == CycleDayStatus.fertile) {
+      statuses[ovKey] = CycleDayStatus.ovulation;
+    }
 
-    hasData = true;
-    notifyListeners();
+    final nextStart = activeCycle.startDate
+        .add(Duration(days: cycleLength));
+    final nextEnd = nextStart.add(const Duration(days: 5));
+    for (DateTime d = nextStart;
+        !d.isAfter(nextEnd);
+        d = d.add(const Duration(days: 1))) {
+      final key = DateTime(d.year, d.month, d.day);
+      if (statuses[key] == null) {
+        statuses[key] = CycleDayStatus.predictedPeriod;
+      }
+    }
+
+    return statuses;
   }
 
-  void goToToday() {
-    final now = DateTime.now();
-    year = now.year;
-    month = now.month;
-    selectedDate = now;
-    notifyListeners();
-  }
-
-  void selectDate(DateTime date) {
-    selectedDate = date;
-    notifyListeners();
-  }
-
-  int cycleDayForDate(DateTime date) {
-    if (date == selectedDate) return DateTime.now().day - date.day + 14;
-    final start = DateTime.now().subtract(const Duration(days: 13));
-    final diff = date.startOfDay.difference(start.startOfDay).inDays;
+  int _cycleDayForDate(DateTime date, models.Cycle activeCycle) {
+    final diff = date.startOfDay.difference(activeCycle.startDate.startOfDay).inDays;
     return diff < 0 ? 0 : diff + 1;
   }
 
-  CyclePhase phaseForDate(DateTime date) {
-    final start = DateTime.now().subtract(const Duration(days: 13));
-    final day = date.startOfDay.difference(start.startOfDay).inDays + 1;
-
-    if (day >= 1 && day <= 5) return CyclePhase.menstrual;
-    if (day >= 6 && day <= 13) return CyclePhase.follicular;
-    if (day >= 14 && day <= 15) return CyclePhase.ovulation;
-    return CyclePhase.luteal;
+  CyclePhase _phaseForDate(int cycleDay, int cycleLength) {
+    final predictor = CyclePredictor();
+    return _mapPhase(predictor.getCyclePhase(cycleDay, cycleLength));
   }
 
-  String phaseDescription(CyclePhase phase) {
+  CyclePhase _mapPhase(models.CyclePhase phase) {
+    return switch (phase) {
+      models.CyclePhase.menstrual => CyclePhase.menstrual,
+      models.CyclePhase.follicular => CyclePhase.follicular,
+      models.CyclePhase.ovulation => CyclePhase.ovulation,
+      models.CyclePhase.luteal => CyclePhase.luteal,
+    };
+  }
+
+  String _phaseDescription(CyclePhase phase) {
     switch (phase) {
       case CyclePhase.menstrual:
         return 'Your period is here. Rest and take care of yourself.';
@@ -90,49 +132,31 @@ class _CalendarState extends ChangeNotifier {
       case CyclePhase.ovulation:
         return 'Peak fertility window. Your body is preparing for conception.';
       case CyclePhase.luteal:
-        return 'Hormones are shifting. You may notice PMS symptoms.';
+        return 'Hormones are shifting. You may notice mood changes, bloating, or soreness in the days before your period.';
     }
   }
 
-  int? get flowIntensity {
-    if (selectedDate == null) return null;
-    if (dayStatuses[DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day)] ==
-        CycleDayStatus.period) {
-      return 2;
+  List<String> _parseSymptoms(String? symptomsJson) {
+    if (symptomsJson == null || symptomsJson.isEmpty) return [];
+    try {
+      final list = jsonDecode(symptomsJson) as List<dynamic>;
+      return list.cast<String>();
+    } catch (_) {
+      return [];
     }
-    return null;
   }
-
-  List<String> get selectedSymptoms {
-    if (selectedDate == null) return [];
-    return ['cramps', 'fatigue'];
-  }
-
-  double? get temperature {
-    if (selectedDate == null) return null;
-    return 36.5;
-  }
-
-  String? get notes {
-    if (selectedDate == null) return null;
-    return null;
-  }
-}
-
-class CalendarScreen extends ConsumerWidget {
-  const CalendarScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(_calendarProvider);
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeCycleAsync = ref.watch(activeCycleProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cycle Calendar'),
         actions: [
           TextButton(
-            onPressed: () => ref.read(_calendarProvider.notifier).goToToday(),
+            onPressed: _goToToday,
             child: Text(
               'Today',
               style: TextStyle(
@@ -143,31 +167,57 @@ class CalendarScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: state.hasData
-          ? _buildContent(context, state, ref, isDark)
-          : _buildEmptyState(context, ref),
+      body: activeCycleAsync.when(
+        loading: () => const Center(child: Text('Loading...')),
+        error: (_, __) => _buildEmptyState(context),
+        data: (activeCycle) {
+          if (activeCycle == null) return _buildEmptyState(context);
+          final summary = ref.watch(cycleSummaryProvider).valueOrNull;
+          return _buildContent(context, isDark, activeCycle, summary);
+        },
+      ),
     );
   }
 
-  Widget _buildContent(BuildContext context, _CalendarState state, WidgetRef ref, bool isDark) {
+  Widget _buildContent(
+    BuildContext context,
+    bool isDark,
+    models.Cycle activeCycle,
+    models.CycleSummary? summary,
+  ) {
+    final cycleLength = summary != null && summary.averageLength > 0
+        ? summary.averageLength.round()
+        : activeCycle.cycleLength;
+
+    final cycleDaysAsync = ref.watch(cycleDaysProvider(activeCycle.id));
+    final cycleDays = cycleDaysAsync.valueOrNull ?? [];
+
+    final dayStatuses = _buildDayStatuses(activeCycle, cycleDays, cycleLength);
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         AppCard.standard(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: CycleCalendar(
-            year: state.year,
-            month: state.month,
-            dayStatuses: state.dayStatuses,
-            selectedDate: state.selectedDate,
-            onDaySelected: (date) => ref.read(_calendarProvider.notifier).selectDate(date),
+            year: _year,
+            month: _month,
+            dayStatuses: dayStatuses,
+            selectedDate: _selectedDate,
+            onDaySelected: _selectDate,
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
         _buildLegend(context, isDark),
         const SizedBox(height: AppSpacing.lg),
-        if (state.selectedDate != null)
-          _buildSelectedDayDetail(context, state, isDark, ref),
+        if (_selectedDate != null)
+          _buildSelectedDayDetail(
+            context,
+            isDark,
+            activeCycle,
+            cycleLength,
+            cycleDays,
+          ),
       ],
     );
   }
@@ -209,15 +259,29 @@ class CalendarScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSelectedDayDetail(BuildContext context, _CalendarState state, bool isDark, WidgetRef ref) {
-    final date = state.selectedDate!;
+  Widget _buildSelectedDayDetail(
+    BuildContext context,
+    bool isDark,
+    models.Cycle activeCycle,
+    int cycleLength,
+    List<models.CycleDay> cycleDays,
+  ) {
+    final date = _selectedDate!;
     final dayOfWeek = DateFormat('EEE').format(date);
-    final cycleDay = state.cycleDayForDate(date);
-    final phase = state.phaseForDate(date);
-    final flow = state.flowIntensity;
-    final symptoms = state.selectedSymptoms;
-    final temp = state.temperature;
-    final notesText = state.notes;
+    final cycleDay = _cycleDayForDate(date, activeCycle);
+    final phase = _phaseForDate(cycleDay, cycleLength);
+
+    final dayData = cycleDays
+        .where((d) => d.date.startOfDay == date.startOfDay)
+        .toList();
+
+    final flow = dayData.isNotEmpty ? dayData.first.flowIntensity : null;
+    final spotting = dayData.isNotEmpty ? dayData.first.spotting : false;
+    final symptoms = dayData.isNotEmpty
+        ? _parseSymptoms(dayData.first.symptomsJson)
+        : <String>[];
+    final temp = dayData.isNotEmpty ? dayData.first.temperature : null;
+    final notesText = dayData.isNotEmpty ? dayData.first.notes : null;
 
     return AppCard.standard(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -249,17 +313,17 @@ class CalendarScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            state.phaseDescription(phase),
+            _phaseDescription(phase),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.slate,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
             ),
           ),
-          if (flow != null) ...[
+          if (flow != null && flow > 0) ...[
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Flow Intensity',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.slate,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -281,12 +345,21 @@ class CalendarScreen extends ConsumerWidget {
               ),
             ),
           ],
+          if (spotting) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Spotting',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
+              ),
+            ),
+          ],
           if (symptoms.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Symptoms',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.slate,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -314,13 +387,13 @@ class CalendarScreen extends ConsumerWidget {
                 Icon(
                   Icons.device_thermostat_rounded,
                   size: 18,
-                  color: AppColors.slate,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   'Temperature: ',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
                   ),
                 ),
                 Text(
@@ -349,7 +422,7 @@ class CalendarScreen extends ConsumerWidget {
                   Icon(
                     Icons.notes_rounded,
                     size: 18,
-                    color: AppColors.slate,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
@@ -380,7 +453,8 @@ class CalendarScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
+  Widget _buildEmptyState(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xxxl),
@@ -409,10 +483,10 @@ class CalendarScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Tap a day to log your first entry',
+              'Log your first period to see your cycle calendar',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.slate,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
               ),
             ),
             const SizedBox(height: AppSpacing.xxxl),

@@ -304,8 +304,10 @@ class _CalendarDayCell extends StatelessWidget {
                         child: Container(
                           width: 4,
                           height: 4,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.textPrimaryDark
+                                : Colors.white,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -358,9 +360,14 @@ class _CalendarDayCell extends StatelessWidget {
   Color _textColor(BuildContext context, bool hasStatus, bool isPredicted) {
     if (isSelected) return Colors.white;
     if (!hasStatus || isPredicted) return Theme.of(context).colorScheme.onSurface;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (status == CycleDayStatus.period) return Colors.white;
-    if (status == CycleDayStatus.ovulation) return AppColors.softGoldDark;
-    if (status == CycleDayStatus.fertile) return AppColors.forestGreen;
+    if (status == CycleDayStatus.ovulation) {
+      return isDark ? AppColors.softGoldLight : AppColors.softGoldDark;
+    }
+    if (status == CycleDayStatus.fertile) {
+      return isDark ? AppColors.forestGreenLight : AppColors.forestGreen;
+    }
     return Theme.of(context).colorScheme.onSurface;
   }
 }
