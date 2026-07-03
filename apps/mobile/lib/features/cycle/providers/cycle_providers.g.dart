@@ -352,6 +352,24 @@ class _CycleDayForDateProviderElement
   DateTime get date => (origin as CycleDayForDateProvider).date;
 }
 
+String _$dashboardInsightsHash() => r'ad958e1baa1f17f9cb00249b03b6a864f4e25fd7';
+
+/// See also [dashboardInsights].
+@ProviderFor(dashboardInsights)
+final dashboardInsightsProvider =
+    AutoDisposeFutureProvider<DashboardInsights>.internal(
+      dashboardInsights,
+      name: r'dashboardInsightsProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$dashboardInsightsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef DashboardInsightsRef = AutoDisposeFutureProviderRef<DashboardInsights>;
 String _$flowLoggerHash() => r'689cdf44b13756033d5291083b90dc8394cbc551';
 
 /// See also [FlowLogger].

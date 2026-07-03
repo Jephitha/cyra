@@ -1,9 +1,14 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:cyra/core/database/app_database.dart' as db;
+import 'package:cyra/core/ml/health_insights_engine.dart';
+import 'package:cyra/core/ml/insight_service.dart';
 import 'package:cyra/core/security/encryption_service.dart';
 import 'package:cyra/features/cycle/models/cycle.dart';
 import 'package:cyra/features/cycle/repositories/cycle_repository.dart';
+import 'package:cyra/features/ovulation/models/bbt_record.dart';
+import 'package:cyra/features/ovulation/providers/ovulation_providers.dart';
+import 'package:cyra/features/symptoms/providers/symptom_providers.dart';
 
 part 'cycle_providers.g.dart';
 
@@ -50,6 +55,40 @@ Future<List<CycleDay>> cycleDays(CycleDaysRef ref, String cycleId) async {
 Future<CycleDay?> cycleDayForDate(CycleDayForDateRef ref, DateTime date) async {
   final repo = ref.watch(cycleRepositoryProvider);
   return repo.getCycleDay(date);
+}
+
+@riverpod
+Future<DashboardInsights> dashboardInsights(DashboardInsightsRef ref) async {
+  final cycleRepo = ref.watch(cycleRepositoryProvider);
+  final symptomRepo = ref.watch(symptomRepositoryProvider);
+  final ovulationRepo = ref.watch(ovulationRepositoryProvider);
+  final engine = ref.watch(healthInsightsEngineProvider);
+
+  final cycles = await cycleRepo.getAllCycles();
+
+  final ascendingCycles = cycles.reversed.toList();
+
+  final activeCycle = cycles.isNotEmpty ? cycles.first : null;
+  final recentDays = activeCycle != null
+      ? await cycleRepo.getCycleDays(activeCycle.id)
+      : <CycleDay>[];
+
+  final bbtRecords = activeCycle != null
+      ? await ovulationRepo.getBBTForCycle(activeCycle.id)
+      : <BBTRecord>[];
+
+  final now = DateTime.now();
+  final symptoms = await symptomRepo.getSymptomsInRange(
+    now.subtract(const Duration(days: 30)),
+    now,
+  );
+
+  return engine.generateDashboardInsights(
+    cycles: ascendingCycles,
+    recentDays: recentDays,
+    bbtRecords: bbtRecords,
+    symptoms: symptoms,
+  );
 }
 
 @riverpod

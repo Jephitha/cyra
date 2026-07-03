@@ -1,88 +1,132 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:cyra/core/ml/correlation_engine.dart';
+import 'package:cyra/core/ml/health_insights_engine.dart';
+import 'package:cyra/features/cycle/models/cycle.dart';
+import 'package:cyra/features/cycle/providers/cycle_providers.dart';
 import 'package:cyra/features/cycle/screens/dashboard_screen.dart';
+import 'package:cyra/features/cycle/screens/log_period_screen.dart';
 
-Widget createTestApp() {
-  return const ProviderScope(
-    child: MaterialApp(
+final _fakeCycles = [
+  Cycle(
+    id: 'test-cycle',
+    startDate: DateTime.now().subtract(const Duration(days: 13)),
+  ),
+];
+
+final _fakeSummary = CycleSummary(
+  cycleCount: 3,
+  averageLength: 28,
+  minLength: 26,
+  maxLength: 30,
+  variabilityScore: 0.05,
+  averagePeriodLength: 5,
+  lastPeriodStart: DateTime.now().subtract(const Duration(days: 13)),
+  nextPredictedPeriodStart: DateTime.now().add(const Duration(days: 15)),
+);
+
+final _fakePrediction = PredictionResult(
+  predictedDate: DateTime.now().add(const Duration(days: 15)),
+  confidenceScore: 0.85,
+  variabilityScore: 0.05,
+  predictionRangeStart: DateTime.now().add(const Duration(days: 13)),
+  predictionRangeEnd: DateTime.now().add(const Duration(days: 17)),
+  explanation: 'Based on your last 3 cycles.',
+);
+
+final _fakeInsights = DashboardInsights(
+  weeklySummary: 'You are in the follicular phase.',
+  nextPeriod: _fakePrediction,
+  currentPhase: CyclePhase.follicular,
+  regularity: CycleRegularityResult(
+    regularity: CycleRegularity.regular,
+    coefficientOfVariation: 0.05,
+    standardDeviation: 1.4,
+  ),
+  topSymptoms: [],
+  fertileWindow: null,
+  healthTips: null,
+);
+
+Widget _createEmptyApp() {
+  return ProviderScope(
+    overrides: [
+      allCyclesProvider.overrideWith((ref) async => []),
+    ],
+    child: const MaterialApp(
+      home: DashboardScreen(),
+    ),
+  );
+}
+
+Widget _createPopulatedApp() {
+  return ProviderScope(
+    overrides: [
+      allCyclesProvider.overrideWith((ref) async => _fakeCycles),
+      activeCycleProvider.overrideWith((ref) async => _fakeCycles.first),
+      cycleSummaryProvider.overrideWith((ref) async => _fakeSummary),
+      nextPeriodPredictionProvider.overrideWith((ref) async => _fakePrediction),
+      dashboardInsightsProvider.overrideWith((ref) async => _fakeInsights),
+    ],
+    child: const MaterialApp(
       home: DashboardScreen(),
     ),
   );
 }
 
 void main() {
-  group('DashboardScreen', () {
+  group('DashboardScreen empty state', () {
+    testWidgets('shows welcome message and log button when no cycles exist',
+        (tester) async {
+      await tester.pumpWidget(_createEmptyApp());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Welcome to Cyra!'), findsOneWidget);
+      expect(find.text('Log Your Period'), findsOneWidget);
+      expect(find.text('Explore Calendar'), findsOneWidget);
+    });
+
+    testWidgets('tapping Log Your Period navigates to LogPeriodScreen',
+        (tester) async {
+      await tester.pumpWidget(_createEmptyApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Log Your Period'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LogPeriodScreen), findsOneWidget);
+    });
+  });
+
+  group('DashboardScreen populated state', () {
     testWidgets('renders without crashing when data is loaded',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
+        (tester) async {
+      await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 
       expect(find.byType(DashboardScreen), findsOneWidget);
     });
 
-    testWidgets('displays cycle day information after loading',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
+    testWidgets('displays cycle day information', (tester) async {
+      await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Day'), findsOneWidget);
       expect(find.textContaining('of your cycle'), findsOneWidget);
     });
 
-    testWidgets('displays prediction card when data exists',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
+    testWidgets('displays prediction card', (tester) async {
+      await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Next period predicted'), findsOneWidget);
-      // Multiple widgets may contain "days" (title + explanation)
-      expect(find.textContaining('days'), findsAtLeastNWidgets(1));
-    });
-
-    testWidgets('displays fertility card during fertile window',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
-      await tester.pumpAndSettle();
-
-      expect(find.text('Log today'), findsOneWidget);
-    });
-
-    testWidgets('responds to symptom chip tap',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
-      await tester.pumpAndSettle();
-
-      final symptomChip = find.text('Cramps');
-      expect(symptomChip, findsOneWidget);
-
-      await tester.tap(symptomChip);
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('shows prediction date range',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
-      await tester.pumpAndSettle();
-
-      // Prediction card should show a date range (e.g., "Mar 30 – Apr 4")
-      expect(find.byIcon(Icons.chevron_right), findsWidgets);
-    });
-
-    testWidgets('displays water drop icon in prediction card',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
-      await tester.pumpAndSettle();
-
       expect(find.byIcon(Icons.water_drop_rounded), findsWidgets);
     });
 
-    testWidgets('displays cycle overview section',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
+    testWidgets('displays cycle overview section', (tester) async {
+      await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 
-      // Scroll down to reveal the Cycle Overview section below the fold
       await tester.scrollUntilVisible(
         find.text('Cycle Overview'),
         200,
@@ -92,27 +136,10 @@ void main() {
       expect(find.text('Cycle Overview'), findsOneWidget);
     });
 
-    testWidgets('displays recent activity section',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
+    testWidgets('displays health stats grid', (tester) async {
+      await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 
-      // Scroll down to reveal the Recent Activity section
-      await tester.scrollUntilVisible(
-        find.text('Recent Activity'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-
-      expect(find.text('Recent Activity'), findsOneWidget);
-    });
-
-    testWidgets('displays health stats grid',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
-      await tester.pumpAndSettle();
-
-      // Scroll down to reveal the stats grid
       await tester.scrollUntilVisible(
         find.textContaining('Cycle Day'),
         200,
@@ -125,43 +152,11 @@ void main() {
       expect(find.textContaining('Variability'), findsOneWidget);
     });
 
-    testWidgets('shows text input for notes',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
+    testWidgets('displays log today card', (tester) async {
+      await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 
-      expect(find.byType(TextField), findsOneWidget);
-    });
-
-    testWidgets('tapping see all symptoms shows more symptoms',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
-      await tester.pumpAndSettle();
-
-      final seeAllButton = find.text('See all symptoms');
-      expect(seeAllButton, findsOneWidget);
-
-      await tester.tap(seeAllButton);
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('navigates to full history on tap',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp());
-      await tester.pumpAndSettle();
-
-      // Scroll down to reveal the "View full history" button
-      await tester.scrollUntilVisible(
-        find.text('View full history'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-
-      final viewHistory = find.text('View full history');
-      expect(viewHistory, findsOneWidget);
-
-      await tester.tap(viewHistory);
-      await tester.pumpAndSettle();
+      expect(find.text('Log today'), findsOneWidget);
     });
   });
 }

@@ -6,7 +6,7 @@ part of 'auth_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$onboardingStateHash() => r'2f22211670d60448a5356d4407033827c270b071';
+String _$onboardingStateHash() => r'8014ff1b3792e1d84516b676d3c2dcaa5a4b77f1';
 
 /// See also [OnboardingState].
 @ProviderFor(OnboardingState)
