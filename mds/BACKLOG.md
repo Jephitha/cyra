@@ -20,7 +20,7 @@ flow intensity, symptoms, and notes to the local DB; shows a loading/error state
 only pops on confirmed success.
 **Files:** `features/cycle/screens/log_period_screen.dart`, `features/cycle/repositories/cycle_repository.dart`, `features/symptoms/repositories/symptom_repository.dart`
 
-### T2. Wire `DashboardScreen` to real data
+### [x] T2. Wire `DashboardScreen` to real data
 **Problem:** Entirely hardcoded mock `_DashboardState`.
 **Done when:** Screen watches `activeCycleProvider`, `cycleDaysProvider`, and a
 `dashboardInsightsProvider` (wrapping `HealthInsightsEngine.generateDashboardInsights`) instead of

@@ -56,10 +56,11 @@ These have actual logic, not placeholders — verified by reading the decompiled
 
 This is the most important finding and is easy to miss just by using the app:
 
-- **`DashboardScreen`** (`features/cycle/screens/dashboard_screen.dart`) holds its own private
-  `_DashboardState extends ChangeNotifier` with **hardcoded values**
-  (`currentCycleDay = 14`, `lastPeriodStart = DateTime.now().subtract(Duration(days: 13))`, etc.).
-  It never reads `cycleRepositoryProvider`, `activeCycleProvider`, or any real prediction output.
+- **`DashboardScreen`** (`features/cycle/screens/dashboard_screen.dart`) — **WIRED (T2 done).**
+  Now watches `allCyclesProvider`, `activeCycleProvider`, `cycleSummaryProvider`,
+  `nextPeriodPredictionProvider`, and `dashboardInsightsProvider` (wraps
+  `HealthInsightsEngine.generateDashboardInsights`). Empty-state handled.
+  Mock `_DashboardState` removed entirely.
 - **`CalendarScreen`** (`features/cycle/screens/calendar_screen.dart`) — same pattern:
   a private `_CalendarState` synthesizes fake period/fertile/ovulation days from
   `DateTime.now()`, not from the database.
