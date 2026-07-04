@@ -18,6 +18,9 @@ import 'package:cyra/features/cycle/models/cycle.dart' as models;
 import 'package:cyra/features/cycle/providers/cycle_providers.dart';
 import 'package:cyra/features/cycle/screens/log_period_screen.dart';
 import 'package:cyra/features/symptoms/screens/log_symptom_screen.dart';
+import 'package:cyra/features/ovulation/screens/log_bbt_screen.dart';
+import 'package:cyra/features/ovulation/screens/log_mucus_screen.dart';
+import 'package:cyra/features/ovulation/screens/log_opk_screen.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -456,6 +459,39 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => LogSymptomScreen(initialDate: date),
+              ),
+            ),
+            width: double.infinity,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppButton.secondary(
+            'Log BBT',
+            icon: Icons.device_thermostat_rounded,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => LogBBTScreen(initialDate: date),
+              ),
+            ),
+            width: double.infinity,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppButton.secondary(
+            'Log Mucus',
+            icon: Icons.opacity_rounded,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => LogMucusScreen(initialDate: date),
+              ),
+            ),
+            width: double.infinity,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppButton.secondary(
+            'Log OPK',
+            icon: Icons.science_rounded,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => LogOPKScreen(initialDate: date),
               ),
             ),
             width: double.infinity,

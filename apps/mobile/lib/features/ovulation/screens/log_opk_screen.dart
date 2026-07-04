@@ -1,37 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
+import 'package:cyra/core/utils/extensions.dart';
+import 'package:cyra/features/ovulation/models/opk_test_record.dart';
+import 'package:cyra/features/ovulation/models/ovulation_models.dart';
+import 'package:cyra/features/ovulation/providers/ovulation_providers.dart';
 
-class LogOPKScreen extends StatefulWidget {
-  const LogOPKScreen({super.key});
+class LogOPKScreen extends ConsumerStatefulWidget {
+  final DateTime? initialDate;
+
+  const LogOPKScreen({super.key, this.initialDate});
 
   @override
-  State<LogOPKScreen> createState() => _LogOPKScreenState();
+  ConsumerState<LogOPKScreen> createState() => _LogOPKScreenState();
 }
 
-class _LogOPKScreenState extends State<LogOPKScreen> {
-  String? _selectedResult;
+class _LogOPKScreenState extends ConsumerState<LogOPKScreen> {
+  late DateTime _selectedDate;
+  OPKResult? _selectedResult;
   String _timeOfDay = 'Afternoon';
   String _brand = 'Clearblue';
   final TextEditingController _notesController = TextEditingController();
-  String? _photoPath;
+  bool _isSaving = false;
 
   final List<String> _timeOptions = ['Morning', 'Afternoon', 'Evening'];
-  final List<String> _brandOptions = [
-    'Clearblue',
-    'Easy@Home',
-    'Wondfo',
-    'Clinical Guard',
-    'Pregmate',
-    'First Response',
-    'AccuMed',
-    'Other',
-  ];
+  final List<String> _brandOptions = ['Clearblue', 'Easy@Home', 'Wondfo', 'Clinical Guard', 'Pregmate', 'First Response', 'AccuMed', 'Other'];
 
-  int currentCycleDay = 14;
-  int cycleLength = 28;
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = widget.initialDate ?? DateTime.now();
+  }
 
   @override
   void dispose() {
@@ -39,10 +42,32 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
     super.dispose();
   }
 
-  void _save() {
-    Navigator.of(context).pop();
-  }
+  Future<void> _save() async {
+    if (_isSaving || _selectedResult == null) return;
+    setState(() => _isSaving = true);
 
+    try {
+      final repo = ref.read(ovulationRepositoryProvider);
+      final now = DateTime.now();
+
+      await repo.saveOPK(OPKTestResult(
+        id: 'opk_${_selectedDate.toIso8601String()}_${now.microsecondsSinceEpoch}',
+        date: _selectedDate,
+        result: _selectedResult!,
+        timeOfDay: _timeOfDay,
+        brand: _brand,
+      ));
+
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,19 +77,16 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            'Log OPK Result',
-            style: TextStyle(
-              color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          title: Text('Log OPK Result', style: TextStyle(
+            color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
+          )),
+          leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).maybePop()),
           centerTitle: true,
         ),
         body: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            _buildCycleDayBanner(context, isDark),
+            _buildDateSelector(isDark),
             const SizedBox(height: AppSpacing.xxl),
             _buildResultSelector(context, isDark),
             const SizedBox(height: AppSpacing.xxl),
@@ -72,16 +94,15 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
             const SizedBox(height: AppSpacing.lg),
             _buildBrandSelector(context, isDark),
             const SizedBox(height: AppSpacing.lg),
-            _buildPhotoAttachment(context, isDark),
-            const SizedBox(height: AppSpacing.lg),
             _buildNotesField(context, isDark),
             const SizedBox(height: AppSpacing.lg),
             _buildTipsSection(context, isDark),
             const SizedBox(height: AppSpacing.xxl),
             AppButton.primary(
-              'Save',
+              _isSaving ? 'Saving...' : 'Save',
               icon: Icons.save_rounded,
-              onPressed: _selectedResult != null ? _save : null,
+              onPressed: (_selectedResult != null && !_isSaving) ? _save : null,
+              isLoading: _isSaving,
               width: double.infinity,
             ),
             const SizedBox(height: AppSpacing.xxxl),
@@ -91,73 +112,45 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
     );
   }
 
-  Widget _buildCycleDayBanner(BuildContext context, bool isDark) {
-    final ovulationDay = cycleLength - 14;
-    final isInWindow = currentCycleDay >= ovulationDay - 5 && currentCycleDay <= ovulationDay + 1;
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isInWindow
-              ? [AppColors.forestGreen.withValues(alpha: 0.1), AppColors.forestGreen.withValues(alpha: 0.03)]
-              : [AppColors.slate.withValues(alpha: 0.1), Colors.transparent],
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: isInWindow
-              ? AppColors.forestGreen.withValues(alpha: 0.3)
-              : (isDark ? AppColors.borderDark : AppColors.borderLight),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.calendar_today_rounded,
-            size: 20,
-            color: isInWindow ? AppColors.forestGreen : AppColors.slate,
+  Widget _buildDateSelector(bool isDark) {
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: _selectedDate,
+          firstDate: DateTime.now().subtract(const Duration(days: 365)),
+          lastDate: DateTime.now(),
+          builder: (context, child) => Theme(
+            data: Theme.of(context).copyWith(colorScheme: Theme.of(context).colorScheme.copyWith(primary: AppColors.forestGreen)),
+            child: child!,
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Cycle Day $currentCycleDay',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  isInWindow
-                      ? 'You are in your fertile window'
-                      : 'You are not in your fertile window',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isInWindow ? AppColors.forestGreen : AppColors.slate,
-                  ),
-                ),
-              ],
+        );
+        if (picked != null) setState(() => _selectedDate = picked);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.mistWhite,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.forestGreen),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-            decoration: BoxDecoration(
-              color: isInWindow
-                  ? AppColors.forestGreen.withValues(alpha: 0.15)
-                  : AppColors.slate.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-            ),
-            child: Text(
-              isInWindow ? 'Fertile' : 'Not Fertile',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: isInWindow ? AppColors.forestGreen : AppColors.slate,
-                fontWeight: FontWeight.w600,
+            if (_selectedDate.isSameDay(DateTime.now())) ...[
+              const SizedBox(width: AppSpacing.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
+                decoration: BoxDecoration(color: AppColors.forestGreen.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppRadius.xs)),
+                child: Text('Today', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.forestGreen)),
               ),
-            ),
-          ),
-        ],
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -166,42 +159,29 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Test Result',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        Text('Test Result', style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
+        )),
         const SizedBox(height: AppSpacing.md),
         _ResultOption(
-          label: 'Positive',
-          description: 'Two lines — test line is as dark or darker than control',
-          emoji: '🙂',
-          isSelected: _selectedResult == 'Positive',
+          label: 'Positive', description: 'Two lines — test line is as dark or darker than control',
+          isSelected: _selectedResult == OPKResult.positive,
           selectedColor: AppColors.forestGreen,
-          onTap: () => setState(() => _selectedResult = 'Positive'),
-          isDark: isDark,
+          onTap: () => setState(() => _selectedResult = OPKResult.positive), isDark: isDark,
         ),
         const SizedBox(height: AppSpacing.sm),
         _ResultOption(
-          label: 'Negative',
-          description: 'One line or test line is lighter than control',
-          emoji: '😐',
-          isSelected: _selectedResult == 'Negative',
+          label: 'Negative', description: 'One line or test line is lighter than control',
+          isSelected: _selectedResult == OPKResult.negative,
           selectedColor: AppColors.slate,
-          onTap: () => setState(() => _selectedResult = 'Negative'),
-          isDark: isDark,
+          onTap: () => setState(() => _selectedResult = OPKResult.negative), isDark: isDark,
         ),
         const SizedBox(height: AppSpacing.sm),
         _ResultOption(
-          label: 'Fading',
-          description: 'Positive yesterday, test line is lighter today',
-          emoji: '🤔',
-          isSelected: _selectedResult == 'Fading',
+          label: 'Fading', description: 'Positive yesterday, test line is lighter today',
+          isSelected: _selectedResult == OPKResult.fading,
           selectedColor: AppColors.softGold,
-          onTap: () => setState(() => _selectedResult = 'Fading'),
-          isDark: isDark,
+          onTap: () => setState(() => _selectedResult = OPKResult.fading), isDark: isDark,
         ),
       ],
     );
@@ -211,13 +191,9 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Time of Day',
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        Text('Time of Day', style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w500,
+        )),
         const SizedBox(height: AppSpacing.sm),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -230,31 +206,16 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
                   onTap: () => setState(() => _timeOfDay = time),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.lg,
-                      vertical: AppSpacing.sm,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.forestGreen.withValues(alpha: isDark ? 0.3 : 0.12)
-                          : Colors.transparent,
+                      color: isSelected ? AppColors.forestGreen.withValues(alpha: isDark ? 0.3 : 0.12) : Colors.transparent,
                       borderRadius: BorderRadius.circular(AppRadius.xl),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppColors.forestGreen
-                            : (isDark ? AppColors.borderDark : AppColors.borderLight),
-                        width: isSelected ? 2 : 1,
-                      ),
+                      border: Border.all(color: isSelected ? AppColors.forestGreen : (isDark ? AppColors.borderDark : AppColors.borderLight), width: isSelected ? 2 : 1),
                     ),
-                    child: Text(
-                      time,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: isSelected
-                            ? (isDark ? Colors.white : AppColors.forestGreen)
-                            : (isDark ? AppColors.textSecondaryDark : AppColors.slate),
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                    ),
+                    child: Text(time, style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: isSelected ? (isDark ? Colors.white : AppColors.forestGreen) : (isDark ? AppColors.textSecondaryDark : AppColors.slate),
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    )),
                   ),
                 ),
               );
@@ -269,83 +230,21 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Brand',
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        Text('Brand', style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w500,
+        )),
         const SizedBox(height: AppSpacing.sm),
         DropdownButtonFormField<String>(
           initialValue: _brand,
           decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.md,
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
           ),
-          items: _brandOptions.map((brand) {
-            return DropdownMenuItem(value: brand, child: Text(brand));
-          }).toList(),
-          onChanged: (value) {
-            if (value != null) setState(() => _brand = value);
-          },
+          items: _brandOptions.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+          onChanged: (v) { if (v != null) setState(() => _brand = v); },
           dropdownColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         ),
       ],
-    );
-  }
-
-  Widget _buildPhotoAttachment(BuildContext context, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-          width: 1.5,
-          strokeAlign: BorderSide.strokeAlignInside,
-        ),
-        color: _photoPath != null
-            ? AppColors.forestGreen.withValues(alpha: 0.06)
-            : null,
-      ),
-      child: InkWell(
-        onTap: () {
-          // In production, launch image picker
-          setState(() => _photoPath = _photoPath == null ? 'placeholder' : null);
-        },
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Row(
-          children: [
-            Icon(
-              _photoPath != null ? Icons.check_circle_rounded : Icons.photo_camera_outlined,
-              size: 24,
-              color: _photoPath != null ? AppColors.forestGreen : AppColors.slate,
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Text(
-                _photoPath != null ? 'Photo attached' : 'Attach photo of test strip',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: _photoPath != null
-                      ? AppColors.forestGreen
-                      : (isDark ? AppColors.textSecondaryDark : AppColors.slate),
-                ),
-              ),
-            ),
-            Icon(
-              _photoPath != null ? Icons.close : Icons.add_rounded,
-              size: 20,
-              color: _photoPath != null ? AppColors.error : AppColors.slate,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -371,9 +270,7 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
       decoration: BoxDecoration(
         color: AppColors.forestGreen.withValues(alpha: isDark ? 0.15 : 0.06),
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: AppColors.forestGreen.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: AppColors.forestGreen.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,22 +281,9 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Tips for accurate OPK testing',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppColors.forestGreen,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                Text('Tips for accurate OPK testing', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppColors.forestGreen, fontWeight: FontWeight.w600)),
                 const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'Best time to test is between 10am and 2pm. '
-                  'Avoid testing with first morning urine. '
-                  'Reduce fluid intake 2 hours before testing for accurate results.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate,
-                  ),
-                ),
+                Text('Best time to test is between 10am and 2pm. Avoid testing with first morning urine. Reduce fluid intake 2 hours before testing.', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate)),
               ],
             ),
           ),
@@ -412,44 +296,26 @@ class _LogOPKScreenState extends State<LogOPKScreen> {
 class _ResultOption extends StatelessWidget {
   final String label;
   final String description;
-  final String emoji;
   final bool isSelected;
   final Color selectedColor;
   final VoidCallback onTap;
   final bool isDark;
 
-  const _ResultOption({
-    required this.label,
-    required this.description,
-    required this.emoji,
-    required this.isSelected,
-    required this.selectedColor,
-    required this.onTap,
-    required this.isDark,
-  });
+  const _ResultOption({required this.label, required this.description, required this.isSelected, required this.selectedColor, required this.onTap, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      button: true,
-      selected: isSelected,
-      label: '$label: $description',
+      button: true, selected: isSelected, label: '$label: $description',
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: isSelected
-                ? selectedColor.withValues(alpha: isDark ? 0.2 : 0.08)
-                : (isDark ? AppColors.charcoal.withValues(alpha: 0.15) : AppColors.mistWhite),
+            color: isSelected ? selectedColor.withValues(alpha: isDark ? 0.2 : 0.08) : (isDark ? AppColors.charcoal.withValues(alpha: 0.15) : AppColors.mistWhite),
             borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(
-              color: isSelected
-                  ? selectedColor.withValues(alpha: 0.5)
-                  : (isDark ? AppColors.borderDark : AppColors.borderLight),
-              width: isSelected ? 2 : 1,
-            ),
+            border: Border.all(color: isSelected ? selectedColor.withValues(alpha: 0.5) : (isDark ? AppColors.borderDark : AppColors.borderLight), width: isSelected ? 2 : 1),
           ),
           child: Row(
             children: [
@@ -459,20 +325,11 @@ class _ResultOption extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      label,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: isSelected ? selectedColor : (isDark ? AppColors.textPrimaryDark : AppColors.charcoal),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    Text(label, style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: isSelected ? selectedColor : (isDark ? AppColors.textPrimaryDark : AppColors.charcoal), fontWeight: FontWeight.w600,
+                    )),
                     const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      description,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.slate,
-                      ),
-                    ),
+                    Text(description, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate)),
                   ],
                 ),
               ),
@@ -485,20 +342,9 @@ class _ResultOption extends StatelessWidget {
 
   Widget _buildTestStripIllustration(BuildContext context) {
     return Container(
-      width: 40,
-      height: 56,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: CustomPaint(
-        painter: _TestStripPainter(
-          result: label,
-          isSelected: isSelected,
-          selectedColor: selectedColor,
-        ),
-      ),
+      width: 40, height: 56,
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.borderLight)),
+      child: CustomPaint(painter: _TestStripPainter(result: label, isSelected: isSelected, selectedColor: selectedColor)),
     );
   }
 }
@@ -507,12 +353,7 @@ class _TestStripPainter extends CustomPainter {
   final String result;
   final bool isSelected;
   final Color selectedColor;
-
-  _TestStripPainter({
-    required this.result,
-    required this.isSelected,
-    required this.selectedColor,
-  });
+  _TestStripPainter({required this.result, required this.isSelected, required this.selectedColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -521,54 +362,17 @@ class _TestStripPainter extends CustomPainter {
     final lineWidth = size.width * 0.6;
     final lineStart = (size.width - lineWidth) / 2;
 
-    final controlPaint = Paint()
-      ..color = AppColors.charcoal.withValues(alpha: 0.8)
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(lineStart, controlLineY), Offset(lineStart + lineWidth, controlLineY), Paint()..color = AppColors.charcoal.withValues(alpha: 0.8)..strokeWidth = 3..strokeCap = StrokeCap.round);
 
-    canvas.drawLine(
-      Offset(lineStart, controlLineY),
-      Offset(lineStart + lineWidth, controlLineY),
-      controlPaint,
-    );
-
-    final testPaint = Paint()
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-
+    final testPaint = Paint()..strokeWidth = 3..strokeCap = StrokeCap.round;
     switch (result) {
-      case 'Positive':
-        testPaint.color = selectedColor.withValues(alpha: 0.9);
-        canvas.drawLine(
-          Offset(lineStart, testLineY),
-          Offset(lineStart + lineWidth, testLineY),
-          testPaint,
-        );
-      case 'Negative':
-        testPaint.color = AppColors.borderLight;
-        canvas.drawLine(
-          Offset(lineStart, testLineY),
-          Offset(lineStart + lineWidth * 0.5, testLineY),
-          testPaint,
-        );
-      case 'Fading':
-        testPaint.color = AppColors.softGold.withValues(alpha: 0.5);
-        canvas.drawLine(
-          Offset(lineStart, testLineY),
-          Offset(lineStart + lineWidth * 0.7, testLineY),
-          testPaint,
-        );
-      default:
-        testPaint.color = AppColors.borderLight;
-        canvas.drawLine(
-          Offset(lineStart, testLineY),
-          Offset(lineStart + lineWidth * 0.5, testLineY),
-          testPaint,
-        );
+      case 'Positive': testPaint.color = selectedColor.withValues(alpha: 0.9); canvas.drawLine(Offset(lineStart, testLineY), Offset(lineStart + lineWidth, testLineY), testPaint);
+      case 'Negative': testPaint.color = AppColors.borderLight; canvas.drawLine(Offset(lineStart, testLineY), Offset(lineStart + lineWidth * 0.5, testLineY), testPaint);
+      case 'Fading': testPaint.color = AppColors.softGold.withValues(alpha: 0.5); canvas.drawLine(Offset(lineStart, testLineY), Offset(lineStart + lineWidth * 0.7, testLineY), testPaint);
+      default: testPaint.color = AppColors.borderLight; canvas.drawLine(Offset(lineStart, testLineY), Offset(lineStart + lineWidth * 0.5, testLineY), testPaint);
     }
   }
 
   @override
-  bool shouldRepaint(_TestStripPainter oldDelegate) =>
-      oldDelegate.result != result || oldDelegate.isSelected != isSelected;
+  bool shouldRepaint(_TestStripPainter old) => old.result != result || old.isSelected != isSelected;
 }

@@ -22,6 +22,9 @@ import 'package:cyra/features/cycle/screens/cycle_history_screen.dart';
 import 'package:cyra/features/cycle/screens/calendar_screen.dart';
 import 'package:cyra/features/cycle/screens/log_period_screen.dart';
 import 'package:cyra/features/symptoms/screens/log_symptom_screen.dart';
+import 'package:cyra/features/ovulation/screens/log_bbt_screen.dart';
+import 'package:cyra/features/ovulation/screens/log_mucus_screen.dart';
+import 'package:cyra/features/ovulation/screens/log_opk_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -89,6 +92,8 @@ class DashboardScreen extends ConsumerWidget {
             _buildPredictionCard(context, prediction, isDark, dateFormat),
           const SizedBox(height: AppSpacing.lg),
           _buildTodayLogCard(context, isDark, ref),
+          const SizedBox(height: AppSpacing.lg),
+          _buildOvulationTrackingCard(context, isDark),
           const SizedBox(height: AppSpacing.lg),
           _buildCycleStatsGrid(context, cycleDay, cycleLength, periodLength, variability, isDark),
           const SizedBox(height: AppSpacing.lg),
@@ -343,6 +348,79 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   icon: const Icon(Icons.healing_rounded, size: 18),
                   label: const Text('Log Symptoms'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.sage,
+                    side: const BorderSide(color: AppColors.sage),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOvulationTrackingCard(BuildContext context, bool isDark) {
+    return AppCard.standard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.auto_awesome_rounded, size: 20, color: AppColors.softGold),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Ovulation Tracking',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const LogBBTScreen()),
+                  ),
+                  icon: const Icon(Icons.device_thermostat_rounded, size: 16),
+                  label: const Text('BBT', style: TextStyle(fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.forestGreen,
+                    side: const BorderSide(color: AppColors.forestGreen),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const LogMucusScreen()),
+                  ),
+                  icon: const Icon(Icons.opacity_rounded, size: 16),
+                  label: const Text('Mucus', style: TextStyle(fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.softGold,
+                    side: const BorderSide(color: AppColors.softGold),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const LogOPKScreen()),
+                  ),
+                  icon: const Icon(Icons.science_rounded, size: 16),
+                  label: const Text('OPK', style: TextStyle(fontSize: 12)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.sage,
                     side: const BorderSide(color: AppColors.sage),

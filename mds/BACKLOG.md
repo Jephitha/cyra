@@ -48,7 +48,7 @@ Build a dedicated screen (or confirm `LogPeriodScreen`'s embedded `SymptomSelect
 for now) that writes to `symptom_logs_table` via `SymptomRepository`, independent of period
 logging — symptoms should be loggable on non-period days too.
 
-### T6. Ovulation tracking screens (BBT / cervical mucus / OPK)
+### [x] T6. Ovulation tracking screens (BBT / cervical mucus / OPK)
 `features/ovulation/` has models + repository but no `screens/` folder. Build logging UI for each
 (BBT entry feeding `bbt_chart` widget, mucus observation picker, OPK test result entry), and a
 summary/history view. `OvulationDetector` is ready to consume this data once it exists.
