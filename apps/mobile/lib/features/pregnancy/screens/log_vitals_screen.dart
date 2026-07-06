@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
@@ -6,17 +7,19 @@ import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/utils/extensions.dart';
+import 'package:cyra/features/pregnancy/models/pregnancy_models.dart';
+import 'package:cyra/features/pregnancy/providers/pregnancy_providers.dart';
 
-class LogVitalsScreen extends StatefulWidget {
+class LogVitalsScreen extends ConsumerStatefulWidget {
   final String? initialSection;
 
   const LogVitalsScreen({super.key, this.initialSection});
 
   @override
-  State<LogVitalsScreen> createState() => _LogVitalsScreenState();
+  ConsumerState<LogVitalsScreen> createState() => _LogVitalsScreenState();
 }
 
-class _LogVitalsScreenState extends State<LogVitalsScreen> {
+class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
   late String _activeSection;
 
   final _weightController = TextEditingController();
@@ -27,12 +30,21 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
 
   final _glucoseController = TextEditingController();
   bool _glucoseFasting = true;
-  bool _useMgDl = false;
+  final bool _useMgDl = false;
 
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
-
   final _notesController = TextEditingController();
+  bool _isSaving = false;
+
+  final List<String> _sections = ['weight', 'blood_pressure', 'glucose'];
+
+  String _sectionLabel(String s) => switch (s) {
+    'weight' => 'Weight',
+    'blood_pressure' => 'Blood Pressure',
+    'glucose' => 'Glucose',
+    _ => 'Vitals',
+  };
 
   @override
   void initState() {
@@ -50,9 +62,62 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
     super.dispose();
   }
 
-  void _save() {
-    context.showSnackBar('Vitals saved successfully');
-    Navigator.of(context).maybePop();
+  Future<void> _save() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+
+    try {
+      final pregnancy = ref.read(currentPregnancyProvider).valueOrNull;
+      if (pregnancy == null) {
+        if (mounted) {
+          setState(() => _isSaving = false);
+          context.showSnackBar('No active pregnancy found', isError: true);
+        }
+        return;
+      }
+
+      final repo = ref.read(pregnancyRepositoryProvider);
+      final now = DateTime.now();
+      final dateTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day,
+          _selectedTime.hour, _selectedTime.minute);
+
+      final weight = double.tryParse(_weightController.text);
+      final systolic = int.tryParse(_systolicController.text);
+      final diastolic = int.tryParse(_diastolicController.text);
+      final glucose = double.tryParse(_glucoseController.text);
+
+      if (weight == null && systolic == null && diastolic == null && glucose == null) {
+        if (mounted) {
+          setState(() => _isSaving = false);
+          context.showSnackBar('Please enter at least one measurement', isError: true);
+        }
+        return;
+      }
+
+      await repo.saveMeasurement(FetalMeasurement(
+        id: 'vitals_${dateTime.toIso8601String()}_${now.microsecondsSinceEpoch}',
+        pregnancyId: pregnancy.id,
+        date: dateTime,
+        weight: weight,
+        bloodPressureSystolic: systolic,
+        bloodPressureDiastolic: diastolic,
+        glucoseLevel: glucose,
+        notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+      ));
+
+      ref.invalidate(latestMeasurementProvider);
+      ref.invalidate(fetalMeasurementsProvider);
+
+      if (mounted) {
+        context.showSnackBar('Vitals saved successfully');
+        Navigator.of(context).maybePop();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        context.showSnackBar('Failed to save: $e', isError: true);
+      }
+    }
   }
 
   @override
@@ -63,21 +128,13 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            'Log Vitals',
-            style: TextStyle(
-              color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          title: Text('Log Vitals', style: TextStyle(
+            color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
+          )),
+          leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).maybePop()),
         ),
         body: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.md,
-            AppSpacing.lg,
-            AppSpacing.xxxl,
-          ),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xxxl),
           children: [
             _buildSectionTabs(isDark),
             const SizedBox(height: AppSpacing.lg),
@@ -88,9 +145,10 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
             _buildNotesField(isDark),
             const SizedBox(height: AppSpacing.xxl),
             AppButton.primary(
-              'Save',
+              _isSaving ? 'Saving...' : 'Save',
               icon: Icons.save_rounded,
-              onPressed: _save,
+              onPressed: _isSaving ? null : _save,
+              isLoading: _isSaving,
               width: double.infinity,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -101,61 +159,35 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
   }
 
   Widget _buildSectionTabs(bool isDark) {
-    final sections = [
-      ('weight', Icons.monitor_weight_rounded, 'Weight'),
-      ('blood_pressure', Icons.favorite_rounded, 'BP'),
-      ('glucose', Icons.bloodtype_rounded, 'Glucose'),
-    ];
-
-    return Row(
-      children: sections.map((section) {
-        final isActive = _activeSection == section.$1;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _activeSection = section.$1),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: AppSpacing.md,
-              ),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: isActive
-                        ? AppColors.forestGreen
-                        : (isDark
-                            ? AppColors.borderDark
-                            : AppColors.borderLight),
-                    width: isActive ? 2.5 : 1,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: _sections.map((section) {
+          final isSelected = _activeSection == section;
+          return Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: GestureDetector(
+              onTap: () => setState(() => _activeSection = section),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.forestGreen.withValues(alpha: isDark ? 0.3 : 0.12) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
+                  border: Border.all(
+                    color: isSelected ? AppColors.forestGreen : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                    width: isSelected ? 2 : 1,
                   ),
                 ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    section.$2,
-                    size: 22,
-                    color: isActive
-                        ? AppColors.forestGreen
-                        : AppColors.slate,
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    section.$3,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: isActive
-                          ? AppColors.forestGreen
-                          : AppColors.slate,
-                      fontWeight:
-                          isActive ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                ],
+                child: Text(_sectionLabel(section), style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: isSelected ? (isDark ? Colors.white : AppColors.forestGreen) : (isDark ? AppColors.textSecondaryDark : AppColors.slate),
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                )),
               ),
             ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -168,117 +200,41 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
       case 'glucose':
         return _buildGlucoseSection(isDark);
       default:
-        return _buildWeightSection(isDark);
+        return const SizedBox.shrink();
     }
   }
 
   Widget _buildWeightSection(bool isDark) {
-    final unit = _useLbs ? 'lbs' : 'kg';
     return AppCard.standard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.monitor_weight_rounded,
-                size: 20,
-                color: AppColors.sage,
-              ),
+              Icon(Icons.monitor_weight_rounded, size: 20, color: AppColors.sage),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Weight',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.charcoal,
-                  fontWeight: FontWeight.w600,
-                ),
+              Text('Weight', style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
+              )),
+              const Spacer(),
+              Text('kg', style: TextStyle(color: AppColors.slate, fontSize: 13)),
+              Switch(
+                value: _useLbs,
+                onChanged: (v) => setState(() => _useLbs = v),
+                activeThumbColor: AppColors.forestGreen,
               ),
+              Text('lbs', style: TextStyle(color: _useLbs ? AppColors.forestGreen : AppColors.slate, fontSize: 13)),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _weightController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: 'Weight ($unit)',
-                    hintText: 'Enter your weight',
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Column(
-                children: [
-                  Text(
-                    'Unit',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.slate,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  SegmentedButton<bool>(
-                    segments: const [
-                      ButtonSegment(value: false, label: Text('kg')),
-                      ButtonSegment(value: true, label: Text('lbs')),
-                    ],
-                    selected: {_useLbs},
-                    onSelectionChanged: (set) =>
-                        setState(() => _useLbs = set.first),
-                    style: ButtonStyle(
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _buildWeightGuidance(context, isDark),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWeightGuidance(BuildContext context, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.warmIvory.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.info_outline_rounded,
-            size: 16,
-            color: AppColors.sage,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Expected Weight Gain',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.sage,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  'For a healthy BMI: 11.5-16 kg (25-35 lbs) total gain recommended.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate,
-                  ),
-                ),
-              ],
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: _weightController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              hintText: _useLbs ? 'Enter weight in lbs' : 'Enter weight in kg',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+              suffixText: _useLbs ? 'lbs' : 'kg',
             ),
           ),
         ],
@@ -287,52 +243,21 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
   }
 
   Widget _buildBloodPressureSection(bool isDark) {
-    final systolic = int.tryParse(_systolicController.text);
-    final diastolic = int.tryParse(_diastolicController.text);
-    final bpStatus = _bloodPressureStatus(systolic, diastolic);
-
     return AppCard.standard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.favorite_rounded,
-                size: 20,
-                color: bpStatus.color,
-              ),
+              Icon(Icons.favorite_rounded, size: 20, color: const Color(0xFFE86B6B)),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Blood Pressure',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.charcoal,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.xxs,
-                ),
-                decoration: BoxDecoration(
-                  color: bpStatus.color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.xl),
-                ),
-                child: Text(
-                  bpStatus.label,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: bpStatus.color,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+              Text('Blood Pressure', style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
+              )),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Expanded(
@@ -342,15 +267,12 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
                   decoration: InputDecoration(
                     labelText: 'Systolic',
                     hintText: '120',
-                    helperText: 'Top number',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                    suffixText: 'mmHg',
                   ),
-                  onChanged: (_) => setState(() {}),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                child: Text('/', style: TextStyle(fontSize: 24)),
-              ),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: TextField(
                   controller: _diastolicController,
@@ -358,152 +280,12 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
                   decoration: InputDecoration(
                     labelText: 'Diastolic',
                     hintText: '80',
-                    helperText: 'Bottom number',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                    suffixText: 'mmHg',
                   ),
-                  onChanged: (_) => setState(() {}),
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _bpIndicator(context, bpStatus, isDark),
-          const SizedBox(height: AppSpacing.md),
-          _buildBPInfo(context, isDark),
-        ],
-      ),
-    );
-  }
-
-  _BpStatus _bloodPressureStatus(int? systolic, int? diastolic) {
-    if (systolic == null || diastolic == null) {
-      return _BpStatus('--', AppColors.slate);
-    }
-    if (systolic < 120 && diastolic < 80) {
-      return _BpStatus('Normal', AppColors.success);
-    }
-    if (systolic < 130 && diastolic < 85) {
-      return _BpStatus('Elevated', AppColors.softGold);
-    }
-    if (systolic < 140 || diastolic < 90) {
-      return _BpStatus('Stage 1 High', AppColors.warning);
-    }
-    return _BpStatus('Stage 2 High', AppColors.error);
-  }
-
-  Widget _bpIndicator(BuildContext context, _BpStatus status, bool isDark) {
-    return Container(
-      height: 8,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.xs),
-        gradient: LinearGradient(
-          colors: [
-            AppColors.success,
-            AppColors.softGold,
-            AppColors.warning,
-            AppColors.error,
-          ],
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppRadius.xs),
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.success,
-                    AppColors.success.withValues(alpha: 0.3),
-                  ],
-                  stops: const [0.0, 0.25],
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.softGold.withValues(alpha: 0.3),
-                    AppColors.softGold.withValues(alpha: 0.1),
-                  ],
-                  stops: const [0.0, 0.25],
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.warning.withValues(alpha: 0.1),
-                    AppColors.warning.withValues(alpha: 0.3),
-                  ],
-                  stops: const [0.0, 0.25],
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(AppRadius.xs),
-                  bottomRight: Radius.circular(AppRadius.xs),
-                ),
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.error.withValues(alpha: 0.3),
-                    AppColors.error,
-                  ],
-                  stops: const [0.0, 0.25],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBPInfo(BuildContext context, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.warmIvory.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.info_outline_rounded,
-            size: 16,
-            color: AppColors.forestGreen,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Blood Pressure in Pregnancy',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.forestGreen,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  'Normal BP is <120/80. Elevated BP should be monitored. Contact your provider if BP exceeds 140/90.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate,
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -511,182 +293,36 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
   }
 
   Widget _buildGlucoseSection(bool isDark) {
-    final glucose = double.tryParse(_glucoseController.text);
-    final glucoseStatus = _glucoseStatus(glucose);
-
     return AppCard.standard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.bloodtype_rounded,
-                size: 20,
-                color: glucoseStatus.color,
-              ),
+              Icon(Icons.bloodtype_rounded, size: 20, color: AppColors.softGold),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Glucose',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.charcoal,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text('Glucose', style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
+              )),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.xxs,
-                ),
-                decoration: BoxDecoration(
-                  color: glucoseStatus.color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.xl),
-                ),
-                child: Text(
-                  glucoseStatus.label,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: glucoseStatus.color,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _glucoseController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: _useMgDl
-                        ? 'Blood Sugar (mg/dL)'
-                        : 'Blood Sugar (mmol/L)',
-                    hintText: _useMgDl ? '100' : '5.5',
-                  ),
-                  onChanged: (_) => setState(() {}),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Column(
-                children: [
-                  Text(
-                    'Unit',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.slate,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  SegmentedButton<bool>(
-                    segments: const [
-                      ButtonSegment(value: false, label: Text('mmol/L')),
-                      ButtonSegment(value: true, label: Text('mg/dL')),
-                    ],
-                    selected: {_useMgDl},
-                    onSelectionChanged: (set) =>
-                        setState(() => _useMgDl = set.first),
-                    style: ButtonStyle(
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Text(
-                'Fasting',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.charcoal,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
+              Text('Fasting', style: TextStyle(color: _glucoseFasting ? AppColors.forestGreen : AppColors.slate, fontSize: 13)),
               Switch(
                 value: _glucoseFasting,
-                onChanged: (val) =>
-                    setState(() => _glucoseFasting = val),
-                activeTrackColor: AppColors.forestGreen,
+                onChanged: (v) => setState(() => _glucoseFasting = v),
+                activeThumbColor: AppColors.forestGreen,
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Post-meal',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.charcoal,
-                ),
-              ),
+              Text('After meal', style: TextStyle(color: !_glucoseFasting ? AppColors.forestGreen : AppColors.slate, fontSize: 13)),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          _buildGlucoseInfo(context, _glucoseFasting, isDark),
-        ],
-      ),
-    );
-  }
-
-  _BpStatus _glucoseStatus(double? glucose) {
-    if (glucose == null) {
-      return _BpStatus('--', AppColors.slate);
-    }
-    final mmolL = _useMgDl ? glucose / 18.0 : glucose;
-    if (_glucoseFasting) {
-      if (mmolL < 5.3) return _BpStatus('Normal', AppColors.success);
-      if (mmolL < 5.6) return _BpStatus('Elevated', AppColors.softGold);
-      return _BpStatus('High', AppColors.warning);
-    } else {
-      if (mmolL < 7.8) return _BpStatus('Normal', AppColors.success);
-      if (mmolL < 11.0) return _BpStatus('Elevated', AppColors.softGold);
-      return _BpStatus('High', AppColors.warning);
-    }
-  }
-
-  Widget _buildGlucoseInfo(BuildContext context, bool fasting, bool isDark) {
-    final target = fasting ? '<5.3 mmol/L fasting' : '<7.8 mmol/L post-meal';
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.warmIvory.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.info_outline_rounded,
-            size: 16,
-            color: AppColors.forestGreen,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Target Range',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.forestGreen,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  'Target: $target. Elevated levels may indicate gestational diabetes. Discuss results with your provider.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate,
-                  ),
-                ),
-              ],
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: _glucoseController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              hintText: _useMgDl ? 'Enter glucose in mg/dL' : 'Enter glucose in mmol/L',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+              suffixText: _useMgDl ? 'mg/dL' : 'mmol/L',
             ),
           ),
         ],
@@ -695,178 +331,95 @@ class _LogVitalsScreenState extends State<LogVitalsScreen> {
   }
 
   Widget _buildDateTimePicker(BuildContext context, bool isDark) {
-    return AppCard.standard(
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: _pickDate,
+    final dateStr = DateFormat('MMM d, yyyy').format(_selectedDate);
+    final timeStr = _selectedTime.format(context);
+
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: _selectedDate,
+                firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                lastDate: DateTime.now(),
+                builder: (context, child) => Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: Theme.of(context).colorScheme.copyWith(primary: AppColors.forestGreen),
+                  ),
+                  child: child!,
+                ),
+              );
+              if (picked != null) setState(() => _selectedDate = picked);
+            },
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.mistWhite,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+              ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.calendar_today_rounded,
-                    size: 18,
-                    color: AppColors.slate,
-                  ),
+                  Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.forestGreen),
                   const SizedBox(width: AppSpacing.sm),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Date',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelSmall
-                            ?.copyWith(color: AppColors.slate),
-                      ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        DateFormat('MMM d, yyyy').format(_selectedDate),
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(
-                              color: isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.charcoal,
-                              fontWeight: FontWeight.w500,
-                            ),
-                      ),
-                    ],
-                  ),
+                  Text(dateStr, style: TextStyle(fontSize: 14, color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal)),
                 ],
               ),
             ),
           ),
-          GestureDetector(
-            onTap: _pickTime,
-            child: Row(
-              children: [
-                Icon(
-                  Icons.access_time_rounded,
-                  size: 18,
-                  color: AppColors.slate,
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: GestureDetector(
+            onTap: () async {
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: _selectedTime,
+                builder: (context, child) => Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: Theme.of(context).colorScheme.copyWith(primary: AppColors.forestGreen),
+                  ),
+                  child: child!,
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Time',
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelSmall
-                          ?.copyWith(color: AppColors.slate),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      _selectedTime.format(context),
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.charcoal,
-                            fontWeight: FontWeight.w500,
-                          ),
-                    ),
-                  ],
-                ),
-              ],
+              );
+              if (picked != null) setState(() => _selectedTime = picked);
+            },
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.mistWhite,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.access_time_rounded, size: 16, color: AppColors.forestGreen),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(timeStr, style: TextStyle(fontSize: 14, color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal)),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppColors.forestGreen,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setState(() => _selectedDate = picked);
-    }
-  }
-
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppColors.forestGreen,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setState(() => _selectedTime = picked);
-    }
   }
 
   Widget _buildNotesField(bool isDark) {
-    return AppCard.standard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.notes_rounded,
-                size: 18,
-                color: AppColors.slate,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Notes',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.charcoal,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          TextField(
-            controller: _notesController,
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: 'Add any notes about your vitals...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-            ),
-            textCapitalization: TextCapitalization.sentences,
-          ),
-        ],
+    return TextField(
+      controller: _notesController,
+      maxLines: 3,
+      decoration: InputDecoration(
+        hintText: 'Add notes (optional)',
+        prefixIcon: Icon(Icons.edit_note_rounded, size: 20, color: AppColors.slate),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: BorderSide(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+        ),
       ),
+      textCapitalization: TextCapitalization.sentences,
     );
   }
-}
-
-class _BpStatus {
-  final String label;
-  final Color color;
-  const _BpStatus(this.label, this.color);
 }

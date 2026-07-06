@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
@@ -7,15 +8,16 @@ import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/utils/date_utils.dart';
 import 'package:cyra/core/utils/extensions.dart';
+import 'package:cyra/features/pregnancy/providers/pregnancy_providers.dart';
 
-class SetupPregnancyScreen extends StatefulWidget {
+class SetupPregnancyScreen extends ConsumerStatefulWidget {
   const SetupPregnancyScreen({super.key});
 
   @override
-  State<SetupPregnancyScreen> createState() => _SetupPregnancyScreenState();
+  ConsumerState<SetupPregnancyScreen> createState() => _SetupPregnancyScreenState();
 }
 
-class _SetupPregnancyScreenState extends State<SetupPregnancyScreen> {
+class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
   int _currentStep = 0;
   static const int _totalSteps = 3;
 
@@ -23,6 +25,7 @@ class _SetupPregnancyScreenState extends State<SetupPregnancyScreen> {
   DateTime? _lmpDate;
   DateTime? _conceptionDate;
   DateTime? _dueDateFromUltrasound;
+  bool _isSaving = false;
 
   DateTime? get _computedDueDate {
     if (_calculationMethod == 'lmp' && _lmpDate != null) {
@@ -61,9 +64,25 @@ class _SetupPregnancyScreenState extends State<SetupPregnancyScreen> {
     }
   }
 
-  void _completeSetup() {
-    context.showSnackBar('Pregnancy tracking started!');
-    Navigator.of(context).pop(true);
+  void _completeSetup() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+
+    try {
+      final repo = ref.read(pregnancyRepositoryProvider);
+      final dueDate = _computedDueDate!;
+      await repo.createPregnancy(dueDate,
+          conceptionDate: _conceptionDate);
+      ref.invalidate(currentPregnancyProvider);
+      if (mounted) {
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        context.showSnackBar('Failed to start pregnancy tracking: $e', isError: true);
+      }
+    }
   }
 
   bool get _canProceed {
@@ -654,9 +673,10 @@ class _SetupPregnancyScreenState extends State<SetupPregnancyScreen> {
         ),
         const SizedBox(height: AppSpacing.xxl),
         AppButton.primary(
-          'Start Tracking',
+          _isSaving ? 'Starting...' : 'Start Tracking',
           icon: Icons.rocket_launch_rounded,
-          onPressed: _completeSetup,
+          onPressed: _isSaving ? null : _completeSetup,
+          isLoading: _isSaving,
           width: double.infinity,
         ),
       ],

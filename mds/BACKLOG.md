@@ -53,7 +53,7 @@ logging — symptoms should be loggable on non-period days too.
 (BBT entry feeding `bbt_chart` widget, mucus observation picker, OPK test result entry), and a
 summary/history view. `OvulationDetector` is ready to consume this data once it exists.
 
-### T7. Pregnancy tracking flow
+### [x] T7. Pregnancy tracking flow
 `features/pregnancy/` is fully scaffolded at the data layer (models, providers, repository,
 `weekly_milestones.dart`) and even has a `pregnancy_week_widget` in the design system, but zero
 screens. Build: pregnancy mode toggle/setup, weekly milestone view, fetal measurement logging

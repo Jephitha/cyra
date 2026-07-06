@@ -25,6 +25,9 @@ import 'package:cyra/features/symptoms/screens/log_symptom_screen.dart';
 import 'package:cyra/features/ovulation/screens/log_bbt_screen.dart';
 import 'package:cyra/features/ovulation/screens/log_mucus_screen.dart';
 import 'package:cyra/features/ovulation/screens/log_opk_screen.dart';
+import 'package:cyra/features/pregnancy/screens/pregnancy_dashboard_screen.dart';
+import 'package:cyra/features/pregnancy/providers/pregnancy_providers.dart';
+import 'package:cyra/features/pregnancy/models/pregnancy_models.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -94,6 +97,8 @@ class DashboardScreen extends ConsumerWidget {
           _buildTodayLogCard(context, isDark, ref),
           const SizedBox(height: AppSpacing.lg),
           _buildOvulationTrackingCard(context, isDark),
+          const SizedBox(height: AppSpacing.lg),
+          _buildPregnancyCard(context, ref, isDark),
           const SizedBox(height: AppSpacing.lg),
           _buildCycleStatsGrid(context, cycleDay, cycleLength, periodLength, variability, isDark),
           const SizedBox(height: AppSpacing.lg),
@@ -429,6 +434,143 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPregnancyCard(BuildContext context, WidgetRef ref, bool isDark) {
+    final pregnancyAsync = ref.watch(currentPregnancyProvider);
+    
+    return pregnancyAsync.when(
+      loading: () => _buildPregnancyCardLoading(context, isDark),
+      error: (_, __) => _buildPregnancyCardEmpty(context, isDark),
+      data: (Pregnancy? pregnancy) {
+        if (pregnancy == null) {
+          return _buildPregnancyCardEmpty(context, isDark);
+        }
+        return _buildPregnancyCardActive(context, isDark, pregnancy);
+      },
+    );
+  }
+
+  Widget _buildPregnancyCardLoading(BuildContext context, bool isDark) {
+    return AppCard.standard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        children: [
+          Container(
+            width: 48, height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE86B6B).withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.child_care_rounded, size: 24, color: Color(0xFFE86B6B)),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Pregnancy Mode', style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
+                )),
+                const SizedBox(height: AppSpacing.xxs),
+                Text('Loading...',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPregnancyCardEmpty(BuildContext context, bool isDark) {
+    return AppCard.standard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        children: [
+          Container(
+            width: 48, height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE86B6B).withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.child_care_rounded, size: 24, color: Color(0xFFE86B6B)),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Pregnancy Mode', style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
+                )),
+                const SizedBox(height: AppSpacing.xxs),
+                Text('Track your pregnancy journey',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                ),
+              ],
+            ),
+          ),
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const PregnancyDashboardScreen()),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFFE86B6B),
+              side: const BorderSide(color: Color(0xFFE86B6B)),
+            ),
+            child: const Text('Open'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPregnancyCardActive(BuildContext context, bool isDark, Pregnancy pregnancy) {
+    final weeks = pregnancy.currentWeek;
+    final trimester = pregnancy.trimesterName;
+    
+    return AppCard.standard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        children: [
+          Container(
+            width: 48, height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE86B6B).withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.child_care_rounded, size: 24, color: Color(0xFFE86B6B)),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Pregnancy Mode', style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
+                )),
+                const SizedBox(height: AppSpacing.xxs),
+                Text('Week $weeks • $trimester',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                ),
+              ],
+            ),
+          ),
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const PregnancyDashboardScreen()),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFFE86B6B),
+              side: const BorderSide(color: Color(0xFFE86B6B)),
+            ),
+            child: const Text('View'),
           ),
         ],
       ),
