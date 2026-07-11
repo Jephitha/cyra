@@ -80,7 +80,7 @@ version, icon-only mark (monogram/symbol), single-color (black and white) versio
 horizontal lockup for tight spaces (e.g. app bar). Deliver as SVG (source of truth) plus exported
 PNGs at 1x/2x/3x for in-app use.
 
-### T-BRAND-2. Produce production app icon sets
+### [x] T-BRAND-2. Produce production app icon sets
 From the icon-only mark, generate full platform icon sets:
 - **Android:** adaptive icon (foreground + background layers per Android's adaptive icon spec),
   plus legacy `ic_launcher.png` at mdpi/hdpi/xhdpi/xxhdpi/xxxhdpi densities, plus a round icon

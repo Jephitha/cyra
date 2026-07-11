@@ -52,6 +52,7 @@ dev_dependencies:
   drift_dev: ^2.22.0
   mockito: ^5.4.0
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
 
 dependency_overrides:
   intl: ^0.20.0
@@ -64,3 +65,13 @@ flutter:
   assets:
     - .env
     - assets/brand/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/brand/cyra-app-icon.png
+  adaptive_icon_background: "#FBF7EF"
+  adaptive_icon_foreground: assets/brand/cyra-app-icon-foreground.png
+  adaptive_icon_monochrome: assets/brand/cyra-mark-black@3x.png
+  min_sdk_android: 23
+  remove_alpha_ios: true
