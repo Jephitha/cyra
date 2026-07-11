@@ -628,27 +628,34 @@ class WeekDetailScreen extends StatelessWidget {
   }
 
   List<String> _weekCommonSymptoms(int week) {
-    if (week <= 4)
+    if (week <= 4) {
       return ['Implantation spotting', 'Mild cramping', 'Breast tenderness'];
-    if (week <= 8)
+    }
+    if (week <= 8) {
       return [
         'Morning sickness',
         'Fatigue',
         'Frequent urination',
         'Breast tenderness',
       ];
-    if (week <= 12)
+    }
+    if (week <= 12) {
       return ['Nausea', 'food aversions', 'Mood swings', 'Bloating'];
-    if (week <= 16)
+    }
+    if (week <= 16) {
       return ['Round ligament pain', 'Skin changes', 'Increased appetite'];
+    }
     if (week <= 20) return ['Back pain', 'Leg cramps', 'Skin changes'];
     if (week <= 24) return ['Heartburn', 'Round ligament pain', 'Swollen feet'];
-    if (week <= 28)
+    if (week <= 28) {
       return ['Shortness of breath', 'Braxton Hicks', 'Back pain'];
-    if (week <= 32)
+    }
+    if (week <= 32) {
       return ['Frequent urination', 'Swelling', 'Back pain', 'Fatigue'];
-    if (week <= 36)
+    }
+    if (week <= 36) {
       return ['Pelvic pressure', 'Braxton Hicks', 'Swelling', 'Fatigue'];
+    }
     return [
       'Pelvic pressure',
       'Frequent urination',

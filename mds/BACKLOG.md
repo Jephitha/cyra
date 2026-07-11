@@ -74,7 +74,7 @@ work should be built against final brand assets rather than placeholder ones to 
 Full creative direction, palette, typography, and logo brief are in `DESIGN_SYSTEM.md` — read
 that in full before starting any task in this section.
 
-### T-BRAND-1. Design and produce the primary logo + wordmark
+### [x] T-BRAND-1. Design and produce the primary logo + wordmark
 Follow the brief in `DESIGN_SYSTEM.md` exactly. Produce: primary full-color logo, wordmark-only
 version, icon-only mark (monogram/symbol), single-color (black and white) versions, and a
 horizontal lockup for tight spaces (e.g. app bar). Deliver as SVG (source of truth) plus exported

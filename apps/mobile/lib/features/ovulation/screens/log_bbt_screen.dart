@@ -349,14 +349,16 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: row.map((digit) {
-                  if (digit == 'del')
+                  if (digit == 'del') {
                     return _NumberPadButton(
                       label: Icons.backspace_outlined,
                       isIcon: true,
                       onPressed: _onDeletePressed,
                     );
-                  if (digit.isEmpty)
+                  }
+                  if (digit.isEmpty) {
                     return const SizedBox(width: 72, height: 56);
+                  }
                   return _NumberPadButton(
                     label: digit,
                     onPressed: () => _onDigitPressed(digit),

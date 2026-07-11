@@ -474,8 +474,9 @@ class OvulationDashboardScreen extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, __) => _buildEmptyMucus(context, isDark),
             data: (mucusRecords) {
-              if (mucusRecords.isEmpty)
+              if (mucusRecords.isEmpty) {
                 return _buildEmptyMucus(context, isDark);
+              }
               final latest = mucusRecords.last;
               final isFertile =
                   latest.type == CervicalMucusType.eggWhite ||

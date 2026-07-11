@@ -93,10 +93,15 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
       case 0:
         return _calculationMethod != null;
       case 1:
-        if (_calculationMethod == 'lmp') return _lmpDate != null;
-        if (_calculationMethod == 'conception') return _conceptionDate != null;
-        if (_calculationMethod == 'ultrasound')
+        if (_calculationMethod == 'lmp') {
+          return _lmpDate != null;
+        }
+        if (_calculationMethod == 'conception') {
+          return _conceptionDate != null;
+        }
+        if (_calculationMethod == 'ultrasound') {
           return _dueDateFromUltrasound != null;
+        }
         return false;
       case 2:
         return _computedDueDate != null;
