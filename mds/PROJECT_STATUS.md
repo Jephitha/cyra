@@ -92,16 +92,12 @@ P0 is complete.
 
 ## 3. Features with data layer but no UI at all
 
-- **BBT / cervical mucus / OPK logging** — models, tables, repository (`ovulation_repository.dart`)
-  all exist under `features/ovulation/`, but there is **no `screens/` folder** for this feature.
-  The `bbt_chart` widget exists in the design system but nothing currently feeds it real data.
-- **Dedicated symptom logging** — `features/symptoms/` has models/providers/repository but no
-  screens folder; symptom selection currently only happens inline inside `LogPeriodScreen`
-  (and even that isn't persisted — see above).
-- **Pregnancy tracking** — `features/pregnancy/` has models, providers, repository, and
-  `weekly_milestones.dart` data, plus a `pregnancy_week_widget` in the design system and an
-  `inPregnancyMode` flag on the dashboard's mock state — but **no pregnancy screens exist**.
-  This is a fully-scaffolded, unbuilt feature.
+T5–T8 are now implemented. Dedicated symptom logging persists independently of periods;
+ovulation screens persist and display BBT, mucus, and OPK data; pregnancy setup, dashboard, and
+measurement flows use the pregnancy repository; and cycle history/detail/prediction screens no
+longer contain private mock state. The detail view now assembles cycle days, BBT, symptoms, and
+journal entries for the selected stored cycle, while prediction detail consumes the real
+`nextPeriodPredictionProvider`.
 
 ## 4. Not started
 

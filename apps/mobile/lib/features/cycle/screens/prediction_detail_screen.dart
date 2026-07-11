@@ -9,48 +9,62 @@ import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/confidence_badge.dart';
 import 'package:cyra/core/design/widgets/cycle_overview_chart.dart';
 import 'package:cyra/features/cycle/models/cycle.dart' as models;
+import 'package:cyra/features/cycle/providers/cycle_providers.dart';
 
-final _predictionDetailProvider = ChangeNotifierProvider<_PredictionDetailState>((ref) {
-  return _PredictionDetailState();
-});
+final _predictionDetailProvider =
+    FutureProvider.autoDispose<_PredictionDetailState>((ref) async {
+      final prediction = await ref.watch(nextPeriodPredictionProvider.future);
+      final cycles = await ref.watch(allCyclesProvider.future);
+      final activeCycle = await ref.watch(activeCycleProvider.future);
+      final average = cycles.isEmpty
+          ? 28
+          : (cycles.map((cycle) => cycle.cycleLength).reduce((a, b) => a + b) /
+                    cycles.length)
+                .round();
+      var phase = 'Unknown';
+      if (activeCycle != null) {
+        final day = DateTime.now().difference(activeCycle.startDate).inDays + 1;
+        if (day <= activeCycle.periodLength) {
+          phase = 'Menstrual';
+        } else if (day < activeCycle.cycleLength - 15) {
+          phase = 'Follicular';
+        } else if (day <= activeCycle.cycleLength - 13) {
+          phase = 'Ovulation';
+        } else {
+          phase = 'Luteal';
+        }
+      }
+      return _PredictionDetailState(
+        prediction: prediction,
+        currentPhase: phase,
+        trackedCycles: cycles.length,
+        averageCycleLength: average,
+        variabilityDays: prediction.variabilityScore,
+        cycleHistory: [
+          for (var index = cycles.length - 1; index >= 0; index--)
+            CycleLengthData(
+              cycleNumber: cycles.length - index,
+              lengthDays: cycles[index].cycleLength,
+            ),
+        ],
+      );
+    });
 
-class _PredictionDetailState extends ChangeNotifier {
-  bool isLoading = true;
-
-  models.PredictionResult prediction = models.PredictionResult(
-    predictedDate: DateTime(2026, 4, 1),
-    confidenceScore: 0.85,
-    variabilityScore: 1.5,
-    predictionRangeStart: DateTime(2026, 3, 30),
-    predictionRangeEnd: DateTime(2026, 4, 4),
-    explanation:
-        'Based on your last 6 cycles with an average length of 28 days. '
-        'Your cycles are very regular, varying by only 1-2 days.',
-  );
-
-  String currentPhase = 'Follicular';
-  int trackedCycles = 6;
-  int averageCycleLength = 28;
-  double variabilityDays = 1.5;
-  List<CycleLengthData> cycleHistory = [];
-
-  _PredictionDetailState() {
-    _loadData();
-  }
-
-  void _loadData() {
-    cycleHistory = [
-      const CycleLengthData(cycleNumber: 1, lengthDays: 28),
-      const CycleLengthData(cycleNumber: 2, lengthDays: 29),
-      const CycleLengthData(cycleNumber: 3, lengthDays: 27),
-      const CycleLengthData(cycleNumber: 4, lengthDays: 28),
-      const CycleLengthData(cycleNumber: 5, lengthDays: 30),
-      const CycleLengthData(cycleNumber: 6, lengthDays: 28),
-    ];
-
-    isLoading = false;
-    notifyListeners();
-  }
+class _PredictionDetailState {
+  const _PredictionDetailState({
+    required this.prediction,
+    required this.currentPhase,
+    required this.trackedCycles,
+    required this.averageCycleLength,
+    required this.variabilityDays,
+    required this.cycleHistory,
+  });
+  final models.PredictionResult prediction;
+  final String currentPhase;
+  final int trackedCycles;
+  final int averageCycleLength;
+  final double variabilityDays;
+  final List<CycleLengthData> cycleHistory;
 }
 
 class PredictionDetailScreen extends ConsumerWidget {
@@ -58,16 +72,32 @@ class PredictionDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(_predictionDetailProvider);
+    final stateAsync = ref.watch(_predictionDetailProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    if (state.isLoading) {
-      return Scaffold(
+    return stateAsync.when(
+      loading: () => Scaffold(
         appBar: AppBar(title: const Text('Prediction')),
         body: const Center(child: CircularProgressIndicator()),
-      );
-    }
+      ),
+      error: (_, __) => Scaffold(
+        appBar: AppBar(title: const Text('Prediction')),
+        body: Center(
+          child: TextButton(
+            onPressed: () => ref.invalidate(_predictionDetailProvider),
+            child: const Text('Could not load prediction. Try again'),
+          ),
+        ),
+      ),
+      data: (state) => _buildContent(context, state, isDark),
+    );
+  }
 
+  Widget _buildContent(
+    BuildContext context,
+    _PredictionDetailState state,
+    bool isDark,
+  ) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Next Period'),
@@ -106,7 +136,11 @@ class PredictionDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMainDateCard(BuildContext context, _PredictionDetailState state, bool isDark) {
+  Widget _buildMainDateCard(
+    BuildContext context,
+    _PredictionDetailState state,
+    bool isDark,
+  ) {
     final dateFormat = DateFormat('EEEE, MMMM d');
     final rangeFormat = DateFormat('MMM d');
 
@@ -122,9 +156,9 @@ class PredictionDetailScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
           Text(
             'Predicted Start',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppColors.slate,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: AppColors.slate),
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
@@ -148,7 +182,11 @@ class PredictionDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildConfidenceSection(BuildContext context, _PredictionDetailState state, bool isDark) {
+  Widget _buildConfidenceSection(
+    BuildContext context,
+    _PredictionDetailState state,
+    bool isDark,
+  ) {
     return AppCard.standard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
@@ -166,15 +204,17 @@ class PredictionDetailScreen extends ConsumerWidget {
                   '${(state.prediction.confidenceScore * 100).round()}% Confidence',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
                   _confidenceReason(state),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                 ),
               ],
             ),
@@ -194,7 +234,11 @@ class PredictionDetailScreen extends ConsumerWidget {
     return 'Your cycles vary significantly. More data will help refine predictions.';
   }
 
-  Widget _buildExplanation(BuildContext context, _PredictionDetailState state, bool isDark) {
+  Widget _buildExplanation(
+    BuildContext context,
+    _PredictionDetailState state,
+    bool isDark,
+  ) {
     return AppCard.standard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -212,7 +256,9 @@ class PredictionDetailScreen extends ConsumerWidget {
                 'Why this prediction?',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                 ),
               ),
             ],
@@ -242,7 +288,7 @@ class PredictionDetailScreen extends ConsumerWidget {
           _explanationRow(
             context,
             Icons.water_drop_rounded,
-            'Current phase: $currentPhase',
+            'Current phase: ${state.currentPhase}',
             isDark,
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -267,7 +313,9 @@ class PredictionDetailScreen extends ConsumerWidget {
                   child: Text(
                     state.prediction.explanation,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.charcoal,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.charcoal,
                     ),
                   ),
                 ),
@@ -279,14 +327,15 @@ class PredictionDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _explanationRow(BuildContext context, IconData icon, String text, bool isDark) {
+  Widget _explanationRow(
+    BuildContext context,
+    IconData icon,
+    String text,
+    bool isDark,
+  ) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: AppColors.forestGreen,
-        ),
+        Icon(icon, size: 20, color: AppColors.forestGreen),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Text(
@@ -298,15 +347,6 @@ class PredictionDetailScreen extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  String get currentPhase {
-    final now = DateTime.now();
-    final cycleDay = now.day % 28;
-    if (cycleDay <= 5) return 'Menstrual';
-    if (cycleDay <= 13) return 'Follicular';
-    if (cycleDay <= 15) return 'Ovulation';
-    return 'Luteal';
   }
 
   Widget _buildEducationSection(BuildContext context, bool isDark) {
@@ -327,7 +367,9 @@ class PredictionDetailScreen extends ConsumerWidget {
                 'Why does this matter?',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                 ),
               ),
             ],
@@ -354,7 +396,11 @@ class PredictionDetailScreen extends ConsumerWidget {
           _bulletPoint(context, 'Identify patterns in your cycle', isDark),
           _bulletPoint(context, 'Recognize PMS and symptom trends', isDark),
           _bulletPoint(context, 'Plan for upcoming periods', isDark),
-          _bulletPoint(context, 'Share insights with your healthcare provider', isDark),
+          _bulletPoint(
+            context,
+            'Share insights with your healthcare provider',
+            isDark,
+          ),
         ],
       ),
     );
@@ -381,9 +427,9 @@ class PredictionDetailScreen extends ConsumerWidget {
           Expanded(
             child: Text(
               text,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.slate,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.slate),
             ),
           ),
         ],
@@ -419,7 +465,9 @@ class PredictionDetailScreen extends ConsumerWidget {
                 Text(
                   'This is a prediction, not certainty',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -451,6 +499,8 @@ class PredictionDetailScreen extends ConsumerWidget {
         'Tracked with Cyra.';
 
     Clipboard.setData(ClipboardData(text: shareText));
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Prediction copied to clipboard')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Prediction copied to clipboard')),
+    );
   }
 }

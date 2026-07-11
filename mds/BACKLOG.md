@@ -61,7 +61,7 @@ screens. Build: pregnancy mode toggle/setup, weekly milestone view, fetal measur
 dashboard (there's already an `inPregnancyMode` flag on the mock dashboard state — carry that
 concept into the real provider).
 
-### T8. Cycle detail / history / prediction detail screens
+### [x] T8. Cycle detail / history / prediction detail screens
 These exist and are pushed via `Navigator.push` already — audit them for the same
 mocked-vs-real-data issue found in Dashboard/Calendar before assuming they're done.
 
@@ -310,4 +310,3 @@ Don't build any of these without an explicit go-ahead — they're here as a menu
   users.
 - **Community safety tooling** — since `features/community/` is a real, working feature: add
   reporting/blocking and basic moderation before the community grows, not after.
-

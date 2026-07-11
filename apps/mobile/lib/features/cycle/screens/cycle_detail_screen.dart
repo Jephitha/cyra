@@ -1,341 +1,253 @@
+import 'package:cyra/core/design/app_colors.dart';
+import 'package:cyra/core/design/tokens/app_spacing.dart';
+import 'package:cyra/core/design/widgets/app_card.dart';
+import 'package:cyra/core/design/widgets/bbt_chart.dart';
+import 'package:cyra/core/design/widgets/health_stat_card.dart';
+import 'package:cyra/core/design/widgets/health_timeline.dart';
+import 'package:cyra/core/design/widgets/symptom_bar_chart.dart';
+import 'package:cyra/features/cycle/models/cycle.dart';
+import 'package:cyra/features/cycle/providers/cycle_providers.dart';
+import 'package:cyra/features/journal/models/journal_models.dart';
+import 'package:cyra/features/journal/providers/journal_providers.dart';
+import 'package:cyra/features/ovulation/models/bbt_record.dart';
+import 'package:cyra/features/ovulation/providers/ovulation_providers.dart';
+import 'package:cyra/features/symptoms/models/symptom_models.dart';
+import 'package:cyra/features/symptoms/providers/symptom_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:cyra/core/design/app_colors.dart';
-import 'package:cyra/core/design/tokens/app_spacing.dart';
-import 'package:cyra/core/design/tokens/app_radius.dart';
-import 'package:cyra/core/design/widgets/app_card.dart';
-import 'package:cyra/core/design/widgets/health_timeline.dart';
-import 'package:cyra/core/design/widgets/bbt_chart.dart';
-import 'package:cyra/core/design/widgets/symptom_bar_chart.dart';
-import 'package:cyra/core/design/widgets/health_stat_card.dart';
 
-final _cycleDetailProvider = ChangeNotifierProvider.family<_CycleDetailState, int>((ref, cycleId) {
-  return _CycleDetailState(cycleId);
-});
+final _cycleDetailProvider = FutureProvider.autoDispose
+    .family<_CycleDetailData, String>((ref, cycleId) async {
+      final cycles = await ref.watch(allCyclesProvider.future);
+      final cycle = cycles.where((item) => item.id == cycleId).firstOrNull;
+      if (cycle == null) throw StateError('Cycle not found');
+      final end = cycle.endDate ?? DateTime.now();
+      final results = await Future.wait<Object>([
+        ref.watch(cycleDaysProvider(cycleId).future),
+        ref.watch(bbtForCycleProvider(cycleId).future),
+        ref.watch(symptomsInRangeProvider(cycle.startDate, end).future),
+        ref.watch(
+          journalEntriesByDateRangeProvider(cycle.startDate, end).future,
+        ),
+      ]);
+      return _CycleDetailData(
+        cycle: cycle,
+        days: results[0] as List<CycleDay>,
+        bbt: results[1] as List<BBTRecord>,
+        symptoms: results[2] as List<SymptomEntry>,
+        journals: results[3] as List<JournalEntry>,
+        cycleNumber: cycles.length - cycles.indexOf(cycle),
+      );
+    });
 
-class _CycleDetailState extends ChangeNotifier {
-  final int cycleId;
-  bool isLoading = true;
-
-  int cycleNumber = 3;
-  DateTime startDate = DateTime.now().subtract(const Duration(days: 42));
-  DateTime endDate = DateTime.now().subtract(const Duration(days: 14));
-  int cycleLength = 28;
-  int periodLength = 5;
-  double averageFlowIntensity = 2.3;
-  int symptomCount = 7;
-  String notes = 'This cycle had some notable PMS symptoms in the luteal phase. Mood swings were more pronounced than usual.';
-
-  List<BBTDataPoint> bbtData = [];
-  List<SymptomBarData> symptomData = [];
-  List<TimelineEntry> timelineEntries = [];
-  List<_JournalEntry> journalEntries = [];
-
-  _CycleDetailState(this.cycleId) {
-    _loadData();
-  }
-
-  void _loadData() {
-    bbtData = [
-      BBTDataPoint(date: DateTime(2026, 3, 1), temperature: 36.4),
-      BBTDataPoint(date: DateTime(2026, 3, 2), temperature: 36.3),
-      BBTDataPoint(date: DateTime(2026, 3, 3), temperature: 36.4),
-      BBTDataPoint(date: DateTime(2026, 3, 4), temperature: 36.5),
-      BBTDataPoint(date: DateTime(2026, 3, 5), temperature: 36.3),
-      BBTDataPoint(date: DateTime(2026, 3, 6), temperature: 36.4),
-      BBTDataPoint(date: DateTime(2026, 3, 7), temperature: 36.5),
-      BBTDataPoint(date: DateTime(2026, 3, 8), temperature: 36.6),
-      BBTDataPoint(date: DateTime(2026, 3, 9), temperature: 36.5),
-      BBTDataPoint(date: DateTime(2026, 3, 10), temperature: 36.7),
-      BBTDataPoint(date: DateTime(2026, 3, 11), temperature: 36.8),
-      BBTDataPoint(date: DateTime(2026, 3, 12), temperature: 36.9),
-      BBTDataPoint(date: DateTime(2026, 3, 13), temperature: 36.8),
-      BBTDataPoint(date: DateTime(2026, 3, 14), temperature: 36.7),
-    ];
-
-    symptomData = [
-      const SymptomBarData(label: 'Cramps', value: 8, color: Color(0xFFE57373)),
-      const SymptomBarData(label: 'Fatigue', value: 6, color: Color(0xFF9575CD)),
-      const SymptomBarData(label: 'Bloating', value: 5, color: Color(0xFFBA68C8)),
-      const SymptomBarData(label: 'Headache', value: 4, color: Color(0xFFF06292)),
-      const SymptomBarData(label: 'Mood Swings', value: 7, color: Color(0xFF4FC3F7)),
-      const SymptomBarData(label: 'Back Pain', value: 3, color: Color(0xFFE57373)),
-    ];
-
-    timelineEntries = [
-      TimelineEntry(
-        date: startDate,
-        title: 'Period started',
-        description: 'Medium flow',
-        type: TimelineEntryType.period,
-      ),
-      TimelineEntry(
-        date: startDate.add(const Duration(days: 2)),
-        title: 'Cramps logged',
-        description: 'Moderate severity',
-        type: TimelineEntryType.symptom,
-      ),
-      TimelineEntry(
-        date: startDate.add(const Duration(days: 5)),
-        title: 'Period ended',
-        description: '5 days total',
-        type: TimelineEntryType.period,
-      ),
-      TimelineEntry(
-        date: startDate.add(const Duration(days: 14)),
-        title: 'Ovulation detected',
-        description: 'Day 14',
-        type: TimelineEntryType.ovulation,
-      ),
-      TimelineEntry(
-        date: startDate.add(const Duration(days: 20)),
-        title: 'Mood Swings',
-        description: 'Increased irritability',
-        type: TimelineEntryType.symptom,
-      ),
-    ];
-
-    journalEntries = [
-      _JournalEntry(
-        date: startDate,
-        text: 'Cycle started today. Cramps are moderate, used heating pad.',
-      ),
-      _JournalEntry(
-        date: startDate.add(const Duration(days: 7)),
-        text: 'Feeling more energetic today. Went for a 30min walk.',
-      ),
-      _JournalEntry(
-        date: startDate.add(const Duration(days: 14)),
-        text: 'Noticed EWCM today. Possible ovulation.',
-      ),
-    ];
-
-    isLoading = false;
-    notifyListeners();
-  }
-}
-
-class _JournalEntry {
-  final DateTime date;
-  final String text;
-
-  const _JournalEntry({required this.date, required this.text});
+class _CycleDetailData {
+  const _CycleDetailData({
+    required this.cycle,
+    required this.days,
+    required this.bbt,
+    required this.symptoms,
+    required this.journals,
+    required this.cycleNumber,
+  });
+  final Cycle cycle;
+  final List<CycleDay> days;
+  final List<BBTRecord> bbt;
+  final List<SymptomEntry> symptoms;
+  final List<JournalEntry> journals;
+  final int cycleNumber;
 }
 
 class CycleDetailScreen extends ConsumerWidget {
-  final int cycleId;
-
   const CycleDetailScreen({super.key, required this.cycleId});
+  final String cycleId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(_cycleDetailProvider(cycleId));
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (state.isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Cycle Detail')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
+    final detail = ref.watch(_cycleDetailProvider(cycleId));
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Cycle ${state.cycleNumber}'),
-        actions: [
-          TextButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.edit_outlined, size: 18),
-            label: const Text('Edit'),
+      appBar: AppBar(title: const Text('Cycle Detail')),
+      body: detail.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, __) => Center(
+          child: TextButton(
+            onPressed: () => ref.invalidate(_cycleDetailProvider(cycleId)),
+            child: const Text('Could not load cycle. Try again'),
           ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          _buildHeader(context, state, isDark),
-          const SizedBox(height: AppSpacing.lg),
-          _buildStatsGrid(context, state, isDark),
-          const SizedBox(height: AppSpacing.lg),
-          if (state.bbtData.isNotEmpty)
-            AppCard.chart(
-              title: 'Basal Body Temperature',
-              child: BBTChart(
-                dataPoints: state.bbtData,
-                height: 200,
-                showLegend: true,
-              ),
-            ),
-          if (state.bbtData.isNotEmpty) const SizedBox(height: AppSpacing.lg),
-          if (state.symptomData.isNotEmpty)
-            AppCard.chart(
-              title: 'Most Common Symptoms',
-              child: SizedBox(
-                height: 220,
-                child: SymptomBarChart(
-                  symptoms: state.symptomData,
-                  maxBars: 8,
-                  showValues: true,
-                ),
-              ),
-            ),
-          if (state.symptomData.isNotEmpty) const SizedBox(height: AppSpacing.lg),
-          AppCard.standard(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            title: 'Timeline',
-            child: HealthTimeline(
-              entries: state.timelineEntries,
-              dotRadius: 6,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          if (state.journalEntries.isNotEmpty)
-            _buildJournalSection(context, state, isDark),
-        ],
+        ),
+        data: (data) => _DetailBody(data: data),
       ),
     );
   }
+}
 
-  Widget _buildHeader(BuildContext context, _CycleDetailState state, bool isDark) {
-    final format = DateFormat('MMM d, yyyy');
+class _DetailBody extends StatelessWidget {
+  const _DetailBody({required this.data});
+  final _CycleDetailData data;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  @override
+  Widget build(BuildContext context) {
+    final cycle = data.cycle;
+    final end =
+        cycle.endDate ??
+        cycle.startDate.add(Duration(days: cycle.cycleLength - 1));
+    final flowDays = data.days.where((day) => day.flowIntensity > 0).toList();
+    final averageFlow = flowDays.isEmpty
+        ? 0.0
+        : flowDays.map((day) => day.flowIntensity).reduce((a, b) => a + b) /
+              flowDays.length;
+    final symptomCounts = <String, int>{};
+    for (final symptom in data.symptoms) {
+      symptomCounts.update(
+        symptom.symptomName,
+        (count) => count + 1,
+        ifAbsent: () => 1,
+      );
+    }
+    final symptomBars = symptomCounts.entries
+        .map(
+          (entry) => SymptomBarData(
+            label: entry.key,
+            value: entry.value.toDouble(),
+            color: AppColors.sage,
+          ),
+        )
+        .toList();
+    final timeline = <TimelineEntry>[
+      TimelineEntry(
+        date: cycle.startDate,
+        title: 'Period started',
+        description: '${flowDays.length} logged flow days',
+        type: TimelineEntryType.period,
+      ),
+      for (final symptom in data.symptoms)
+        TimelineEntry(
+          date: symptom.date,
+          title: symptom.symptomName,
+          description: 'Severity ${symptom.severity}',
+          type: TimelineEntryType.symptom,
+        ),
+    ]..sort((a, b) => a.date.compareTo(b.date));
+    final bbtPoints = data.bbt
+        .map(
+          (record) =>
+              BBTDataPoint(date: record.date, temperature: record.temperature),
+        )
+        .toList();
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         Text(
-          'Cycle ${state.cycleNumber}',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          'Cycle ${data.cycleNumber}',
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          '${format.format(state.startDate)} – ${format.format(state.endDate)}',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppColors.slate,
-          ),
+          '${DateFormat.yMMMd().format(cycle.startDate)} – ${DateFormat.yMMMd().format(end)}',
+          style: TextStyle(color: AppColors.slate),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.xxs,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.forestGreen.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(AppRadius.xs),
-          ),
-          child: Text(
-            '${state.cycleLength} days',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: AppColors.forestGreen,
-              fontWeight: FontWeight.w600,
+        if (cycle.notes?.isNotEmpty ?? false) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(cycle.notes!),
+        ],
+        const SizedBox(height: AppSpacing.lg),
+        Row(
+          children: [
+            Expanded(
+              child: HealthStatCard(
+                label: 'Period',
+                value: '${cycle.periodLength} days',
+                icon: Icons.water_drop_rounded,
+                accentColor: AppColors.error,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: HealthStatCard(
+                label: 'Cycle',
+                value: '${cycle.cycleLength} days',
+                icon: Icons.repeat_rounded,
+                accentColor: AppColors.forestGreen,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(
+              child: HealthStatCard(
+                label: 'Avg Flow',
+                value: averageFlow.toStringAsFixed(1),
+                icon: Icons.speed_rounded,
+                accentColor: AppColors.sage,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: HealthStatCard(
+                label: 'Symptoms',
+                value: '${data.symptoms.length}',
+                icon: Icons.healing_outlined,
+                accentColor: AppColors.softGold,
+              ),
+            ),
+          ],
+        ),
+        if (bbtPoints.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          AppCard.chart(
+            title: 'Basal Body Temperature',
+            child: BBTChart(
+              dataPoints: bbtPoints,
+              height: 200,
+              showLegend: true,
             ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatsGrid(BuildContext context, _CycleDetailState state, bool isDark) {
-    return Row(
-      children: [
-        Expanded(
-          child: HealthStatCard(
-            label: 'Period Length',
-            value: '${state.periodLength} days',
-            icon: Icons.water_drop_rounded,
-            accentColor: const Color(0xFFE86B6B),
+        ],
+        if (symptomBars.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          AppCard.chart(
+            title: 'Most Common Symptoms',
+            child: SizedBox(
+              height: 220,
+              child: SymptomBarChart(
+                symptoms: symptomBars,
+                maxBars: 8,
+                showValues: true,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: HealthStatCard(
-            label: 'Cycle Length',
-            value: '${state.cycleLength} days',
-            icon: Icons.repeat_rounded,
-            accentColor: AppColors.forestGreen,
+        ],
+        if (timeline.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          AppCard.standard(
+            title: 'Timeline',
+            child: HealthTimeline(entries: timeline),
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: HealthStatCard(
-            label: 'Avg Flow',
-            value: state.averageFlowIntensity.toStringAsFixed(1),
-            icon: Icons.speed_rounded,
-            accentColor: AppColors.sage,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: HealthStatCard(
-            label: 'Symptoms',
-            value: '${state.symptomCount}',
-            icon: Icons.healing_outlined,
-            accentColor: AppColors.softGold,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildJournalSection(BuildContext context, _CycleDetailState state, bool isDark) {
-    return AppCard.standard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      title: 'Journal Entries',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: state.journalEntries.map((entry) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.md),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+        if (data.journals.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          AppCard.standard(
+            title: 'Journal Entries',
+            child: Column(
               children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: AppColors.forestGreen.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      DateFormat('d').format(entry.date),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.forestGreen,
-                      ),
+                for (final entry in data.journals)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      entry.title ?? DateFormat.yMMMd().format(entry.date),
                     ),
+                    subtitle: Text(entry.content ?? ''),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        DateFormat('MMM d').format(entry.date),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.slate,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        entry.text,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
-          );
-        }).toList(),
-      ),
+          ),
+        ],
+      ],
     );
   }
 }
