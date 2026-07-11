@@ -98,6 +98,387 @@ final conceptionLikelihoodProvider =
 // ignore: unused_element
 typedef ConceptionLikelihoodRef =
     AutoDisposeFutureProviderRef<ConceptionLikelihood>;
+String _$bbtForCycleHash() => r'64bfa9ad925c7157aac805dc2eb8f21d0f55bbb2';
+
+/// Copied from Dart SDK
+class _SystemHash {
+  _SystemHash._();
+
+  static int combine(int hash, int value) {
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + value);
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+    return hash ^ (hash >> 6);
+  }
+
+  static int finish(int hash) {
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+    // ignore: parameter_assignments
+    hash = hash ^ (hash >> 11);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  }
+}
+
+/// See also [bbtForCycle].
+@ProviderFor(bbtForCycle)
+const bbtForCycleProvider = BbtForCycleFamily();
+
+/// See also [bbtForCycle].
+class BbtForCycleFamily extends Family<AsyncValue<List<BBTRecord>>> {
+  /// See also [bbtForCycle].
+  const BbtForCycleFamily();
+
+  /// See also [bbtForCycle].
+  BbtForCycleProvider call(String cycleId) {
+    return BbtForCycleProvider(cycleId);
+  }
+
+  @override
+  BbtForCycleProvider getProviderOverride(
+    covariant BbtForCycleProvider provider,
+  ) {
+    return call(provider.cycleId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'bbtForCycleProvider';
+}
+
+/// See also [bbtForCycle].
+class BbtForCycleProvider extends AutoDisposeFutureProvider<List<BBTRecord>> {
+  /// See also [bbtForCycle].
+  BbtForCycleProvider(String cycleId)
+    : this._internal(
+        (ref) => bbtForCycle(ref as BbtForCycleRef, cycleId),
+        from: bbtForCycleProvider,
+        name: r'bbtForCycleProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$bbtForCycleHash,
+        dependencies: BbtForCycleFamily._dependencies,
+        allTransitiveDependencies: BbtForCycleFamily._allTransitiveDependencies,
+        cycleId: cycleId,
+      );
+
+  BbtForCycleProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.cycleId,
+  }) : super.internal();
+
+  final String cycleId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<BBTRecord>> Function(BbtForCycleRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: BbtForCycleProvider._internal(
+        (ref) => create(ref as BbtForCycleRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        cycleId: cycleId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<BBTRecord>> createElement() {
+    return _BbtForCycleProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is BbtForCycleProvider && other.cycleId == cycleId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, cycleId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin BbtForCycleRef on AutoDisposeFutureProviderRef<List<BBTRecord>> {
+  /// The parameter `cycleId` of this provider.
+  String get cycleId;
+}
+
+class _BbtForCycleProviderElement
+    extends AutoDisposeFutureProviderElement<List<BBTRecord>>
+    with BbtForCycleRef {
+  _BbtForCycleProviderElement(super.provider);
+
+  @override
+  String get cycleId => (origin as BbtForCycleProvider).cycleId;
+}
+
+String _$opkForCycleHash() => r'4382523bf0daa404a2f3d7c244c4db4e05f63cce';
+
+/// See also [opkForCycle].
+@ProviderFor(opkForCycle)
+const opkForCycleProvider = OpkForCycleFamily();
+
+/// See also [opkForCycle].
+class OpkForCycleFamily extends Family<AsyncValue<List<OPKTestResult>>> {
+  /// See also [opkForCycle].
+  const OpkForCycleFamily();
+
+  /// See also [opkForCycle].
+  OpkForCycleProvider call(String cycleId) {
+    return OpkForCycleProvider(cycleId);
+  }
+
+  @override
+  OpkForCycleProvider getProviderOverride(
+    covariant OpkForCycleProvider provider,
+  ) {
+    return call(provider.cycleId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'opkForCycleProvider';
+}
+
+/// See also [opkForCycle].
+class OpkForCycleProvider
+    extends AutoDisposeFutureProvider<List<OPKTestResult>> {
+  /// See also [opkForCycle].
+  OpkForCycleProvider(String cycleId)
+    : this._internal(
+        (ref) => opkForCycle(ref as OpkForCycleRef, cycleId),
+        from: opkForCycleProvider,
+        name: r'opkForCycleProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$opkForCycleHash,
+        dependencies: OpkForCycleFamily._dependencies,
+        allTransitiveDependencies: OpkForCycleFamily._allTransitiveDependencies,
+        cycleId: cycleId,
+      );
+
+  OpkForCycleProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.cycleId,
+  }) : super.internal();
+
+  final String cycleId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<OPKTestResult>> Function(OpkForCycleRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: OpkForCycleProvider._internal(
+        (ref) => create(ref as OpkForCycleRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        cycleId: cycleId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<OPKTestResult>> createElement() {
+    return _OpkForCycleProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is OpkForCycleProvider && other.cycleId == cycleId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, cycleId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin OpkForCycleRef on AutoDisposeFutureProviderRef<List<OPKTestResult>> {
+  /// The parameter `cycleId` of this provider.
+  String get cycleId;
+}
+
+class _OpkForCycleProviderElement
+    extends AutoDisposeFutureProviderElement<List<OPKTestResult>>
+    with OpkForCycleRef {
+  _OpkForCycleProviderElement(super.provider);
+
+  @override
+  String get cycleId => (origin as OpkForCycleProvider).cycleId;
+}
+
+String _$mucusForCycleHash() => r'f6936fe026917674590a4d289909b04a9cfd91ab';
+
+/// See also [mucusForCycle].
+@ProviderFor(mucusForCycle)
+const mucusForCycleProvider = MucusForCycleFamily();
+
+/// See also [mucusForCycle].
+class MucusForCycleFamily extends Family<AsyncValue<List<MucusObservation>>> {
+  /// See also [mucusForCycle].
+  const MucusForCycleFamily();
+
+  /// See also [mucusForCycle].
+  MucusForCycleProvider call(String cycleId) {
+    return MucusForCycleProvider(cycleId);
+  }
+
+  @override
+  MucusForCycleProvider getProviderOverride(
+    covariant MucusForCycleProvider provider,
+  ) {
+    return call(provider.cycleId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'mucusForCycleProvider';
+}
+
+/// See also [mucusForCycle].
+class MucusForCycleProvider
+    extends AutoDisposeFutureProvider<List<MucusObservation>> {
+  /// See also [mucusForCycle].
+  MucusForCycleProvider(String cycleId)
+    : this._internal(
+        (ref) => mucusForCycle(ref as MucusForCycleRef, cycleId),
+        from: mucusForCycleProvider,
+        name: r'mucusForCycleProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$mucusForCycleHash,
+        dependencies: MucusForCycleFamily._dependencies,
+        allTransitiveDependencies:
+            MucusForCycleFamily._allTransitiveDependencies,
+        cycleId: cycleId,
+      );
+
+  MucusForCycleProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.cycleId,
+  }) : super.internal();
+
+  final String cycleId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<MucusObservation>> Function(MucusForCycleRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: MucusForCycleProvider._internal(
+        (ref) => create(ref as MucusForCycleRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        cycleId: cycleId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<MucusObservation>> createElement() {
+    return _MucusForCycleProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MucusForCycleProvider && other.cycleId == cycleId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, cycleId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin MucusForCycleRef on AutoDisposeFutureProviderRef<List<MucusObservation>> {
+  /// The parameter `cycleId` of this provider.
+  String get cycleId;
+}
+
+class _MucusForCycleProviderElement
+    extends AutoDisposeFutureProviderElement<List<MucusObservation>>
+    with MucusForCycleRef {
+  _MucusForCycleProviderElement(super.provider);
+
+  @override
+  String get cycleId => (origin as MucusForCycleProvider).cycleId;
+}
+
 String _$fertilityModeSettingHash() =>
     r'da0277d3d7ba16610341a4a8d1b447c07f664f20';
 

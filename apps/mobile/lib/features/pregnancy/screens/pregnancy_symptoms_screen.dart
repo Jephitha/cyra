@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
@@ -6,39 +7,99 @@ import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/utils/extensions.dart';
+import 'package:cyra/features/symptoms/models/symptom_models.dart';
+import 'package:cyra/features/symptoms/providers/symptom_providers.dart';
+import 'package:cyra/features/pregnancy/providers/pregnancy_providers.dart';
 
-class PregnancySymptomsScreen extends StatefulWidget {
+class PregnancySymptomsScreen extends ConsumerStatefulWidget {
   const PregnancySymptomsScreen({super.key});
 
   @override
-  State<PregnancySymptomsScreen> createState() =>
+  ConsumerState<PregnancySymptomsScreen> createState() =>
       _PregnancySymptomsScreenState();
 }
 
-class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
+class _PregnancySymptomsScreenState
+    extends ConsumerState<PregnancySymptomsScreen> {
   final Set<String> _selectedSymptoms = {};
   double _severity = 0.5;
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   final _notesController = TextEditingController();
   String? _selectedSymptomForInfo;
+  bool _isSaving = false;
 
   static const _commonSymptoms = [
-    _SymptomDef('nausea', 'Nausea/Morning Sickness', Icons.sentiment_very_dissatisfied_rounded, Color(0xFF81C784)),
+    _SymptomDef(
+      'nausea',
+      'Nausea/Morning Sickness',
+      Icons.sentiment_very_dissatisfied_rounded,
+      Color(0xFF81C784),
+    ),
     _SymptomDef('fatigue', 'Fatigue', Icons.bedtime_rounded, Color(0xFF9575CD)),
-    _SymptomDef('back_pain', 'Back Pain', Icons.accessibility_new_rounded, Color(0xFFE57373)),
-    _SymptomDef('swelling', 'Swelling', Icons.water_drop_rounded, Color(0xFF64B5F6)),
-    _SymptomDef('heartburn', 'Heartburn', Icons.local_fire_department_rounded, Color(0xFFFF8A65)),
-    _SymptomDef('shortness_of_breath', 'Shortness of Breath', Icons.air_rounded, Color(0xFF4DD0E1)),
-    _SymptomDef('frequent_urination', 'Frequent Urination', Icons.water_rounded, Color(0xFF4FC3F7)),
+    _SymptomDef(
+      'back_pain',
+      'Back Pain',
+      Icons.accessibility_new_rounded,
+      Color(0xFFE57373),
+    ),
+    _SymptomDef(
+      'swelling',
+      'Swelling',
+      Icons.water_drop_rounded,
+      Color(0xFF64B5F6),
+    ),
+    _SymptomDef(
+      'heartburn',
+      'Heartburn',
+      Icons.local_fire_department_rounded,
+      Color(0xFFFF8A65),
+    ),
+    _SymptomDef(
+      'shortness_of_breath',
+      'Shortness of Breath',
+      Icons.air_rounded,
+      Color(0xFF4DD0E1),
+    ),
+    _SymptomDef(
+      'frequent_urination',
+      'Frequent Urination',
+      Icons.water_rounded,
+      Color(0xFF4FC3F7),
+    ),
   ];
 
   static const _warningSymptoms = [
-    _SymptomDef('severe_headache', 'Severe Headache', Icons.face_rounded, Color(0xFFE53935)),
-    _SymptomDef('vision_changes', 'Vision Changes', Icons.visibility_rounded, Color(0xFFE53935)),
-    _SymptomDef('severe_abdominal_pain', 'Severe Abdominal Pain', Icons.healing_rounded, Color(0xFFD32F2F)),
-    _SymptomDef('bleeding', 'Bleeding', Icons.bloodtype_rounded, Color(0xFFB71C1C)),
-    _SymptomDef('decreased_fetal_movement', 'Decreased Fetal Movement', Icons.child_care_rounded, Color(0xFFFF5252)),
+    _SymptomDef(
+      'severe_headache',
+      'Severe Headache',
+      Icons.face_rounded,
+      Color(0xFFE53935),
+    ),
+    _SymptomDef(
+      'vision_changes',
+      'Vision Changes',
+      Icons.visibility_rounded,
+      Color(0xFFE53935),
+    ),
+    _SymptomDef(
+      'severe_abdominal_pain',
+      'Severe Abdominal Pain',
+      Icons.healing_rounded,
+      Color(0xFFD32F2F),
+    ),
+    _SymptomDef(
+      'bleeding',
+      'Bleeding',
+      Icons.bloodtype_rounded,
+      Color(0xFFB71C1C),
+    ),
+    _SymptomDef(
+      'decreased_fetal_movement',
+      'Decreased Fetal Movement',
+      Icons.child_care_rounded,
+      Color(0xFFFF5252),
+    ),
   ];
 
   bool get _hasWarningSymptoms =>
@@ -52,13 +113,67 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (_selectedSymptoms.isEmpty) {
       context.showSnackBar('Please select at least one symptom', isError: true);
       return;
     }
-    context.showSnackBar('Symptoms logged successfully');
-    Navigator.of(context).maybePop();
+
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+
+    try {
+      final pregnancy = ref.read(currentPregnancyProvider).valueOrNull;
+      if (pregnancy == null) {
+        if (mounted) {
+          setState(() => _isSaving = false);
+          context.showSnackBar('No active pregnancy found', isError: true);
+        }
+        return;
+      }
+
+      final symptomRepo = ref.read(symptomRepositoryProvider);
+      final dateTime = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      );
+
+      final severityValue = (_severity * 5).round().clamp(1, 5);
+
+      for (final symptomId in _selectedSymptoms) {
+        final symptomDef = [
+          ..._commonSymptoms,
+          ..._warningSymptoms,
+        ].firstWhere((s) => s.id == symptomId);
+
+        final entry = SymptomEntry(
+          id: 'symptom_${DateTime.now().microsecondsSinceEpoch}_$symptomId',
+          date: dateTime,
+          symptomId: symptomId,
+          symptomName: symptomDef.name,
+          severity: severityValue,
+          notes: _notesController.text.isNotEmpty
+              ? _notesController.text
+              : null,
+          category: 'pregnancy',
+        );
+
+        await symptomRepo.createSymptomEntry(entry);
+      }
+
+      if (mounted) {
+        context.showSnackBar('Symptoms logged successfully');
+        Navigator.of(context).maybePop();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        context.showSnackBar('Failed to log symptoms: $e', isError: true);
+      }
+    }
   }
 
   void _toggleSymptom(String id) {
@@ -104,8 +219,7 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
             const SizedBox(height: AppSpacing.lg),
             _buildWarningSymptomsSection(isDark),
             const SizedBox(height: AppSpacing.lg),
-            if (_selectedSymptoms.isNotEmpty)
-              _buildSeverityPicker(isDark),
+            if (_selectedSymptoms.isNotEmpty) _buildSeverityPicker(isDark),
             if (_selectedSymptoms.isNotEmpty)
               const SizedBox(height: AppSpacing.md),
             _buildDateTimePicker(context, isDark),
@@ -113,9 +227,10 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
             _buildNotesField(isDark),
             const SizedBox(height: AppSpacing.xxl),
             AppButton.primary(
-              'Save',
+              _isSaving ? 'Saving...' : 'Save',
               icon: Icons.save_rounded,
-              onPressed: _save,
+              onPressed: _isSaving ? null : _save,
+              isLoading: _isSaving,
               width: double.infinity,
             ),
           ],
@@ -130,18 +245,12 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
       decoration: BoxDecoration(
         color: AppColors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: AppColors.warning.withValues(alpha: 0.4),
-        ),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.warning_amber_rounded,
-            size: 24,
-            color: AppColors.warning,
-          ),
+          Icon(Icons.warning_amber_rounded, size: 24, color: AppColors.warning),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -157,9 +266,9 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'You\'ve selected symptoms that may require medical attention. Please contact your healthcare provider immediately.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.charcoal,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.charcoal),
                 ),
               ],
             ),
@@ -194,9 +303,9 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
               const Spacer(),
               Text(
                 'Select all that apply',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.slate,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: AppColors.slate),
               ),
             ],
           ),
@@ -220,26 +329,24 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
                 onTap: () => _toggleSymptom(symptom.id),
                 onLongPress: () {
                   setState(() {
-                    _selectedSymptomForInfo =
-                        hasInfo ? null : symptom.id;
+                    _selectedSymptomForInfo = hasInfo ? null : symptom.id;
                   });
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? symptom.color.withValues(
-                            alpha: isDark ? 0.35 : 0.2)
+                        ? symptom.color.withValues(alpha: isDark ? 0.35 : 0.2)
                         : (isDark
-                            ? AppColors.charcoal.withValues(alpha: 0.3)
-                            : AppColors.mistWhite),
+                              ? AppColors.charcoal.withValues(alpha: 0.3)
+                              : AppColors.mistWhite),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(
                       color: isSelected
                           ? symptom.color.withValues(alpha: 0.5)
                           : (isDark
-                              ? AppColors.borderDark
-                              : AppColors.borderLight),
+                                ? AppColors.borderDark
+                                : AppColors.borderLight),
                       width: isSelected ? 1.5 : 1,
                     ),
                   ),
@@ -249,27 +356,24 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
                       Icon(
                         symptom.icon,
                         size: 26,
-                        color: isSelected
-                            ? symptom.color
-                            : AppColors.slate,
+                        color: isSelected ? symptom.color : AppColors.slate,
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xs),
+                          horizontal: AppSpacing.xs,
+                        ),
                         child: Text(
                           symptom.name,
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelSmall
+                          style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(
                                 color: isSelected
                                     ? (isDark
-                                        ? AppColors.textPrimaryDark
-                                        : AppColors.textPrimaryLight)
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimaryLight)
                                     : AppColors.slate,
                                 fontWeight: isSelected
                                     ? FontWeight.w600
@@ -285,11 +389,7 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
           ),
           if (_selectedSymptomForInfo != null) ...[
             const SizedBox(height: AppSpacing.md),
-            _buildSymptomInfo(
-              context,
-              _selectedSymptomForInfo!,
-              isDark,
-            ),
+            _buildSymptomInfo(context, _selectedSymptomForInfo!, isDark),
           ],
         ],
       ),
@@ -308,18 +408,12 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
       decoration: BoxDecoration(
         color: AppColors.warmIvory.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(
-          color: AppColors.softGold.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.softGold.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline_rounded,
-            size: 16,
-            color: AppColors.softGold,
-          ),
+          Icon(Icons.info_outline_rounded, size: 16, color: AppColors.softGold),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
@@ -327,25 +421,19 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
               children: [
                 Text(
                   'About This Symptom',
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall
-                      ?.copyWith(
-                        color: AppColors.softGold,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.softGold,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
                   info,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.slate,
-                      ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.slate,
+                  ),
                 ),
               ],
             ),
@@ -381,9 +469,9 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
           const SizedBox(height: AppSpacing.xs),
           Text(
             'These symptoms may require medical attention',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.slate,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
           ),
           const SizedBox(height: AppSpacing.lg),
           GridView.builder(
@@ -398,8 +486,7 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
             itemCount: _warningSymptoms.length,
             itemBuilder: (context, index) {
               final symptom = _warningSymptoms[index];
-              final isSelected =
-                  _selectedSymptoms.contains(symptom.id);
+              final isSelected = _selectedSymptoms.contains(symptom.id);
 
               return GestureDetector(
                 onTap: () => _toggleSymptom(symptom.id),
@@ -407,20 +494,18 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
                   setState(() {
                     _selectedSymptomForInfo =
                         _selectedSymptomForInfo == symptom.id
-                            ? null
-                            : symptom.id;
+                        ? null
+                        : symptom.id;
                   });
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? symptom.color.withValues(
-                            alpha: isDark ? 0.3 : 0.15)
+                        ? symptom.color.withValues(alpha: isDark ? 0.3 : 0.15)
                         : (isDark
-                            ? AppColors.charcoal
-                                .withValues(alpha: 0.3)
-                            : AppColors.mistWhite),
+                              ? AppColors.charcoal.withValues(alpha: 0.3)
+                              : AppColors.mistWhite),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(
                       color: isSelected
@@ -442,20 +527,19 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
                       const SizedBox(height: AppSpacing.sm),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xs),
+                          horizontal: AppSpacing.xs,
+                        ),
                         child: Text(
                           symptom.name,
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelSmall
+                          style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(
                                 color: isSelected
                                     ? (isDark
-                                        ? AppColors.textPrimaryDark
-                                        : AppColors.charcoal)
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.charcoal)
                                     : AppColors.slate,
                                 fontWeight: isSelected
                                     ? FontWeight.w600
@@ -481,11 +565,7 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.tune_rounded,
-                size: 20,
-                color: AppColors.forestGreen,
-              ),
+              Icon(Icons.tune_rounded, size: 20, color: AppColors.forestGreen),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Severity',
@@ -503,9 +583,9 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
             children: [
               Text(
                 'Mild',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.slate,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
               ),
               Expanded(
                 child: Slider(
@@ -517,15 +597,14 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
                   inactiveColor: isDark
                       ? AppColors.charcoal.withValues(alpha: 0.3)
                       : AppColors.borderLight,
-                  onChanged: (val) =>
-                      setState(() => _severity = val),
+                  onChanged: (val) => setState(() => _severity = val),
                 ),
               ),
               Text(
                 'Severe',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.slate,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
               ),
             ],
           ),
@@ -570,24 +649,19 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
                     children: [
                       Text(
                         'Date',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelSmall
-                            ?.copyWith(color: AppColors.slate),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.slate,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
-                        DateFormat('MMM d, yyyy')
-                            .format(_selectedDate),
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(
-                              color: isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.charcoal,
-                              fontWeight: FontWeight.w500,
-                            ),
+                        DateFormat('MMM d, yyyy').format(_selectedDate),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.charcoal,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -610,23 +684,19 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
                   children: [
                     Text(
                       'Time',
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelSmall
-                          ?.copyWith(color: AppColors.slate),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: AppColors.slate),
                     ),
                     const SizedBox(height: AppSpacing.xxs),
                     Text(
                       _selectedTime.format(context),
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.charcoal,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.charcoal,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -642,15 +712,14 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate:
-          DateTime.now().subtract(const Duration(days: 7)),
+      firstDate: DateTime.now().subtract(const Duration(days: 7)),
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppColors.forestGreen,
-            ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.forestGreen),
           ),
           child: child!,
         );
@@ -668,9 +737,9 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppColors.forestGreen,
-            ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.forestGreen),
           ),
           child: child!,
         );
@@ -688,11 +757,7 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.notes_rounded,
-                size: 18,
-                color: AppColors.slate,
-              ),
+              Icon(Icons.notes_rounded, size: 18, color: AppColors.slate),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Notes',
@@ -710,11 +775,9 @@ class _PregnancySymptomsScreenState extends State<PregnancySymptomsScreen> {
             controller: _notesController,
             maxLines: 3,
             decoration: InputDecoration(
-              hintText:
-                  'Describe your symptoms in more detail...',
+              hintText: 'Describe your symptoms in more detail...',
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(AppRadius.sm),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
             ),
             textCapitalization: TextCapitalization.sentences,

@@ -20,7 +20,8 @@ Future<Pregnancy?> currentPregnancy(CurrentPregnancyRef ref) async {
 
 @riverpod
 Future<WeeklyMilestone> currentWeekMilestone(
-    CurrentWeekMilestoneRef ref) async {
+  CurrentWeekMilestoneRef ref,
+) async {
   final pregnancy = await ref.watch(currentPregnancyProvider.future);
   if (pregnancy == null) throw Exception('No active pregnancy');
   return PregnancyData.getMilestone(pregnancy.currentWeek);
@@ -28,7 +29,8 @@ Future<WeeklyMilestone> currentWeekMilestone(
 
 @riverpod
 Future<List<FetalMeasurement>> fetalMeasurements(
-    FetalMeasurementsRef ref) async {
+  FetalMeasurementsRef ref,
+) async {
   final pregnancy = await ref.watch(currentPregnancyProvider.future);
   if (pregnancy == null) return [];
   final repo = ref.watch(pregnancyRepositoryProvider);
@@ -36,7 +38,11 @@ Future<List<FetalMeasurement>> fetalMeasurements(
 }
 
 @riverpod
-Future<List<KickLog>> kickLogs(KickLogsRef ref, {DateTime? startDate, DateTime? endDate}) async {
+Future<List<KickLog>> kickLogs(
+  KickLogsRef ref, {
+  DateTime? startDate,
+  DateTime? endDate,
+}) async {
   final pregnancy = await ref.watch(currentPregnancyProvider.future);
   if (pregnancy == null) return [];
   final repo = ref.watch(pregnancyRepositoryProvider);
@@ -55,14 +61,18 @@ Map<String, DateTime> pregnancyKeyDates(PregnancyKeyDatesRef ref) {
   if (pregnancy == null) return {};
   return {
     'Due Date': pregnancy.dueDate,
-    'End of First Trimester':
-        pregnancy.dueDate.subtract(const Duration(days: 189)),
-    'End of Second Trimester':
-        pregnancy.dueDate.subtract(const Duration(days: 91)),
-    'Full Term (37 weeks)':
-        pregnancy.dueDate.subtract(const Duration(days: 21)),
-    'Early Term (39 weeks)':
-        pregnancy.dueDate.subtract(const Duration(days: 7)),
+    'End of First Trimester': pregnancy.dueDate.subtract(
+      const Duration(days: 189),
+    ),
+    'End of Second Trimester': pregnancy.dueDate.subtract(
+      const Duration(days: 91),
+    ),
+    'Full Term (37 weeks)': pregnancy.dueDate.subtract(
+      const Duration(days: 21),
+    ),
+    'Early Term (39 weeks)': pregnancy.dueDate.subtract(
+      const Duration(days: 7),
+    ),
   };
 }
 
@@ -82,15 +92,15 @@ Future<int> weeksRemaining(WeeksRemainingRef ref) async {
 
 @riverpod
 Future<List<WeeklyMilestone>> trimesterMilestones(
-    TrimesterMilestonesRef ref) async {
+  TrimesterMilestonesRef ref,
+) async {
   final pregnancy = await ref.watch(currentPregnancyProvider.future);
   if (pregnancy == null) return [];
   return PregnancyData.getTrimesterMilestones(pregnancy.currentTrimester);
 }
 
 @riverpod
-Future<FetalMeasurement?> latestMeasurement(
-    LatestMeasurementRef ref) async {
+Future<FetalMeasurement?> latestMeasurement(LatestMeasurementRef ref) async {
   final pregnancy = await ref.watch(currentPregnancyProvider.future);
   if (pregnancy == null) return null;
   final repo = ref.watch(pregnancyRepositoryProvider);

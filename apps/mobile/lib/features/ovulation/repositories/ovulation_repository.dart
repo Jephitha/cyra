@@ -21,52 +21,58 @@ class OvulationRepository {
     final now = DateTime.now();
 
     if (existing != null) {
-      await (_db.update(_db.bbtRecords)
-            ..where((t) => t.id.equals(existing.id)))
-          .write(db.BbtRecordsCompanion(
-        temperature: Value(record.temperature),
-        measurementMethod: Value(record.method.name),
-        timeOfDay: Value(record.timeOfDay ?? existing.timeOfDay ?? ''),
-        isEstimated: Value(record.isEstimated),
-        notes: Value(record.notes),
-      ));
+      await (_db.update(
+        _db.bbtRecords,
+      )..where((t) => t.id.equals(existing.id))).write(
+        db.BbtRecordsCompanion(
+          temperature: Value(record.temperature),
+          measurementMethod: Value(record.method.name),
+          timeOfDay: Value(record.timeOfDay ?? existing.timeOfDay ?? ''),
+          isEstimated: Value(record.isEstimated),
+          notes: Value(record.notes),
+        ),
+      );
       return;
     }
 
-    await _db.into(_db.bbtRecords).insert(db.BbtRecordsCompanion.insert(
-      id: record.id,
-      userId: '',
-      date: record.date,
-      temperature: record.temperature,
-      measurementMethod: record.method.name,
-      timeOfDay: record.timeOfDay ?? '',
-      isEstimated: Value(record.isEstimated),
-      notes: Value(record.notes),
-      createdAt: now,
-    ));
+    await _db
+        .into(_db.bbtRecords)
+        .insert(
+          db.BbtRecordsCompanion.insert(
+            id: record.id,
+            userId: '',
+            date: record.date,
+            temperature: record.temperature,
+            measurementMethod: record.method.name,
+            timeOfDay: record.timeOfDay ?? '',
+            isEstimated: Value(record.isEstimated),
+            notes: Value(record.notes),
+            createdAt: now,
+          ),
+        );
   }
 
   Future<BBTRecord?> getBBT(DateTime date) async {
-    final result = await (_db.select(_db.bbtRecords)
-          ..where((t) => t.date.equals(date)))
-        .getSingleOrNull();
+    final result = await (_db.select(
+      _db.bbtRecords,
+    )..where((t) => t.date.equals(date))).getSingleOrNull();
     if (result == null) return null;
     return _toDomainBBT(result);
   }
 
-  Future<List<BBTRecord>> getBBTRange(
-      DateTime start, DateTime end) async {
-    final results = await (_db.select(_db.bbtRecords)
-          ..where((t) => t.date.isBetween(Variable(start), Variable(end)))
-          ..orderBy([(t) => OrderingTerm.asc(t.date)]))
-        .get();
+  Future<List<BBTRecord>> getBBTRange(DateTime start, DateTime end) async {
+    final results =
+        await (_db.select(_db.bbtRecords)
+              ..where((t) => t.date.isBetween(Variable(start), Variable(end)))
+              ..orderBy([(t) => OrderingTerm.asc(t.date)]))
+            .get();
     return results.map(_toDomainBBT).toList();
   }
 
   Future<List<BBTRecord>> getBBTForCycle(String cycleId) async {
-    final cycle = await (_db.select(_db.cycles)
-          ..where((t) => t.id.equals(cycleId)))
-        .getSingleOrNull();
+    final cycle = await (_db.select(
+      _db.cycles,
+    )..where((t) => t.id.equals(cycleId))).getSingleOrNull();
     if (cycle == null) return [];
 
     final end = cycle.endDate ?? DateTime.now();
@@ -74,16 +80,19 @@ class OvulationRepository {
   }
 
   Future<bool> hasBBTData(String cycleId) async {
-    final cycle = await (_db.select(_db.cycles)
-          ..where((t) => t.id.equals(cycleId)))
-        .getSingleOrNull();
+    final cycle = await (_db.select(
+      _db.cycles,
+    )..where((t) => t.id.equals(cycleId))).getSingleOrNull();
     if (cycle == null) return false;
 
-    final count = await (_db.select(_db.bbtRecords)
-          ..where((t) => t.date.isBetween(
-              Variable(cycle.startDate),
-              Variable(cycle.endDate ?? DateTime.now()))))
-        .get();
+    final count =
+        await (_db.select(_db.bbtRecords)..where(
+              (t) => t.date.isBetween(
+                Variable(cycle.startDate),
+                Variable(cycle.endDate ?? DateTime.now()),
+              ),
+            ))
+            .get();
     return count.isNotEmpty;
   }
 
@@ -94,51 +103,58 @@ class OvulationRepository {
     final now = DateTime.now();
 
     if (existing != null) {
-      await (_db.update(_db.ovulationTests)
-            ..where((t) => t.id.equals(existing.id)))
-          .write(db.OvulationTestsCompanion(
-        result: Value(result.result.name),
-        timeOfDay: Value(result.timeOfDay ?? existing.timeOfDay ?? ''),
-        brand: Value(result.brand),
-        photoPath: Value(result.photoPath),
-      ));
+      await (_db.update(
+        _db.ovulationTests,
+      )..where((t) => t.id.equals(existing.id))).write(
+        db.OvulationTestsCompanion(
+          result: Value(result.result.name),
+          timeOfDay: Value(result.timeOfDay ?? existing.timeOfDay ?? ''),
+          brand: Value(result.brand),
+          photoPath: Value(result.photoPath),
+        ),
+      );
       return;
     }
 
-    await _db.into(_db.ovulationTests).insert(db.OvulationTestsCompanion.insert(
-      id: result.id,
-      userId: '',
-      date: result.date,
-      result: result.result.name,
-      timeOfDay: result.timeOfDay ?? '',
-      brand: Value(result.brand),
-      photoPath: Value(result.photoPath),
-      createdAt: now,
-    ));
+    await _db
+        .into(_db.ovulationTests)
+        .insert(
+          db.OvulationTestsCompanion.insert(
+            id: result.id,
+            userId: '',
+            date: result.date,
+            result: result.result.name,
+            timeOfDay: result.timeOfDay ?? '',
+            brand: Value(result.brand),
+            photoPath: Value(result.photoPath),
+            createdAt: now,
+          ),
+        );
   }
 
   Future<OPKTestResult?> getOPK(DateTime date) async {
-    final result = await (_db.select(_db.ovulationTests)
-          ..where((t) => t.date.equals(date)))
-        .getSingleOrNull();
+    final result = await (_db.select(
+      _db.ovulationTests,
+    )..where((t) => t.date.equals(date))).getSingleOrNull();
     if (result == null) return null;
     return _toDomainOPK(result);
   }
 
-  Future<List<OPKTestResult>> getOPKRange(
-      DateTime start, DateTime end) async {
-    final results = await (_db.select(_db.ovulationTests)
-          ..where((t) => t.date.isBetween(Variable(start), Variable(end)))
-          ..orderBy([(t) => OrderingTerm.asc(t.date)]))
-        .get();
+  Future<List<OPKTestResult>> getOPKRange(DateTime start, DateTime end) async {
+    final results =
+        await (_db.select(_db.ovulationTests)
+              ..where((t) => t.date.isBetween(Variable(start), Variable(end)))
+              ..orderBy([(t) => OrderingTerm.asc(t.date)]))
+            .get();
     return results.map(_toDomainOPK).toList();
   }
 
   Future<OPKTestResult?> getLatestOPK() async {
-    final result = await (_db.select(_db.ovulationTests)
-          ..orderBy([(t) => OrderingTerm.desc(t.date)])
-          ..limit(1))
-        .getSingleOrNull();
+    final result =
+        await (_db.select(_db.ovulationTests)
+              ..orderBy([(t) => OrderingTerm.desc(t.date)])
+              ..limit(1))
+            .getSingleOrNull();
     if (result == null) return null;
     return _toDomainOPK(result);
   }
@@ -149,42 +165,51 @@ class OvulationRepository {
     final existing = await getMucus(observation.date);
 
     if (existing != null) {
-      await (_db.update(_db.cervicalMucusObservations)
-            ..where((t) => t.id.equals(existing.id)))
-          .write(db.CervicalMucusObservationsCompanion(
-        type: Value(observation.type.name),
-        consistency: Value(observation.consistency),
-        color: Value(observation.color),
-        amount: Value(observation.amount ?? ''),
-      ));
+      await (_db.update(
+        _db.cervicalMucusObservations,
+      )..where((t) => t.id.equals(existing.id))).write(
+        db.CervicalMucusObservationsCompanion(
+          type: Value(observation.type.name),
+          consistency: Value(observation.consistency),
+          color: Value(observation.color),
+          amount: Value(observation.amount ?? ''),
+        ),
+      );
       return;
     }
 
     await _db
         .into(_db.cervicalMucusObservations)
-        .insert(db.CervicalMucusObservationsCompanion.insert(
-          id: observation.id,
-          cycleDayId: '',
-          type: observation.type.name,
-          consistency: Value(observation.consistency),
-          color: Value(observation.color),
-          amount: observation.amount ?? '',
-          createdAt: DateTime.now(),
-        ));
+        .insert(
+          db.CervicalMucusObservationsCompanion.insert(
+            id: observation.id,
+            cycleDayId: '',
+            type: observation.type.name,
+            consistency: Value(observation.consistency),
+            color: Value(observation.color),
+            amount: observation.amount ?? '',
+            createdAt: DateTime.now(),
+          ),
+        );
   }
 
   Future<MucusObservation?> getMucus(DateTime date) async {
-    final results = await (_db.select(_db.cervicalMucusObservations)
-          ..where((t) => t.createdAt.isBetween(
-              Variable(date.subtract(const Duration(days: 1))),
-              Variable(date.add(const Duration(days: 1))))))
-        .get();
+    final results =
+        await (_db.select(_db.cervicalMucusObservations)..where(
+              (t) => t.createdAt.isBetween(
+                Variable(date.subtract(const Duration(days: 1))),
+                Variable(date.add(const Duration(days: 1))),
+              ),
+            ))
+            .get();
     if (results.isEmpty) return null;
     return _toDomainMucus(results.first);
   }
 
   Future<List<MucusObservation>> getMucusRange(
-      DateTime start, DateTime end) async {
+    DateTime start,
+    DateTime end,
+  ) async {
     final allInRange = await _getAllMucusInRange(start, end);
     return allInRange.map(_toDomainMucus).toList();
   }
@@ -197,11 +222,7 @@ class OvulationRepository {
     required List<OPKTestResult> opkResults,
     required List<MucusObservation> mucusObservations,
   }) async {
-    return _detector.detectCombined(
-      bbtRecords,
-      opkResults,
-      mucusObservations,
-    );
+    return _detector.detectCombined(bbtRecords, opkResults, mucusObservations);
   }
 
   Future<FertileWindow> calculateFertileWindow({
@@ -219,7 +240,8 @@ class OvulationRepository {
 
     final now = DateTime.now();
     final isInWindow =
-        now.isAfter(fertileStart) && now.isBefore(fertileEnd.add(const Duration(days: 1)));
+        now.isAfter(fertileStart) &&
+        now.isBefore(fertileEnd.add(const Duration(days: 1)));
 
     final ovulationDate = fertileEnd;
     late final double ovulationProbability;
@@ -236,10 +258,8 @@ class OvulationRepository {
 
     int? currentDayOfWindow;
     if (isInWindow) {
-      final daysSince =
-          now.difference(fertileStart).inDays;
-      final windowLength =
-          fertileEnd.difference(fertileStart).inDays;
+      final daysSince = now.difference(fertileStart).inDays;
+      final windowLength = fertileEnd.difference(fertileStart).inDays;
       currentDayOfWindow = daysSince.clamp(0, windowLength);
     }
 
@@ -247,15 +267,18 @@ class OvulationRepository {
     if (isInWindow) {
       explanation.write(
         'You are in your fertile window. '
-        'Ovulation is estimated around ${_formatDate(fertileEnd)}.');
+        'Ovulation is estimated around ${_formatDate(fertileEnd)}.',
+      );
     } else if (now.isBefore(fertileStart)) {
       final daysUntil = fertileStart.difference(now).inDays;
       explanation.write(
         'Your fertile window starts in $daysUntil day${daysUntil == 1 ? "" : "s"} '
-        '(${_formatDate(fertileStart)}).');
+        '(${_formatDate(fertileStart)}).',
+      );
     } else {
       explanation.write(
-        'Your fertile window ended on ${_formatDate(fertileEnd)}.');
+        'Your fertile window ended on ${_formatDate(fertileEnd)}.',
+      );
     }
 
     return FertileWindow(
@@ -275,15 +298,15 @@ class OvulationRepository {
     bool? ovulationConfirmed,
     DateTime? lastIntercourseDate,
   }) async {
-    final probabilities =
-        _detector.dailyConceptionProbability(cycleLength);
+    final probabilities = _detector.dailyConceptionProbability(cycleLength);
     final likelihood = probabilities[cycleDay] ?? 0.0;
 
     final recommendations = <String>[];
     if (ovulationConfirmed == true) {
       recommendations.add(
         'Ovulation has been confirmed for this cycle. '
-        'Track next fertile window for optimized timing.');
+        'Track next fertile window for optimized timing.',
+      );
       return ConceptionLikelihood(
         likelihood: likelihood,
         explanation:
@@ -300,18 +323,22 @@ class OvulationRepository {
       if (likelihood >= 0.3) {
         recommendations.add(
           'Peak fertility — consider intercourse today for '
-          'maximum conception probability.');
+          'maximum conception probability.',
+        );
         recommendations.add(
           'Continue tracking LH surge and cervical mucus '
-          'to confirm ovulation.');
+          'to confirm ovulation.',
+        );
       } else if (likelihood >= 0.15) {
         recommendations.add(
           'High fertility — intercourse every 1-2 days is recommended '
-          'during this window.');
+          'during this window.',
+        );
       } else {
         recommendations.add(
           'Fertile window approaching — consider preparing '
-          'for optimal timing.');
+          'for optimal timing.',
+        );
       }
     }
 
@@ -320,14 +347,16 @@ class OvulationRepository {
       if (daysSince > 2 && likelihood > 0) {
         recommendations.add(
           'Last intercourse was $daysSince day${daysSince == 1 ? "" : "s"} ago. '
-          'For TTC, aim for intercourse every 1-2 days during the fertile window.');
+          'For TTC, aim for intercourse every 1-2 days during the fertile window.',
+        );
       }
     }
 
     if (daysUntilOvulation > 0 && daysUntilOvulation <= 5 && likelihood == 0) {
       recommendations.add(
         'Your fertile window begins in $daysUntilOvulation day${daysUntilOvulation == 1 ? "" : "s"}. '
-        'Prepare to track BBT, OPK, and cervical mucus.');
+        'Prepare to track BBT, OPK, and cervical mucus.',
+      );
     }
 
     return ConceptionLikelihood(
@@ -342,8 +371,7 @@ class OvulationRepository {
 
   // ── Mapping helpers ───────────────────────────────────────────
 
-  BBTRecord _toDomainBBT(
-      db.BbtRecord entity) {
+  BBTRecord _toDomainBBT(db.BbtRecord entity) {
     return BBTRecord(
       id: entity.id,
       date: entity.date,
@@ -358,8 +386,7 @@ class OvulationRepository {
     );
   }
 
-  OPKTestResult _toDomainOPK(
-      db.OvulationTest entity) {
+  OPKTestResult _toDomainOPK(db.OvulationTest entity) {
     return OPKTestResult(
       id: entity.id,
       date: entity.date,
@@ -373,8 +400,7 @@ class OvulationRepository {
     );
   }
 
-  MucusObservation _toDomainMucus(
-      db.CervicalMucusObservation entity) {
+  MucusObservation _toDomainMucus(db.CervicalMucusObservation entity) {
     return MucusObservation(
       id: entity.id,
       date: entity.createdAt,
@@ -388,18 +414,29 @@ class OvulationRepository {
     );
   }
 
-  Future<List<db.CervicalMucusObservation>>
-      _getAllMucusInRange(DateTime start, DateTime end) async {
+  Future<List<db.CervicalMucusObservation>> _getAllMucusInRange(
+    DateTime start,
+    DateTime end,
+  ) async {
     return (_db.select(_db.cervicalMucusObservations)
-          ..where(
-              (t) => t.createdAt.isBetween(Variable(start), Variable(end))))
+          ..where((t) => t.createdAt.isBetween(Variable(start), Variable(end))))
         .get();
   }
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}';
   }

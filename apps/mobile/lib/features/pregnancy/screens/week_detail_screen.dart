@@ -106,11 +106,7 @@ class WeekDetailScreen extends StatelessWidget {
           Expanded(
             child: Column(
               children: [
-                Icon(
-                  Icons.straighten_rounded,
-                  size: 24,
-                  color: AppColors.sage,
-                ),
+                Icon(Icons.straighten_rounded, size: 24, color: AppColors.sage),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   '${length.toStringAsFixed(1)} cm',
@@ -124,9 +120,9 @@ class WeekDetailScreen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
                   'Length',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                 ),
               ],
             ),
@@ -157,9 +153,9 @@ class WeekDetailScreen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
                   'Weight',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                 ),
               ],
             ),
@@ -169,10 +165,7 @@ class WeekDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDevelopmentSection(
-    BuildContext context,
-    bool isDark,
-  ) {
+  Widget _buildDevelopmentSection(BuildContext context, bool isDark) {
     final milestones = _weekMilestones(week);
     final description = _weekDevelopmentDescription(week);
 
@@ -203,14 +196,14 @@ class WeekDetailScreen extends StatelessWidget {
           Text(
             description,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.slate,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
             ),
           ),
           if (milestones.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.lg),
-            ...milestones.map((m) => _milestoneRow(context, m.icon, m.text, isDark)),
+            ...milestones.map(
+              (m) => _milestoneRow(context, m.icon, m.text, isDark),
+            ),
           ],
         ],
       ),
@@ -234,9 +227,7 @@ class WeekDetailScreen extends StatelessWidget {
             child: Text(
               text,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.charcoal,
+                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
               ),
             ),
           ),
@@ -245,10 +236,7 @@ class WeekDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMaternalChangesSection(
-    BuildContext context,
-    bool isDark,
-  ) {
+  Widget _buildMaternalChangesSection(BuildContext context, bool isDark) {
     final changes = _weekMaternalChanges(week);
     final symptoms = _weekCommonSymptoms(week);
 
@@ -279,9 +267,7 @@ class WeekDetailScreen extends StatelessWidget {
           Text(
             changes,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.slate,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
             ),
           ),
           if (symptoms.isNotEmpty) ...[
@@ -329,10 +315,7 @@ class WeekDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTipsSection(
-    BuildContext context,
-    bool isDark,
-  ) {
+  Widget _buildTipsSection(BuildContext context, bool isDark) {
     final tips = _weekTips(week);
 
     return AppCard.standard(
@@ -375,13 +358,10 @@ class WeekDetailScreen extends StatelessWidget {
                     child: Center(
                       child: Text(
                         '${entry.key + 1}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelSmall
-                            ?.copyWith(
-                              color: AppColors.forestGreen,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.forestGreen,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -405,10 +385,7 @@ class WeekDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNavigation(
-    BuildContext context,
-    bool isDark,
-  ) {
+  Widget _buildNavigation(BuildContext context, bool isDark) {
     return Row(
       children: [
         if (week > 1)
@@ -418,15 +395,13 @@ class WeekDetailScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute<void>(
-                    builder: (_) =>
-                        WeekDetailScreen(week: week - 1),
+                    builder: (_) => WeekDetailScreen(week: week - 1),
                   ),
                 );
               },
             ),
           ),
-        if (week > 1 && week < 40)
-          const SizedBox(width: AppSpacing.md),
+        if (week > 1 && week < 40) const SizedBox(width: AppSpacing.md),
         if (week < 40)
           Expanded(
             child: AppButton.primary(
@@ -434,8 +409,7 @@ class WeekDetailScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute<void>(
-                    builder: (_) =>
-                        WeekDetailScreen(week: week + 1),
+                    builder: (_) => WeekDetailScreen(week: week + 1),
                   ),
                 );
               },
@@ -654,16 +628,33 @@ class WeekDetailScreen extends StatelessWidget {
   }
 
   List<String> _weekCommonSymptoms(int week) {
-    if (week <= 4) return ['Implantation spotting', 'Mild cramping', 'Breast tenderness'];
-    if (week <= 8) return ['Morning sickness', 'Fatigue', 'Frequent urination', 'Breast tenderness'];
-    if (week <= 12) return ['Nausea', 'food aversions', 'Mood swings', 'Bloating'];
-    if (week <= 16) return ['Round ligament pain', 'Skin changes', 'Increased appetite'];
+    if (week <= 4)
+      return ['Implantation spotting', 'Mild cramping', 'Breast tenderness'];
+    if (week <= 8)
+      return [
+        'Morning sickness',
+        'Fatigue',
+        'Frequent urination',
+        'Breast tenderness',
+      ];
+    if (week <= 12)
+      return ['Nausea', 'food aversions', 'Mood swings', 'Bloating'];
+    if (week <= 16)
+      return ['Round ligament pain', 'Skin changes', 'Increased appetite'];
     if (week <= 20) return ['Back pain', 'Leg cramps', 'Skin changes'];
     if (week <= 24) return ['Heartburn', 'Round ligament pain', 'Swollen feet'];
-    if (week <= 28) return ['Shortness of breath', 'Braxton Hicks', 'Back pain'];
-    if (week <= 32) return ['Frequent urination', 'Swelling', 'Back pain', 'Fatigue'];
-    if (week <= 36) return ['Pelvic pressure', 'Braxton Hicks', 'Swelling', 'Fatigue'];
-    return ['Pelvic pressure', 'Frequent urination', 'Contractions', 'Nesting instinct'];
+    if (week <= 28)
+      return ['Shortness of breath', 'Braxton Hicks', 'Back pain'];
+    if (week <= 32)
+      return ['Frequent urination', 'Swelling', 'Back pain', 'Fatigue'];
+    if (week <= 36)
+      return ['Pelvic pressure', 'Braxton Hicks', 'Swelling', 'Fatigue'];
+    return [
+      'Pelvic pressure',
+      'Frequent urination',
+      'Contractions',
+      'Nesting instinct',
+    ];
   }
 
   List<String> _weekTips(int week) {

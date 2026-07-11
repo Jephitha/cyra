@@ -14,7 +14,8 @@ class SetupPregnancyScreen extends ConsumerStatefulWidget {
   const SetupPregnancyScreen({super.key});
 
   @override
-  ConsumerState<SetupPregnancyScreen> createState() => _SetupPregnancyScreenState();
+  ConsumerState<SetupPregnancyScreen> createState() =>
+      _SetupPregnancyScreenState();
 }
 
 class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
@@ -71,8 +72,7 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
     try {
       final repo = ref.read(pregnancyRepositoryProvider);
       final dueDate = _computedDueDate!;
-      await repo.createPregnancy(dueDate,
-          conceptionDate: _conceptionDate);
+      await repo.createPregnancy(dueDate, conceptionDate: _conceptionDate);
       ref.invalidate(currentPregnancyProvider);
       if (mounted) {
         Navigator.of(context).pop(true);
@@ -80,7 +80,10 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        context.showSnackBar('Failed to start pregnancy tracking: $e', isError: true);
+        context.showSnackBar(
+          'Failed to start pregnancy tracking: $e',
+          isError: true,
+        );
       }
     }
   }
@@ -92,7 +95,8 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
       case 1:
         if (_calculationMethod == 'lmp') return _lmpDate != null;
         if (_calculationMethod == 'conception') return _conceptionDate != null;
-        if (_calculationMethod == 'ultrasound') return _dueDateFromUltrasound != null;
+        if (_calculationMethod == 'ultrasound')
+          return _dueDateFromUltrasound != null;
         return false;
       case 2:
         return _computedDueDate != null;
@@ -162,21 +166,15 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
                     color: isCompleted || isCurrent
                         ? AppColors.forestGreen
                         : (isDark
-                            ? AppColors.charcoal.withValues(alpha: 0.3)
-                            : AppColors.borderLight),
+                              ? AppColors.charcoal.withValues(alpha: 0.3)
+                              : AppColors.borderLight),
                   ),
                   child: Center(
                     child: isCompleted
-                        ? const Icon(
-                            Icons.check,
-                            size: 16,
-                            color: Colors.white,
-                          )
+                        ? const Icon(Icons.check, size: 16, color: Colors.white)
                         : Text(
                             '$stepNum',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
+                            style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: isCurrent || isCompleted
                                       ? Colors.white
@@ -195,8 +193,8 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
                         color: index < _currentStep
                             ? AppColors.forestGreen
                             : (isDark
-                                ? AppColors.charcoal.withValues(alpha: 0.3)
-                                : AppColors.borderLight),
+                                  ? AppColors.charcoal.withValues(alpha: 0.3)
+                                  : AppColors.borderLight),
                         borderRadius: BorderRadius.circular(1),
                       ),
                     ),
@@ -245,16 +243,16 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
         const SizedBox(height: AppSpacing.xxl),
         Text(
           'How did you calculate your due date?',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Select the method you used to estimate your due date',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.slate,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.slate),
         ),
         const SizedBox(height: AppSpacing.xxl),
         _methodOption(
@@ -304,16 +302,12 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.forestGreen.withValues(alpha: 0.08)
-              : (isDark
-                  ? AppColors.surfaceDark
-                  : AppColors.surfaceLight),
+              : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(
             color: isSelected
                 ? AppColors.forestGreen
-                : (isDark
-                    ? AppColors.borderDark
-                    : AppColors.borderLight),
+                : (isDark ? AppColors.borderDark : AppColors.borderLight),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -326,11 +320,15 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
                 color: isSelected
                     ? AppColors.forestGreen.withValues(alpha: 0.15)
                     : (isDark
-                        ? AppColors.charcoal.withValues(alpha: 0.3)
-                        : AppColors.mistWhite),
+                          ? AppColors.charcoal.withValues(alpha: 0.3)
+                          : AppColors.mistWhite),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: isSelected ? AppColors.forestGreen : AppColors.slate, size: 22),
+              child: Icon(
+                icon,
+                color: isSelected ? AppColors.forestGreen : AppColors.slate,
+                size: 22,
+              ),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -343,17 +341,17 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
                       color: isSelected
                           ? AppColors.forestGreen
                           : (isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.charcoal),
+                                ? AppColors.textPrimaryDark
+                                : AppColors.charcoal),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xxs),
                   Text(
                     description,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.slate,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                   ),
                 ],
               ),
@@ -393,16 +391,16 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
         const SizedBox(height: AppSpacing.xxl),
         Text(
           _dateStepTitle(),
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           _dateStepDescription(),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.slate,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.slate),
         ),
         const SizedBox(height: AppSpacing.xxl),
         SizedBox(
@@ -419,10 +417,7 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
                 horizontal: AppSpacing.xxl,
                 vertical: AppSpacing.lg,
               ),
-              side: const BorderSide(
-                color: AppColors.forestGreen,
-                width: 1.5,
-              ),
+              side: const BorderSide(color: AppColors.forestGreen, width: 1.5),
               foregroundColor: AppColors.forestGreen,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -452,17 +447,14 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
                     children: [
                       Text(
                         'Calculated Due Date',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelSmall
-                            ?.copyWith(color: AppColors.slate),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.slate,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
                         DateFormat('MMMM d, yyyy').format(_computedDueDate!),
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               color: AppColors.forestGreen,
                               fontWeight: FontWeight.w600,
@@ -524,21 +516,20 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
     DateTime lastDate;
 
     if (_calculationMethod == 'ultrasound') {
-      initialDate = _dueDateFromUltrasound ??
+      initialDate =
+          _dueDateFromUltrasound ??
           DateTime.now().add(const Duration(days: 140));
       firstDate = DateTime.now();
       lastDate = DateTime.now().add(const Duration(days: 300));
     } else if (_calculationMethod == 'conception') {
-      initialDate = _conceptionDate ??
-          DateTime.now().subtract(const Duration(days: 60));
-      firstDate =
-          DateTime.now().subtract(const Duration(days: 180));
+      initialDate =
+          _conceptionDate ?? DateTime.now().subtract(const Duration(days: 60));
+      firstDate = DateTime.now().subtract(const Duration(days: 180));
       lastDate = DateTime.now().add(const Duration(days: 14));
     } else {
-      initialDate = _lmpDate ??
-          DateTime.now().subtract(const Duration(days: 60));
-      firstDate =
-          DateTime.now().subtract(const Duration(days: 180));
+      initialDate =
+          _lmpDate ?? DateTime.now().subtract(const Duration(days: 60));
+      firstDate = DateTime.now().subtract(const Duration(days: 180));
       lastDate = DateTime.now();
     }
 
@@ -551,9 +542,9 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppColors.forestGreen,
-            ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.forestGreen),
           ),
           child: child!,
         );
@@ -612,9 +603,9 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
         const SizedBox(height: AppSpacing.xxl),
         Text(
           'Review & Confirm',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.xxl),
         AppCard.standard(
@@ -708,9 +699,9 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.slate,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
               ),
               const SizedBox(height: AppSpacing.xxs),
               Text(
@@ -795,9 +786,7 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
               ),
             const Spacer(),
             AppButton.primary(
-              _currentStep == _totalSteps - 1
-                  ? 'Start Tracking'
-                  : 'Continue',
+              _currentStep == _totalSteps - 1 ? 'Start Tracking' : 'Continue',
               icon: _currentStep == _totalSteps - 1
                   ? Icons.rocket_launch_rounded
                   : Icons.chevron_right,

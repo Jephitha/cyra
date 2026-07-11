@@ -15,28 +15,34 @@ class PregnancyRepository {
 
   // ── Pregnancy CRUD ─────────────────────────────────────────────
 
-  Future<Pregnancy> createPregnancy(DateTime dueDate,
-      {DateTime? conceptionDate}) async {
+  Future<Pregnancy> createPregnancy(
+    DateTime dueDate, {
+    DateTime? conceptionDate,
+  }) async {
     final id = DateTime.now().microsecondsSinceEpoch.toString();
     final now = DateTime.now();
     final weeks = _calculateWeeksFromDueDate(dueDate);
     final trimester = CycleDateUtils.getTrimester(weeks);
 
-    await _db.into(_db.pregnancies).insert(db.PregnanciesCompanion.insert(
-          id: id,
-          userId: '',
-          conceptionDate: conceptionDate != null
-              ? Value(conceptionDate)
-              : Value.absent(),
-          dueDate: dueDate,
-          currentWeek: weeks,
-          currentTrimester: trimester,
-          notes: Value.absent(),
-          isActive: const Value(true),
-          isSynced: const Value(false),
-          createdAt: now,
-          updatedAt: now,
-        ));
+    await _db
+        .into(_db.pregnancies)
+        .insert(
+          db.PregnanciesCompanion.insert(
+            id: id,
+            userId: '',
+            conceptionDate: conceptionDate != null
+                ? Value(conceptionDate)
+                : Value.absent(),
+            dueDate: dueDate,
+            currentWeek: weeks,
+            currentTrimester: trimester,
+            notes: Value.absent(),
+            isActive: const Value(true),
+            isSynced: const Value(false),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
 
     return Pregnancy(
       id: id,
@@ -50,28 +56,29 @@ class PregnancyRepository {
   }
 
   Future<Pregnancy?> getCurrentPregnancy() async {
-    final results = await (_db.select(_db.pregnancies)
-          ..where((t) => t.isActive.equals(true))
-          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
-          ..limit(1))
-        .get();
+    final results =
+        await (_db.select(_db.pregnancies)
+              ..where((t) => t.isActive.equals(true))
+              ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+              ..limit(1))
+            .get();
 
     if (results.isEmpty) return null;
     return _toDomainPregnancy(results.first);
   }
 
   Future<Pregnancy?> getPregnancy(String id) async {
-    final result = await (_db.select(_db.pregnancies)
-          ..where((t) => t.id.equals(id)))
-        .getSingleOrNull();
+    final result = await (_db.select(
+      _db.pregnancies,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (result == null) return null;
     return _toDomainPregnancy(result);
   }
 
   Future<List<Pregnancy>> getAllPregnancies() async {
-    final results = await (_db.select(_db.pregnancies)
-          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-        .get();
+    final results = await (_db.select(
+      _db.pregnancies,
+    )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
     return results.map(_toDomainPregnancy).toList();
   }
 
@@ -80,21 +87,23 @@ class PregnancyRepository {
     final weeks = _calculateWeeksFromDueDate(pregnancy.dueDate);
     final trimester = CycleDateUtils.getTrimester(weeks);
 
-    await (_db.update(_db.pregnancies)
-          ..where((t) => t.id.equals(pregnancy.id)))
-        .write(db.PregnanciesCompanion(
-          conceptionDate: pregnancy.conceptionDate != null
-              ? Value(pregnancy.conceptionDate!)
-              : Value.absent(),
-          dueDate: Value(pregnancy.dueDate),
-          currentWeek: Value(weeks),
-          currentTrimester: Value(trimester),
-          notes: pregnancy.notes != null
-              ? Value(pregnancy.notes!)
-              : Value.absent(),
-          isActive: Value(pregnancy.isActive),
-          updatedAt: Value(now),
-        ));
+    await (_db.update(
+      _db.pregnancies,
+    )..where((t) => t.id.equals(pregnancy.id))).write(
+      db.PregnanciesCompanion(
+        conceptionDate: pregnancy.conceptionDate != null
+            ? Value(pregnancy.conceptionDate!)
+            : Value.absent(),
+        dueDate: Value(pregnancy.dueDate),
+        currentWeek: Value(weeks),
+        currentTrimester: Value(trimester),
+        notes: pregnancy.notes != null
+            ? Value(pregnancy.notes!)
+            : Value.absent(),
+        isActive: Value(pregnancy.isActive),
+        updatedAt: Value(now),
+      ),
+    );
 
     return pregnancy.copyWith(
       currentWeek: weeks,
@@ -104,12 +113,12 @@ class PregnancyRepository {
   }
 
   Future<void> endPregnancy(String id) async {
-    await (_db.update(_db.pregnancies)
-          ..where((t) => t.id.equals(id)))
-        .write(db.PregnanciesCompanion(
-          isActive: const Value(false),
-          updatedAt: Value(DateTime.now()),
-        ));
+    await (_db.update(_db.pregnancies)..where((t) => t.id.equals(id))).write(
+      db.PregnanciesCompanion(
+        isActive: const Value(false),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
   }
 
   // ── Fetal Measurements ─────────────────────────────────────────
@@ -119,32 +128,10 @@ class PregnancyRepository {
     final existing = await _getMeasurementEntity(m.id);
 
     if (existing != null) {
-      await (_db.update(_db.fetalMeasurements)
-            ..where((t) => t.id.equals(m.id)))
-          .write(db.FetalMeasurementsCompanion(
-            weight: m.weight != null ? Value(m.weight!) : Value.absent(),
-            bloodPressureSystolic: m.bloodPressureSystolic != null
-                ? Value(m.bloodPressureSystolic!)
-                : Value.absent(),
-            bloodPressureDiastolic: m.bloodPressureDiastolic != null
-                ? Value(m.bloodPressureDiastolic!)
-                : Value.absent(),
-            glucoseLevel:
-                m.glucoseLevel != null ? Value(m.glucoseLevel!) : Value.absent(),
-            kicksCount:
-                m.kicksCount != null ? Value(m.kicksCount!) : Value.absent(),
-            contractionsJson: m.contractionsJson != null
-                ? Value(m.contractionsJson!)
-                : Value.absent(),
-          ));
-      return m;
-    }
-
-    await _db.into(_db.fetalMeasurements).insert(
-        db.FetalMeasurementsCompanion.insert(
-          id: m.id,
-          pregnancyId: m.pregnancyId,
-          date: m.date,
+      await (_db.update(
+        _db.fetalMeasurements,
+      )..where((t) => t.id.equals(m.id))).write(
+        db.FetalMeasurementsCompanion(
           weight: m.weight != null ? Value(m.weight!) : Value.absent(),
           bloodPressureSystolic: m.bloodPressureSystolic != null
               ? Value(m.bloodPressureSystolic!)
@@ -155,39 +142,71 @@ class PregnancyRepository {
           glucoseLevel: m.glucoseLevel != null
               ? Value(m.glucoseLevel!)
               : Value.absent(),
-          kicksCount:
-              m.kicksCount != null ? Value(m.kicksCount!) : Value.absent(),
+          kicksCount: m.kicksCount != null
+              ? Value(m.kicksCount!)
+              : Value.absent(),
           contractionsJson: m.contractionsJson != null
               ? Value(m.contractionsJson!)
               : Value.absent(),
-          createdAt: now,
-        ));
+        ),
+      );
+      return m;
+    }
+
+    await _db
+        .into(_db.fetalMeasurements)
+        .insert(
+          db.FetalMeasurementsCompanion.insert(
+            id: m.id,
+            pregnancyId: m.pregnancyId,
+            date: m.date,
+            weight: m.weight != null ? Value(m.weight!) : Value.absent(),
+            bloodPressureSystolic: m.bloodPressureSystolic != null
+                ? Value(m.bloodPressureSystolic!)
+                : Value.absent(),
+            bloodPressureDiastolic: m.bloodPressureDiastolic != null
+                ? Value(m.bloodPressureDiastolic!)
+                : Value.absent(),
+            glucoseLevel: m.glucoseLevel != null
+                ? Value(m.glucoseLevel!)
+                : Value.absent(),
+            kicksCount: m.kicksCount != null
+                ? Value(m.kicksCount!)
+                : Value.absent(),
+            contractionsJson: m.contractionsJson != null
+                ? Value(m.contractionsJson!)
+                : Value.absent(),
+            createdAt: now,
+          ),
+        );
 
     return m;
   }
 
   Future<List<FetalMeasurement>> getMeasurements(String pregnancyId) async {
-    final results = await (_db.select(_db.fetalMeasurements)
-          ..where((t) => t.pregnancyId.equals(pregnancyId))
-          ..orderBy([(t) => OrderingTerm.asc(t.date)]))
-        .get();
+    final results =
+        await (_db.select(_db.fetalMeasurements)
+              ..where((t) => t.pregnancyId.equals(pregnancyId))
+              ..orderBy([(t) => OrderingTerm.asc(t.date)]))
+            .get();
     return results.map(_toDomainMeasurement).toList();
   }
 
   Future<FetalMeasurement?> getLatestMeasurement(String pregnancyId) async {
-    final results = await (_db.select(_db.fetalMeasurements)
-          ..where((t) => t.pregnancyId.equals(pregnancyId))
-          ..orderBy([(t) => OrderingTerm.desc(t.date)])
-          ..limit(1))
-        .get();
+    final results =
+        await (_db.select(_db.fetalMeasurements)
+              ..where((t) => t.pregnancyId.equals(pregnancyId))
+              ..orderBy([(t) => OrderingTerm.desc(t.date)])
+              ..limit(1))
+            .get();
     if (results.isEmpty) return null;
     return _toDomainMeasurement(results.first);
   }
 
   Future<void> deleteMeasurement(String id) async {
-    await (_db.delete(_db.fetalMeasurements)
-          ..where((t) => t.id.equals(id)))
-        .go();
+    await (_db.delete(
+      _db.fetalMeasurements,
+    )..where((t) => t.id.equals(id))).go();
   }
 
   // ── Kick Logs ─────────────────────────────────────────────────
@@ -209,23 +228,26 @@ class PregnancyRepository {
     return updated;
   }
 
-  Future<List<KickLog>> getKickLogs(String pregnancyId,
-      {DateTime? from, DateTime? to}) async {
+  Future<List<KickLog>> getKickLogs(
+    String pregnancyId, {
+    DateTime? from,
+    DateTime? to,
+  }) async {
     final logs = await _loadKickLogs();
-    var filtered =
-        logs.where((l) => l.pregnancyId == pregnancyId);
+    var filtered = logs.where((l) => l.pregnancyId == pregnancyId);
 
     if (from != null) {
-      filtered = filtered.where((l) =>
-          l.date.isAfter(from.subtract(const Duration(days: 1))));
+      filtered = filtered.where(
+        (l) => l.date.isAfter(from.subtract(const Duration(days: 1))),
+      );
     }
     if (to != null) {
       filtered = filtered.where(
-          (l) => l.date.isBefore(to.add(const Duration(days: 1))));
+        (l) => l.date.isBefore(to.add(const Duration(days: 1))),
+      );
     }
 
-    return filtered.toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    return filtered.toList()..sort((a, b) => b.date.compareTo(a.date));
   }
 
   Future<KickLog?> getLatestKickLog(String pregnancyId) async {
@@ -242,10 +264,11 @@ class PregnancyRepository {
 
   // ── Due Date Calculation ──────────────────────────────────────
 
-  DateTime calculateDueDate(DateTime lastPeriodStart,
-      {int cycleLength = 28}) {
-    return CycleDateUtils.calculateDueDate(lastPeriodStart,
-        cycleLength: cycleLength);
+  DateTime calculateDueDate(DateTime lastPeriodStart, {int cycleLength = 28}) {
+    return CycleDateUtils.calculateDueDate(
+      lastPeriodStart,
+      cycleLength: cycleLength,
+    );
   }
 
   DateTime estimateConceptionDate(DateTime dueDate) {
@@ -258,8 +281,7 @@ class PregnancyRepository {
 
   DateTime? estimateLastPeriodStart(DateTime dueDate, {int cycleLength = 28}) {
     final gestationalAge = cycleLength - 28;
-    return dueDate
-        .subtract(Duration(days: 280 - gestationalAge));
+    return dueDate.subtract(Duration(days: 280 - gestationalAge));
   }
 
   // ── Week Advancement ──────────────────────────────────────────
@@ -307,12 +329,15 @@ class PregnancyRepository {
   }
 
   Future<List<FetalMeasurement>> getBloodPressureReadings(
-      String pregnancyId) async {
+    String pregnancyId,
+  ) async {
     final measurements = await getMeasurements(pregnancyId);
     return measurements
-        .where((m) =>
-            m.bloodPressureSystolic != null &&
-            m.bloodPressureDiastolic != null)
+        .where(
+          (m) =>
+              m.bloodPressureSystolic != null &&
+              m.bloodPressureDiastolic != null,
+        )
         .toList();
   }
 
@@ -323,29 +348,27 @@ class PregnancyRepository {
     return weeks.clamp(0, 42);
   }
 
-  Future<void> _updatePregnancyWeek(
-      String id, int week, int trimester) async {
-    await (_db.update(_db.pregnancies)
-          ..where((t) => t.id.equals(id)))
-        .write(db.PregnanciesCompanion(
-          currentWeek: Value(week),
-          currentTrimester: Value(trimester),
-          updatedAt: Value(DateTime.now()),
-        ));
+  Future<void> _updatePregnancyWeek(String id, int week, int trimester) async {
+    await (_db.update(_db.pregnancies)..where((t) => t.id.equals(id))).write(
+      db.PregnanciesCompanion(
+        currentWeek: Value(week),
+        currentTrimester: Value(trimester),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
   }
 
-  Future<db.FetalMeasurement?>
-      _getMeasurementEntity(String id) async {
-    final result = await (_db.select(_db.fetalMeasurements)
-          ..where((t) => t.id.equals(id)))
-        .getSingleOrNull();
+  Future<db.FetalMeasurement?> _getMeasurementEntity(String id) async {
+    final result = await (_db.select(
+      _db.fetalMeasurements,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
     return result;
   }
 
   Future<List<KickLog>> _loadKickLogs() async {
-    final setting = await (_db.select(_db.appSettings)
-          ..where((t) => t.key.equals(_kickLogsKey)))
-        .getSingleOrNull();
+    final setting = await (_db.select(
+      _db.appSettings,
+    )..where((t) => t.key.equals(_kickLogsKey))).getSingleOrNull();
     if (setting == null || setting.value.isEmpty) return [];
 
     try {
@@ -360,29 +383,34 @@ class PregnancyRepository {
 
   Future<void> _saveKickLogs(List<KickLog> logs) async {
     final json = jsonEncode(logs.map((l) => l.toJson()).toList());
-    final existing = await (_db.select(_db.appSettings)
-          ..where((t) => t.key.equals(_kickLogsKey)))
-        .getSingleOrNull();
+    final existing = await (_db.select(
+      _db.appSettings,
+    )..where((t) => t.key.equals(_kickLogsKey))).getSingleOrNull();
 
     if (existing != null) {
-      await (_db.update(_db.appSettings)
-            ..where((t) => t.key.equals(_kickLogsKey)))
-          .write(db.AppSettingsCompanion(
-            value: Value(json),
-            updatedAt: Value(DateTime.now()),
-          ));
+      await (_db.update(
+        _db.appSettings,
+      )..where((t) => t.key.equals(_kickLogsKey))).write(
+        db.AppSettingsCompanion(
+          value: Value(json),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
     } else {
-      await _db.into(_db.appSettings).insert(db.AppSettingsCompanion.insert(
-            id: _kickLogsKey,
-            key: _kickLogsKey,
-            value: json,
-            updatedAt: DateTime.now(),
-          ));
+      await _db
+          .into(_db.appSettings)
+          .insert(
+            db.AppSettingsCompanion.insert(
+              id: _kickLogsKey,
+              key: _kickLogsKey,
+              value: json,
+              updatedAt: DateTime.now(),
+            ),
+          );
     }
   }
 
-  Pregnancy _toDomainPregnancy(
-      db.Pregnancy entity) {
+  Pregnancy _toDomainPregnancy(db.Pregnancy entity) {
     return Pregnancy(
       id: entity.id,
       conceptionDate: entity.conceptionDate,
@@ -396,8 +424,7 @@ class PregnancyRepository {
     );
   }
 
-  FetalMeasurement _toDomainMeasurement(
-      db.FetalMeasurement entity) {
+  FetalMeasurement _toDomainMeasurement(db.FetalMeasurement entity) {
     return FetalMeasurement(
       id: entity.id,
       pregnancyId: entity.pregnancyId,

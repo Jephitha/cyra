@@ -75,6 +75,20 @@ class Contraction with _$Contraction {
     required Duration duration,
     @Default(1.0) double intensity,
   }) = _Contraction;
+
+  factory Contraction.fromJson(Map<String, dynamic> json) => _Contraction(
+    startTime: DateTime.parse(json['startTime'] as String),
+    duration: Duration(microseconds: json['durationMicroseconds'] as int),
+    intensity: (json['intensity'] as num?)?.toDouble() ?? 1.0,
+  );
+}
+
+extension ContractionX on Contraction {
+  Map<String, dynamic> toJson() => {
+    'startTime': startTime.toIso8601String(),
+    'durationMicroseconds': duration.inMicroseconds,
+    'intensity': intensity,
+  };
 }
 
 @freezed

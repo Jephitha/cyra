@@ -1100,11 +1100,18 @@ abstract class _WeeklyMilestone implements WeeklyMilestone {
       throw _privateConstructorUsedError;
 }
 
+Contraction _$ContractionFromJson(Map<String, dynamic> json) {
+  return _Contraction.fromJson(json);
+}
+
 /// @nodoc
 mixin _$Contraction {
   DateTime get startTime => throw _privateConstructorUsedError;
   Duration get duration => throw _privateConstructorUsedError;
   double get intensity => throw _privateConstructorUsedError;
+
+  /// Serializes this Contraction to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of Contraction
   /// with the given fields replaced by the non-null parameter values.
@@ -1212,13 +1219,16 @@ class __$$ContractionImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
+@JsonSerializable()
 class _$ContractionImpl implements _Contraction {
   const _$ContractionImpl({
     required this.startTime,
     required this.duration,
     this.intensity = 1.0,
   });
+
+  factory _$ContractionImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ContractionImplFromJson(json);
 
   @override
   final DateTime startTime;
@@ -1246,6 +1256,7 @@ class _$ContractionImpl implements _Contraction {
                 other.intensity == intensity));
   }
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, startTime, duration, intensity);
 
@@ -1256,6 +1267,11 @@ class _$ContractionImpl implements _Contraction {
   @pragma('vm:prefer-inline')
   _$$ContractionImplCopyWith<_$ContractionImpl> get copyWith =>
       __$$ContractionImplCopyWithImpl<_$ContractionImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ContractionImplToJson(this);
+  }
 }
 
 abstract class _Contraction implements Contraction {
@@ -1264,6 +1280,9 @@ abstract class _Contraction implements Contraction {
     required final Duration duration,
     final double intensity,
   }) = _$ContractionImpl;
+
+  factory _Contraction.fromJson(Map<String, dynamic> json) =
+      _$ContractionImpl.fromJson;
 
   @override
   DateTime get startTime;

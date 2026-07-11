@@ -1,45 +1,101 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/kick_counter.dart';
+import 'package:cyra/features/pregnancy/models/pregnancy_models.dart';
+import 'package:cyra/features/pregnancy/providers/pregnancy_providers.dart';
 
-class KickCounterScreen extends StatefulWidget {
+class KickCounterScreen extends ConsumerStatefulWidget {
   const KickCounterScreen({super.key});
 
   @override
-  State<KickCounterScreen> createState() => _KickCounterScreenState();
+  ConsumerState<KickCounterScreen> createState() => _KickCounterScreenState();
 }
 
-class _KickCounterScreenState extends State<KickCounterScreen> {
+class _KickCounterScreenState extends ConsumerState<KickCounterScreen> {
   int _kickCount = 0;
   DateTime? _startTime;
   bool _isRunning = false;
-  final List<_KickSession> _sessions = [];
+  final List<KickLog> _sessions = [];
 
-  void _handleStartStop() {
-    setState(() {
-      if (_isRunning) {
-        if (_kickCount > 0) {
-          _sessions.insert(
-            0,
-            _KickSession(
-              startTime: _startTime!,
-              endTime: DateTime.now(),
-              kickCount: _kickCount,
-            ),
-          );
+  @override
+  void initState() {
+    super.initState();
+    _loadKickHistory();
+  }
+
+  Future<void> _loadKickHistory() async {
+    try {
+      final pregnancy = ref.read(currentPregnancyProvider).valueOrNull;
+      if (pregnancy != null) {
+        final repo = ref.read(pregnancyRepositoryProvider);
+        final logs = await repo.getKickLogs(pregnancy.id);
+        if (mounted) {
+          setState(() {
+            _sessions.clear();
+            _sessions.addAll(logs);
+          });
         }
-        _kickCount = 0;
-        _startTime = null;
-        _isRunning = false;
+      }
+    } catch (e) {
+      // Silently fail on load error
+    }
+  }
+
+  Future<void> _handleStartStop() async {
+    if (_isRunning) {
+      if (_kickCount > 0) {
+        final endTime = DateTime.now();
+        final durationMinutes = endTime.difference(_startTime!).inMinutes;
+
+        try {
+          final pregnancy = ref.read(currentPregnancyProvider).valueOrNull;
+          if (pregnancy != null) {
+            final repo = ref.read(pregnancyRepositoryProvider);
+            final kickLog = KickLog(
+              id: 'kick_${DateTime.now().microsecondsSinceEpoch}',
+              pregnancyId: pregnancy.id,
+              date: _startTime!,
+              kickCount: _kickCount,
+              durationMinutes: durationMinutes,
+            );
+            await repo.saveKickLog(kickLog);
+
+            if (mounted) {
+              setState(() {
+                _sessions.insert(0, kickLog);
+                _kickCount = 0;
+                _startTime = null;
+                _isRunning = false;
+              });
+            }
+          }
+        } catch (e) {
+          if (mounted) {
+            setState(() {
+              _kickCount = 0;
+              _startTime = null;
+              _isRunning = false;
+            });
+          }
+        }
       } else {
+        setState(() {
+          _kickCount = 0;
+          _startTime = null;
+          _isRunning = false;
+        });
+      }
+    } else {
+      setState(() {
         _startTime = DateTime.now();
         _kickCount = 0;
         _isRunning = true;
-      }
-    });
+      });
+    }
   }
 
   void _handleKickLogged() {
@@ -83,8 +139,7 @@ class _KickCounterScreenState extends State<KickCounterScreen> {
           _buildNormalRangeInfo(context, isDark),
           const SizedBox(height: AppSpacing.lg),
           if (_sessions.isNotEmpty) _buildSessionHistory(context, isDark),
-          if (_sessions.isNotEmpty)
-            const SizedBox(height: AppSpacing.lg),
+          if (_sessions.isNotEmpty) const SizedBox(height: AppSpacing.lg),
           _buildTipsCard(context, isDark),
         ],
       ),
@@ -125,9 +180,9 @@ class _KickCounterScreenState extends State<KickCounterScreen> {
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
                   '10 kicks in 2 hours is normal. Baby may be most active after meals.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                 ),
               ],
             ),
@@ -163,10 +218,8 @@ class _KickCounterScreenState extends State<KickCounterScreen> {
           ),
           const SizedBox(height: AppSpacing.md),
           ..._sessions.take(5).map((session) {
-            final duration = session.endTime.difference(session.startTime);
-            final minutes = duration.inMinutes;
             final timeStr =
-                '${session.startTime.hour.toString().padLeft(2, '0')}:${session.startTime.minute.toString().padLeft(2, '0')}';
+                '${session.date.hour.toString().padLeft(2, '0')}:${session.date.minute.toString().padLeft(2, '0')}';
             return Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: Container(
@@ -184,13 +237,10 @@ class _KickCounterScreenState extends State<KickCounterScreen> {
                   children: [
                     Text(
                       timeStr,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(
-                            color: AppColors.slate,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.slate,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Container(
@@ -203,9 +253,7 @@ class _KickCounterScreenState extends State<KickCounterScreen> {
                       child: Center(
                         child: Text(
                           '${session.kickCount}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium
+                          style: Theme.of(context).textTheme.labelMedium
                               ?.copyWith(
                                 color: AppColors.sage,
                                 fontWeight: FontWeight.w700,
@@ -216,15 +264,12 @@ class _KickCounterScreenState extends State<KickCounterScreen> {
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
-                        'kicks in $minutes min',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.slate,
-                            ),
+                        'kicks in ${session.durationMinutes} min',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.slate,
+                        ),
                       ),
                     ),
                     Icon(
@@ -246,8 +291,8 @@ class _KickCounterScreenState extends State<KickCounterScreen> {
     );
   }
 
-  bool _isWithinRange(_KickSession session) {
-    final durationHours = session.endTime.difference(session.startTime).inMinutes / 60.0;
+  bool _isWithinRange(KickLog session) {
+    final durationHours = session.durationMinutes / 60.0;
     if (durationHours <= 0) return false;
     return (session.kickCount / durationHours) >= 5;
   }
@@ -278,9 +323,17 @@ class _KickCounterScreenState extends State<KickCounterScreen> {
           ),
           const SizedBox(height: AppSpacing.md),
           _tipRow(context, 'Count kicks at the same time each day', isDark),
-          _tipRow(context, 'Try counting after meals when baby may be active', isDark),
+          _tipRow(
+            context,
+            'Try counting after meals when baby may be active',
+            isDark,
+          ),
           _tipRow(context, 'Sit in a quiet space or lie on your side', isDark),
-          _tipRow(context, 'Contact your provider if you notice decreased movement', isDark),
+          _tipRow(
+            context,
+            'Contact your provider if you notice decreased movement',
+            isDark,
+          ),
         ],
       ),
     );
@@ -292,19 +345,13 @@ class _KickCounterScreenState extends State<KickCounterScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.circle,
-            size: 6,
-            color: AppColors.slate,
-          ),
+          Icon(Icons.circle, size: 6, color: AppColors.slate),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               text,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.slate,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
               ),
             ),
           ),
@@ -312,16 +359,4 @@ class _KickCounterScreenState extends State<KickCounterScreen> {
       ),
     );
   }
-}
-
-class _KickSession {
-  final DateTime startTime;
-  final DateTime endTime;
-  final int kickCount;
-
-  const _KickSession({
-    required this.startTime,
-    required this.endTime,
-    required this.kickCount,
-  });
 }

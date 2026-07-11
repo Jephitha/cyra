@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
@@ -6,26 +9,70 @@ import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/contraction_timer.dart';
+import 'package:cyra/features/pregnancy/models/pregnancy_models.dart' as pm;
+import 'package:cyra/features/pregnancy/providers/pregnancy_providers.dart';
 
-class ContractionTimerScreen extends StatefulWidget {
+class ContractionTimerScreen extends ConsumerStatefulWidget {
   const ContractionTimerScreen({super.key});
 
   @override
-  State<ContractionTimerScreen> createState() =>
+  ConsumerState<ContractionTimerScreen> createState() =>
       _ContractionTimerScreenState();
 }
 
-class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
-  final List<Contraction> _contractions = [];
+class _ContractionTimerScreenState
+    extends ConsumerState<ContractionTimerScreen> {
+  final List<pm.Contraction> _contractions = [];
   bool _showEducation = true;
 
-  void _handleStartContraction() {
+  @override
+  void initState() {
+    super.initState();
+    _loadContractionHistory();
+  }
+
+  Future<void> _loadContractionHistory() async {
+    try {
+      final pregnancy = ref.read(currentPregnancyProvider).valueOrNull;
+      if (pregnancy != null) {
+        final repo = ref.read(pregnancyRepositoryProvider);
+        final measurements = await repo.getMeasurements(pregnancy.id);
+
+        if (mounted) {
+          setState(() {
+            _contractions.clear();
+            for (final m in measurements) {
+              if (m.contractionsJson != null) {
+                try {
+                  final dynamic jsonList = jsonDecode(m.contractionsJson!);
+                  if (jsonList is List) {
+                    for (final c in jsonList) {
+                      if (c is Map<String, dynamic>) {
+                        _contractions.add(pm.Contraction.fromJson(c));
+                      }
+                    }
+                  }
+                } catch (_) {
+                  // Skip invalid JSON
+                }
+              }
+            }
+            _contractions.sort((a, b) => a.startTime.compareTo(b.startTime));
+          });
+        }
+      }
+    } catch (_) {
+      // Silently fail on load error
+    }
+  }
+
+  Future<void> _handleStartContraction() async {
     setState(() {
       _showEducation = false;
     });
   }
 
-  void _handleEndContraction() {
+  Future<void> _handleEndContraction() async {
     final now = DateTime.now();
     final duration = now.difference(
       _contractions.isNotEmpty
@@ -33,15 +80,36 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
           : now.subtract(const Duration(seconds: 30)),
     );
 
+    final newContraction = pm.Contraction(
+      startTime: now.subtract(duration),
+      duration: duration,
+      intensity: 3.0,
+    );
+
     setState(() {
-      _contractions.add(
-        Contraction(
-          startTime: now.subtract(duration),
-          duration: duration,
-          intensity: 3.0,
-        ),
-      );
+      _contractions.add(newContraction);
     });
+
+    try {
+      final pregnancy = ref.read(currentPregnancyProvider).valueOrNull;
+      if (pregnancy != null) {
+        final repo = ref.read(pregnancyRepositoryProvider);
+        final contractionsJson = jsonEncode(
+          _contractions.map((c) => c.toJson()).toList(),
+        );
+
+        final measurement = pm.FetalMeasurement(
+          id: 'contractions_${DateTime.now().toIso8601String()}',
+          pregnancyId: pregnancy.id,
+          date: now,
+          contractionsJson: contractionsJson,
+        );
+
+        await repo.saveMeasurement(measurement);
+      }
+    } catch (_) {
+      // Silently fail on save error
+    }
   }
 
   Duration? get _averageDuration {
@@ -55,7 +123,7 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
 
   Duration? get _averageFrequency {
     if (_contractions.length < 2) return null;
-    final sorted = List<Contraction>.from(_contractions)
+    final sorted = List<pm.Contraction>.from(_contractions)
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
     final gaps = <int>[];
     for (int i = 1; i < sorted.length; i++) {
@@ -63,6 +131,7 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
         sorted[i].startTime.difference(sorted[i - 1].startTime).inSeconds,
       );
     }
+    if (gaps.isEmpty) return null;
     final avgSeconds = gaps.reduce((a, b) => a + b) ~/ gaps.length;
     return Duration(seconds: avgSeconds);
   }
@@ -71,6 +140,18 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
     final minutes = d.inMinutes;
     final seconds = d.inSeconds.remainder(60);
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  List<Contraction> _toWidgetContractions(List<pm.Contraction> pmContractions) {
+    return pmContractions
+        .map(
+          (c) => Contraction(
+            startTime: c.startTime,
+            duration: c.duration,
+            intensity: c.intensity,
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -110,7 +191,7 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
           AppCard.standard(
             padding: EdgeInsets.zero,
             child: ContractionTimer(
-              contractions: _contractions,
+              contractions: _toWidgetContractions(_contractions),
               onStartContraction: _handleStartContraction,
               onEndContraction: _handleEndContraction,
             ),
@@ -138,7 +219,8 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
     Duration? avgDuration,
     Duration? avgFrequency,
   ) {
-    final meets511 = avgFrequency != null &&
+    final meets511 =
+        avgFrequency != null &&
         avgFrequency.inMinutes <= 5 &&
         avgDuration != null &&
         avgDuration.inSeconds >= 60;
@@ -174,9 +256,7 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
                   context,
                   Icons.timer_outlined,
                   'Average Duration',
-                  avgDuration != null
-                      ? _formatDuration(avgDuration)
-                      : '--',
+                  avgDuration != null ? _formatDuration(avgDuration) : '--',
                   AppColors.sage,
                   isDark,
                 ),
@@ -287,9 +367,9 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
           const SizedBox(height: AppSpacing.xxs),
           Text(
             label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.slate,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: AppColors.slate),
           ),
         ],
       ),
@@ -355,15 +435,12 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
                     Expanded(
                       child: Text(
                         durationStr,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(
-                              color: isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.charcoal,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.charcoal,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     Text(
@@ -422,9 +499,7 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
           Text(
             'The 5-1-1 Rule',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: isDark
-                  ? AppColors.textPrimaryDark
-                  : AppColors.charcoal,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -472,9 +547,7 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
               child: Text(
                 description,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.slate,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
                 ),
               ),
             ),
@@ -492,17 +565,35 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
           Text(
             'Other Signs of Labor',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: isDark
-                  ? AppColors.textPrimaryDark
-                  : AppColors.charcoal,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          _signRow(context, Icons.water_drop_rounded, 'Water breaking (rupture of membranes)', isDark),
-          _signRow(context, Icons.bloodtype_rounded, 'Bloody show (mucus plug discharge)', isDark),
-          _signRow(context, Icons.air_rounded, 'Back pain that comes and goes', isDark),
-          _signRow(context, Icons.self_improvement_rounded, 'Pelvic pressure and cramping', isDark),
+          _signRow(
+            context,
+            Icons.water_drop_rounded,
+            'Water breaking (rupture of membranes)',
+            isDark,
+          ),
+          _signRow(
+            context,
+            Icons.bloodtype_rounded,
+            'Bloody show (mucus plug discharge)',
+            isDark,
+          ),
+          _signRow(
+            context,
+            Icons.air_rounded,
+            'Back pain that comes and goes',
+            isDark,
+          ),
+          _signRow(
+            context,
+            Icons.self_improvement_rounded,
+            'Pelvic pressure and cramping',
+            isDark,
+          ),
           const SizedBox(height: AppSpacing.md),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
@@ -525,9 +616,9 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
                 Expanded(
                   child: Text(
                     'Always follow your healthcare provider\'s guidance on when to come to the hospital.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.slate,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                   ),
                 ),
               ],
@@ -555,9 +646,7 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
             child: Text(
               text,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.slate,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
               ),
             ),
           ),
@@ -591,7 +680,9 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
                     icon: Icons.copy_rounded,
                     onPressed: () {
                       Navigator.of(sheetContext).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contraction log copied')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Contraction log copied')),
+                      );
                     },
                   ),
                 ),
@@ -603,7 +694,9 @@ class _ContractionTimerScreenState extends State<ContractionTimerScreen> {
                     icon: Icons.picture_as_pdf_rounded,
                     onPressed: () {
                       Navigator.of(sheetContext).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF export coming soon')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('PDF export coming soon')),
+                      );
                     },
                   ),
                 ),

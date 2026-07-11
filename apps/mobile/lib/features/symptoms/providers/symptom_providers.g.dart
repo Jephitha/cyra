@@ -622,7 +622,7 @@ final moodCycleCorrelationProvider =
 // ignore: unused_element
 typedef MoodCycleCorrelationRef =
     AutoDisposeFutureProviderRef<Map<String, dynamic>>;
-String _$symptomLoggerHash() => r'8c19b55afd25e1333438b5e1e9d87621b3583be5';
+String _$symptomLoggerHash() => r'd4a122c9f08c59a0e0dc31e3b65aa6ad438243a0';
 
 /// See also [SymptomLogger].
 @ProviderFor(SymptomLogger)

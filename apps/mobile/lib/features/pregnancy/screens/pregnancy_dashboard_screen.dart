@@ -26,7 +26,8 @@ class PregnancyDashboardScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return pregnancyAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (_, __) => _buildEmptyState(context, ref, isDark),
       data: (pregnancy) {
         if (pregnancy == null) return _buildEmptyState(context, ref, isDark);
@@ -35,19 +36,36 @@ class PregnancyDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPopulatedDashboard(BuildContext context, WidgetRef ref, Pregnancy pregnancy, bool isDark) {
+  Widget _buildPopulatedDashboard(
+    BuildContext context,
+    WidgetRef ref,
+    Pregnancy pregnancy,
+    bool isDark,
+  ) {
     final milestone = PregnancyData.getMilestone(pregnancy.currentWeek);
     final measurementAsync = ref.watch(latestMeasurementProvider);
     final measurement = measurementAsync.valueOrNull;
-    final weeksRemaining = pregnancy.dueDate.difference(DateTime.now()).inDays ~/ 7;
+    final weeksRemaining =
+        pregnancy.dueDate.difference(DateTime.now()).inDays ~/ 7;
 
     return Scaffold(
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xxxxl, AppSpacing.lg, AppSpacing.xxxl),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.xxxxl,
+          AppSpacing.lg,
+          AppSpacing.xxxl,
+        ),
         children: [
           _buildWeekHeader(context, pregnancy, milestone, isDark),
           const SizedBox(height: AppSpacing.lg),
-          _buildTodayInfoCard(context, pregnancy, milestone, weeksRemaining, isDark),
+          _buildTodayInfoCard(
+            context,
+            pregnancy,
+            milestone,
+            weeksRemaining,
+            isDark,
+          ),
           const SizedBox(height: AppSpacing.xl),
           _buildVitalsSection(context, measurement, isDark),
           const SizedBox(height: AppSpacing.xl),
@@ -72,24 +90,33 @@ class PregnancyDashboardScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 88, height: 88,
+                width: 88,
+                height: 88,
                 decoration: BoxDecoration(
                   color: AppColors.forestGreen.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.child_care_rounded, size: 44, color: AppColors.forestGreen),
+                child: const Icon(
+                  Icons.child_care_rounded,
+                  size: 44,
+                  color: AppColors.forestGreen,
+                ),
               ),
               const SizedBox(height: AppSpacing.xxl),
               Text(
                 'Welcome to Your Pregnancy Journey',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
                 'Enter your due date to begin tracking your pregnancy journey.',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.slate),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: AppColors.slate),
               ),
               const SizedBox(height: AppSpacing.xxxl),
               AppButton.primary(
@@ -97,7 +124,9 @@ class PregnancyDashboardScreen extends ConsumerWidget {
                 icon: Icons.add_rounded,
                 onPressed: () async {
                   final result = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute<bool>(builder: (_) => const SetupPregnancyScreen()),
+                    MaterialPageRoute<bool>(
+                      builder: (_) => const SetupPregnancyScreen(),
+                    ),
                   );
                   if (result == true) ref.invalidate(currentPregnancyProvider);
                 },
@@ -110,7 +139,12 @@ class PregnancyDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWeekHeader(BuildContext context, Pregnancy pregnancy, WeeklyMilestone milestone, bool isDark) {
+  Widget _buildWeekHeader(
+    BuildContext context,
+    Pregnancy pregnancy,
+    WeeklyMilestone milestone,
+    bool isDark,
+  ) {
     return AppCard.standard(
       padding: EdgeInsets.zero,
       child: PregnancyWeekWidget(
@@ -124,7 +158,13 @@ class PregnancyDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTodayInfoCard(BuildContext context, Pregnancy pregnancy, WeeklyMilestone milestone, int weeksRemaining, bool isDark) {
+  Widget _buildTodayInfoCard(
+    BuildContext context,
+    Pregnancy pregnancy,
+    WeeklyMilestone milestone,
+    int weeksRemaining,
+    bool isDark,
+  ) {
     return AppCard.highlighted(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,15 +173,23 @@ class PregnancyDashboardScreen extends ConsumerWidget {
             children: [
               Icon(Icons.today_rounded, size: 20, color: AppColors.forestGreen),
               const SizedBox(width: AppSpacing.sm),
-              Text("Today's Update", style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-              )),
+              Text(
+                "Today's Update",
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Text("You're in week ${pregnancy.currentWeek} of your pregnancy",
+          Text(
+            "You're in week ${pregnancy.currentWeek} of your pregnancy",
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w500,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -149,24 +197,41 @@ class PregnancyDashboardScreen extends ConsumerWidget {
             children: [
               Icon(Icons.auto_awesome_rounded, size: 16, color: AppColors.sage),
               const SizedBox(width: AppSpacing.xs),
-              Expanded(child: Text(milestone.developmentSummary,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate),
-              )),
+              Expanded(
+                child: Text(
+                  milestone.developmentSummary,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
-              Icon(Icons.favorite_border_rounded, size: 16, color: const Color(0xFFE86B6B)),
+              Icon(
+                Icons.favorite_border_rounded,
+                size: 16,
+                color: const Color(0xFFE86B6B),
+              ),
               const SizedBox(width: AppSpacing.xs),
-              Expanded(child: Text(milestone.maternalChanges,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate),
-              )),
+              Expanded(
+                child: Text(
+                  milestone.maternalChanges,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
             decoration: BoxDecoration(
               color: AppColors.warmIvory.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -174,11 +239,17 @@ class PregnancyDashboardScreen extends ConsumerWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.event_rounded, size: 16, color: AppColors.forestGreen),
+                Icon(
+                  Icons.event_rounded,
+                  size: 16,
+                  color: AppColors.forestGreen,
+                ),
                 const SizedBox(width: AppSpacing.sm),
-                Text('$weeksRemaining weeks until your due date',
+                Text(
+                  '$weeksRemaining weeks until your due date',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.forestGreen, fontWeight: FontWeight.w500,
+                    color: AppColors.forestGreen,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -189,7 +260,11 @@ class PregnancyDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildVitalsSection(BuildContext context, FetalMeasurement? measurement, bool isDark) {
+  Widget _buildVitalsSection(
+    BuildContext context,
+    FetalMeasurement? measurement,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -197,11 +272,21 @@ class PregnancyDashboardScreen extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: Row(
             children: [
-              Icon(Icons.favorite_rounded, size: 18, color: AppColors.forestGreen),
+              Icon(
+                Icons.favorite_rounded,
+                size: 18,
+                color: AppColors.forestGreen,
+              ),
               const SizedBox(width: AppSpacing.sm),
-              Text('Your Vitals', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-              )),
+              Text(
+                'Your Vitals',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -210,11 +295,16 @@ class PregnancyDashboardScreen extends ConsumerWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const LogVitalsScreen(initialSection: 'weight')),
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        const LogVitalsScreen(initialSection: 'weight'),
+                  ),
                 ),
                 child: HealthStatCard(
                   label: 'Weight',
-                  value: measurement?.weight != null ? '${measurement!.weight!.toStringAsFixed(1)} kg' : '--',
+                  value: measurement?.weight != null
+                      ? '${measurement!.weight!.toStringAsFixed(1)} kg'
+                      : '--',
                   icon: Icons.monitor_weight_rounded,
                   accentColor: AppColors.sage,
                 ),
@@ -224,7 +314,10 @@ class PregnancyDashboardScreen extends ConsumerWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const LogVitalsScreen(initialSection: 'blood_pressure')),
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        const LogVitalsScreen(initialSection: 'blood_pressure'),
+                  ),
                 ),
                 child: HealthStatCard(
                   label: 'Blood Pressure',
@@ -244,11 +337,16 @@ class PregnancyDashboardScreen extends ConsumerWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const LogVitalsScreen(initialSection: 'glucose')),
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        const LogVitalsScreen(initialSection: 'glucose'),
+                  ),
                 ),
                 child: HealthStatCard(
                   label: 'Glucose',
-                  value: measurement?.glucoseLevel != null ? '${measurement!.glucoseLevel!.toStringAsFixed(1)} mmol/L' : '--',
+                  value: measurement?.glucoseLevel != null
+                      ? '${measurement!.glucoseLevel!.toStringAsFixed(1)} mmol/L'
+                      : '--',
                   icon: Icons.bloodtype_rounded,
                   accentColor: AppColors.success,
                 ),
@@ -270,23 +368,39 @@ class PregnancyDashboardScreen extends ConsumerWidget {
       child: Row(
         children: [
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: AppColors.softGold.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.fitness_center_rounded, size: 24, color: AppColors.softGold),
+            child: Icon(
+              Icons.fitness_center_rounded,
+              size: 24,
+              color: AppColors.softGold,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Kick Counter', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-                )),
+                Text(
+                  'Kick Counter',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xxs),
-                Text('Count your baby\'s kicks', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate)),
+                Text(
+                  'Count your baby\'s kicks',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                ),
               ],
             ),
           ),
@@ -304,23 +418,39 @@ class PregnancyDashboardScreen extends ConsumerWidget {
       child: Row(
         children: [
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: const Color(0xFFE86B6B).withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.timer_rounded, size: 24, color: const Color(0xFFE86B6B)),
+            child: Icon(
+              Icons.timer_rounded,
+              size: 24,
+              color: const Color(0xFFE86B6B),
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Contraction Timer', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-                )),
+                Text(
+                  'Contraction Timer',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xxs),
-                Text('Time your contractions', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate)),
+                Text(
+                  'Time your contractions',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                ),
               ],
             ),
           ),
@@ -333,12 +463,15 @@ class PregnancyDashboardScreen extends ConsumerWidget {
   Widget _buildSymptomsCard(BuildContext context, bool isDark) {
     return AppCard.interactive(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const PregnancySymptomsScreen()),
+        MaterialPageRoute<void>(
+          builder: (_) => const PregnancySymptomsScreen(),
+        ),
       ),
       child: Row(
         children: [
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: AppColors.sage.withValues(alpha: 0.15),
               shape: BoxShape.circle,
@@ -350,11 +483,22 @@ class PregnancyDashboardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Pregnancy Symptoms', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-                )),
+                Text(
+                  'Pregnancy Symptoms',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xxs),
-                Text('Track how you\'re feeling', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate)),
+                Text(
+                  'Track how you\'re feeling',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                ),
               ],
             ),
           ),
@@ -364,30 +508,47 @@ class PregnancyDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWeekNavigation(BuildContext context, Pregnancy pregnancy, WeeklyMilestone milestone, bool isDark) {
+  Widget _buildWeekNavigation(
+    BuildContext context,
+    Pregnancy pregnancy,
+    WeeklyMilestone milestone,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Weekly Journey', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-        )),
+        Text(
+          'Weekly Journey',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: AppSpacing.md),
         AppCard.interactive(
           onTap: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => WeekDetailScreen(week: pregnancy.currentWeek)),
+            MaterialPageRoute<void>(
+              builder: (_) => WeekDetailScreen(week: pregnancy.currentWeek),
+            ),
           ),
           child: Row(
             children: [
               Container(
-                width: 56, height: 56,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: AppColors.forestGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Center(
-                  child: Text('${pregnancy.currentWeek}', style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.forestGreen,
-                  )),
+                  child: Text(
+                    '${pregnancy.currentWeek}',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.forestGreen,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -395,14 +556,21 @@ class PregnancyDashboardScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Week ${pregnancy.currentWeek} — ${milestone.babySizeComparison}',
+                    Text(
+                      'Week ${pregnancy.currentWeek} — ${milestone.babySizeComparison}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.charcoal,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xxs),
-                    Text('${milestone.babyLengthCm} cm • ${milestone.babyWeightG.toStringAsFixed(0)} g',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                    Text(
+                      '${milestone.babyLengthCm} cm • ${milestone.babyWeightG.toStringAsFixed(0)} g',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                     ),
                   ],
                 ),

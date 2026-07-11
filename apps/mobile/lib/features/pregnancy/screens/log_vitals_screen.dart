@@ -78,32 +78,47 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
 
       final repo = ref.read(pregnancyRepositoryProvider);
       final now = DateTime.now();
-      final dateTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day,
-          _selectedTime.hour, _selectedTime.minute);
+      final dateTime = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      );
 
       final weight = double.tryParse(_weightController.text);
       final systolic = int.tryParse(_systolicController.text);
       final diastolic = int.tryParse(_diastolicController.text);
       final glucose = double.tryParse(_glucoseController.text);
 
-      if (weight == null && systolic == null && diastolic == null && glucose == null) {
+      if (weight == null &&
+          systolic == null &&
+          diastolic == null &&
+          glucose == null) {
         if (mounted) {
           setState(() => _isSaving = false);
-          context.showSnackBar('Please enter at least one measurement', isError: true);
+          context.showSnackBar(
+            'Please enter at least one measurement',
+            isError: true,
+          );
         }
         return;
       }
 
-      await repo.saveMeasurement(FetalMeasurement(
-        id: 'vitals_${dateTime.toIso8601String()}_${now.microsecondsSinceEpoch}',
-        pregnancyId: pregnancy.id,
-        date: dateTime,
-        weight: weight,
-        bloodPressureSystolic: systolic,
-        bloodPressureDiastolic: diastolic,
-        glucoseLevel: glucose,
-        notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
-      ));
+      await repo.saveMeasurement(
+        FetalMeasurement(
+          id: 'vitals_${dateTime.toIso8601String()}_${now.microsecondsSinceEpoch}',
+          pregnancyId: pregnancy.id,
+          date: dateTime,
+          weight: weight,
+          bloodPressureSystolic: systolic,
+          bloodPressureDiastolic: diastolic,
+          glucoseLevel: glucose,
+          notes: _notesController.text.trim().isNotEmpty
+              ? _notesController.text.trim()
+              : null,
+        ),
+      );
 
       ref.invalidate(latestMeasurementProvider);
       ref.invalidate(fetalMeasurementsProvider);
@@ -128,13 +143,25 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Log Vitals', style: TextStyle(
-            color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-          )),
-          leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).maybePop()),
+          title: Text(
+            'Log Vitals',
+            style: TextStyle(
+              color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.of(context).maybePop(),
+          ),
         ),
         body: ListView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xxxl),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.xxxl,
+          ),
           children: [
             _buildSectionTabs(isDark),
             const SizedBox(height: AppSpacing.lg),
@@ -170,19 +197,37 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
               onTap: () => setState(() => _activeSection = section),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.sm,
+                ),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.forestGreen.withValues(alpha: isDark ? 0.3 : 0.12) : Colors.transparent,
+                  color: isSelected
+                      ? AppColors.forestGreen.withValues(
+                          alpha: isDark ? 0.3 : 0.12,
+                        )
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppRadius.xl),
                   border: Border.all(
-                    color: isSelected ? AppColors.forestGreen : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                    color: isSelected
+                        ? AppColors.forestGreen
+                        : (isDark
+                              ? AppColors.borderDark
+                              : AppColors.borderLight),
                     width: isSelected ? 2 : 1,
                   ),
                 ),
-                child: Text(_sectionLabel(section), style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: isSelected ? (isDark ? Colors.white : AppColors.forestGreen) : (isDark ? AppColors.textSecondaryDark : AppColors.slate),
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                )),
+                child: Text(
+                  _sectionLabel(section),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: isSelected
+                        ? (isDark ? Colors.white : AppColors.forestGreen)
+                        : (isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.slate),
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
               ),
             ),
           );
@@ -212,19 +257,38 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.monitor_weight_rounded, size: 20, color: AppColors.sage),
+              Icon(
+                Icons.monitor_weight_rounded,
+                size: 20,
+                color: AppColors.sage,
+              ),
               const SizedBox(width: AppSpacing.sm),
-              Text('Weight', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-              )),
+              Text(
+                'Weight',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               const Spacer(),
-              Text('kg', style: TextStyle(color: AppColors.slate, fontSize: 13)),
+              Text(
+                'kg',
+                style: TextStyle(color: AppColors.slate, fontSize: 13),
+              ),
               Switch(
                 value: _useLbs,
                 onChanged: (v) => setState(() => _useLbs = v),
                 activeThumbColor: AppColors.forestGreen,
               ),
-              Text('lbs', style: TextStyle(color: _useLbs ? AppColors.forestGreen : AppColors.slate, fontSize: 13)),
+              Text(
+                'lbs',
+                style: TextStyle(
+                  color: _useLbs ? AppColors.forestGreen : AppColors.slate,
+                  fontSize: 13,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -233,7 +297,9 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               hintText: _useLbs ? 'Enter weight in lbs' : 'Enter weight in kg',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
               suffixText: _useLbs ? 'lbs' : 'kg',
             ),
           ),
@@ -250,11 +316,21 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.favorite_rounded, size: 20, color: const Color(0xFFE86B6B)),
+              Icon(
+                Icons.favorite_rounded,
+                size: 20,
+                color: const Color(0xFFE86B6B),
+              ),
               const SizedBox(width: AppSpacing.sm),
-              Text('Blood Pressure', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-              )),
+              Text(
+                'Blood Pressure',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -267,7 +343,9 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
                   decoration: InputDecoration(
                     labelText: 'Systolic',
                     hintText: '120',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
                     suffixText: 'mmHg',
                   ),
                 ),
@@ -280,7 +358,9 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
                   decoration: InputDecoration(
                     labelText: 'Diastolic',
                     hintText: '80',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
                     suffixText: 'mmHg',
                   ),
                 ),
@@ -300,19 +380,45 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.bloodtype_rounded, size: 20, color: AppColors.softGold),
+              Icon(
+                Icons.bloodtype_rounded,
+                size: 20,
+                color: AppColors.softGold,
+              ),
               const SizedBox(width: AppSpacing.sm),
-              Text('Glucose', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-              )),
+              Text(
+                'Glucose',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               const Spacer(),
-              Text('Fasting', style: TextStyle(color: _glucoseFasting ? AppColors.forestGreen : AppColors.slate, fontSize: 13)),
+              Text(
+                'Fasting',
+                style: TextStyle(
+                  color: _glucoseFasting
+                      ? AppColors.forestGreen
+                      : AppColors.slate,
+                  fontSize: 13,
+                ),
+              ),
               Switch(
                 value: _glucoseFasting,
                 onChanged: (v) => setState(() => _glucoseFasting = v),
                 activeThumbColor: AppColors.forestGreen,
               ),
-              Text('After meal', style: TextStyle(color: !_glucoseFasting ? AppColors.forestGreen : AppColors.slate, fontSize: 13)),
+              Text(
+                'After meal',
+                style: TextStyle(
+                  color: !_glucoseFasting
+                      ? AppColors.forestGreen
+                      : AppColors.slate,
+                  fontSize: 13,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -320,8 +426,12 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
             controller: _glucoseController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              hintText: _useMgDl ? 'Enter glucose in mg/dL' : 'Enter glucose in mmol/L',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+              hintText: _useMgDl
+                  ? 'Enter glucose in mg/dL'
+                  : 'Enter glucose in mmol/L',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
               suffixText: _useMgDl ? 'mg/dL' : 'mmol/L',
             ),
           ),
@@ -346,7 +456,9 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
                 lastDate: DateTime.now(),
                 builder: (context, child) => Theme(
                   data: Theme.of(context).copyWith(
-                    colorScheme: Theme.of(context).colorScheme.copyWith(primary: AppColors.forestGreen),
+                    colorScheme: Theme.of(
+                      context,
+                    ).colorScheme.copyWith(primary: AppColors.forestGreen),
                   ),
                   child: child!,
                 ),
@@ -356,15 +468,31 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
             child: Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.mistWhite,
+                color: isDark
+                    ? AppColors.charcoal.withValues(alpha: 0.2)
+                    : AppColors.mistWhite,
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.forestGreen),
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    size: 16,
+                    color: AppColors.forestGreen,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
-                  Text(dateStr, style: TextStyle(fontSize: 14, color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal)),
+                  Text(
+                    dateStr,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.charcoal,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -379,7 +507,9 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
                 initialTime: _selectedTime,
                 builder: (context, child) => Theme(
                   data: Theme.of(context).copyWith(
-                    colorScheme: Theme.of(context).colorScheme.copyWith(primary: AppColors.forestGreen),
+                    colorScheme: Theme.of(
+                      context,
+                    ).colorScheme.copyWith(primary: AppColors.forestGreen),
                   ),
                   child: child!,
                 ),
@@ -389,15 +519,31 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
             child: Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.mistWhite,
+                color: isDark
+                    ? AppColors.charcoal.withValues(alpha: 0.2)
+                    : AppColors.mistWhite,
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.access_time_rounded, size: 16, color: AppColors.forestGreen),
+                  Icon(
+                    Icons.access_time_rounded,
+                    size: 16,
+                    color: AppColors.forestGreen,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
-                  Text(timeStr, style: TextStyle(fontSize: 14, color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal)),
+                  Text(
+                    timeStr,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.charcoal,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -413,10 +559,16 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
       maxLines: 3,
       decoration: InputDecoration(
         hintText: 'Add notes (optional)',
-        prefixIcon: Icon(Icons.edit_note_rounded, size: 20, color: AppColors.slate),
+        prefixIcon: Icon(
+          Icons.edit_note_rounded,
+          size: 20,
+          color: AppColors.slate,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: BorderSide(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+          borderSide: BorderSide(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          ),
         ),
       ),
       textCapitalization: TextCapitalization.sentences,

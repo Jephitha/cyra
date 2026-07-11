@@ -100,24 +100,32 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
     try {
       final repo = ref.read(ovulationRepositoryProvider);
       final temp = double.tryParse(_temperatureString) ?? 36.7;
-      final timeStr = '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}';
+      final timeStr =
+          '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}';
       final now = DateTime.now();
 
-      await repo.saveBBT(BBTRecord(
-        id: 'bbt_${_selectedDate.toIso8601String()}_${now.microsecondsSinceEpoch}',
-        date: _selectedDate,
-        temperature: temp,
-        method: _measurementMethod,
-        timeOfDay: timeStr,
-        notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
-      ));
+      await repo.saveBBT(
+        BBTRecord(
+          id: 'bbt_${_selectedDate.toIso8601String()}_${now.microsecondsSinceEpoch}',
+          date: _selectedDate,
+          temperature: temp,
+          method: _measurementMethod,
+          timeOfDay: timeStr,
+          notes: _notesController.text.trim().isNotEmpty
+              ? _notesController.text.trim()
+              : null,
+        ),
+      );
 
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Failed to save: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -130,7 +138,9 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(primary: AppColors.forestGreen),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.forestGreen),
           ),
           child: child!,
         );
@@ -147,11 +157,17 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Log BBT', style: TextStyle(
-            color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-            fontWeight: FontWeight.w600,
-          )),
-          leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).maybePop()),
+          title: Text(
+            'Log BBT',
+            style: TextStyle(
+              color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.of(context).maybePop(),
+          ),
           centerTitle: true,
         ),
         body: ListView(
@@ -174,7 +190,9 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
             AppButton.primary(
               _isSaving ? 'Saving...' : 'Save',
               icon: Icons.save_rounded,
-              onPressed: (_isSaving || _temperatureString.isEmpty) ? null : _save,
+              onPressed: (_isSaving || _temperatureString.isEmpty)
+                  ? null
+                  : _save,
               isLoading: _isSaving,
               width: double.infinity,
             ),
@@ -195,7 +213,9 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
           lastDate: DateTime.now(),
           builder: (context, child) => Theme(
             data: Theme.of(context).copyWith(
-              colorScheme: Theme.of(context).colorScheme.copyWith(primary: AppColors.forestGreen),
+              colorScheme: Theme.of(
+                context,
+              ).colorScheme.copyWith(primary: AppColors.forestGreen),
             ),
             child: child!,
           ),
@@ -203,25 +223,51 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
         if (picked != null) setState(() => _selectedDate = picked);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.mistWhite,
+          color: isDark
+              ? AppColors.charcoal.withValues(alpha: 0.2)
+              : AppColors.mistWhite,
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Row(
           children: [
-            Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.forestGreen),
+            Icon(
+              Icons.calendar_today_rounded,
+              size: 16,
+              color: AppColors.forestGreen,
+            ),
             const SizedBox(width: AppSpacing.sm),
             Text(
               DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate),
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+              ),
             ),
             if (_selectedDate.isSameDay(DateTime.now())) ...[
               const SizedBox(width: AppSpacing.sm),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-                decoration: BoxDecoration(color: AppColors.forestGreen.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppRadius.xs)),
-                child: Text('Today', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.forestGreen)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xxs,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.forestGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.xs),
+                ),
+                child: Text(
+                  'Today',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.forestGreen,
+                  ),
+                ),
               ),
             ],
           ],
@@ -239,20 +285,32 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.charcoal.withValues(alpha: 0.3) : AppColors.warmIvory.withValues(alpha: 0.5),
+          color: isDark
+              ? AppColors.charcoal.withValues(alpha: 0.3)
+              : AppColors.warmIvory.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(AppRadius.xl),
         ),
         child: Column(
           children: [
-            Text('Temperature', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.slate)),
+            Text(
+              'Temperature',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.slate),
+            ),
             const SizedBox(height: AppSpacing.sm),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
-              style: (Theme.of(context).textTheme.displayLarge ?? const TextStyle(fontSize: 48)).copyWith(
-                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-                fontWeight: FontWeight.w300,
-                height: 1.0,
-              ),
+              style:
+                  (Theme.of(context).textTheme.displayLarge ??
+                          const TextStyle(fontSize: 48))
+                      .copyWith(
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.charcoal,
+                        fontWeight: FontWeight.w300,
+                        height: 1.0,
+                      ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,7 +318,11 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
                   Text(_temperatureString),
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text('°C', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.slate)),
+                    child: Text(
+                      '°C',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(color: AppColors.slate),
+                    ),
                   ),
                 ],
               ),
@@ -276,15 +338,29 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
       label: 'Temperature number pad',
       child: Column(
         children: [
-          for (final row in [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['', '0', 'del']])
+          for (final row in [
+            ['1', '2', '3'],
+            ['4', '5', '6'],
+            ['7', '8', '9'],
+            ['', '0', 'del'],
+          ])
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: row.map((digit) {
-                  if (digit == 'del') return _NumberPadButton(label: Icons.backspace_outlined, isIcon: true, onPressed: _onDeletePressed);
-                  if (digit.isEmpty) return const SizedBox(width: 72, height: 56);
-                  return _NumberPadButton(label: digit, onPressed: () => _onDigitPressed(digit));
+                  if (digit == 'del')
+                    return _NumberPadButton(
+                      label: Icons.backspace_outlined,
+                      isIcon: true,
+                      onPressed: _onDeletePressed,
+                    );
+                  if (digit.isEmpty)
+                    return const SizedBox(width: 72, height: 56);
+                  return _NumberPadButton(
+                    label: digit,
+                    onPressed: () => _onDigitPressed(digit),
+                  );
                 }).toList(),
               ),
             ),
@@ -297,9 +373,13 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Measurement Method', style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w500,
-        )),
+        Text(
+          'Measurement Method',
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         const SizedBox(height: AppSpacing.sm),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -312,19 +392,39 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
                   onTap: () => setState(() => _measurementMethod = method),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                      vertical: AppSpacing.sm,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.forestGreen.withValues(alpha: isDark ? 0.3 : 0.12) : Colors.transparent,
+                      color: isSelected
+                          ? AppColors.forestGreen.withValues(
+                              alpha: isDark ? 0.3 : 0.12,
+                            )
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(AppRadius.xl),
                       border: Border.all(
-                        color: isSelected ? AppColors.forestGreen : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                        color: isSelected
+                            ? AppColors.forestGreen
+                            : (isDark
+                                  ? AppColors.borderDark
+                                  : AppColors.borderLight),
                         width: isSelected ? 2 : 1,
                       ),
                     ),
-                    child: Text(_methodLabel(method), style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: isSelected ? (isDark ? Colors.white : AppColors.forestGreen) : (isDark ? AppColors.textSecondaryDark : AppColors.slate),
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    )),
+                    child: Text(
+                      _methodLabel(method),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: isSelected
+                            ? (isDark ? Colors.white : AppColors.forestGreen)
+                            : (isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.slate),
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -343,23 +443,42 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.warmIvory.withValues(alpha: 0.4),
+          color: isDark
+              ? AppColors.charcoal.withValues(alpha: 0.2)
+              : AppColors.warmIvory.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          ),
         ),
         child: Row(
           children: [
-            Icon(Icons.access_time_rounded, size: 20, color: AppColors.forestGreen),
+            Icon(
+              Icons.access_time_rounded,
+              size: 20,
+              color: AppColors.forestGreen,
+            ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Time', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate)),
+                  Text(
+                    'Time',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                  ),
                   const SizedBox(height: AppSpacing.xxs),
-                  Text(timeString, style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w500,
-                  )),
+                  Text(
+                    timeString,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.charcoal,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -376,10 +495,16 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
       maxLines: 3,
       decoration: InputDecoration(
         hintText: 'Add notes (optional)',
-        prefixIcon: Icon(Icons.edit_note_rounded, size: 20, color: AppColors.slate),
+        prefixIcon: Icon(
+          Icons.edit_note_rounded,
+          size: 20,
+          color: AppColors.slate,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: BorderSide(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+          borderSide: BorderSide(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          ),
         ),
       ),
       textCapitalization: TextCapitalization.sentences,
@@ -397,20 +522,30 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.lightbulb_outline_rounded, size: 20, color: AppColors.forestGreen),
+          Icon(
+            Icons.lightbulb_outline_rounded,
+            size: 20,
+            color: AppColors.forestGreen,
+          ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tips for accurate BBT', style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: AppColors.forestGreen, fontWeight: FontWeight.w600,
-                )),
+                Text(
+                  'Tips for accurate BBT',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: AppColors.forestGreen,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'Measure at the same time each day before getting out of bed. '
                   'Aim for at least 3-4 hours of uninterrupted sleep beforehand.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                 ),
               ],
             ),
@@ -426,7 +561,11 @@ class _NumberPadButton extends StatelessWidget {
   final bool isIcon;
   final VoidCallback onPressed;
 
-  const _NumberPadButton({required this.label, this.isIcon = false, required this.onPressed});
+  const _NumberPadButton({
+    required this.label,
+    this.isIcon = false,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -437,7 +576,9 @@ class _NumberPadButton extends StatelessWidget {
         button: true,
         label: isIcon ? 'Delete' : 'Digit $label',
         child: Material(
-          color: isDark ? AppColors.charcoal.withValues(alpha: 0.3) : AppColors.mistWhite,
+          color: isDark
+              ? AppColors.charcoal.withValues(alpha: 0.3)
+              : AppColors.mistWhite,
           borderRadius: BorderRadius.circular(AppRadius.md),
           child: InkWell(
             onTap: onPressed,
@@ -445,11 +586,21 @@ class _NumberPadButton extends StatelessWidget {
             splashColor: AppColors.forestGreen.withValues(alpha: 0.1),
             highlightColor: AppColors.forestGreen.withValues(alpha: 0.05),
             child: Container(
-              width: 72, height: 56,
+              width: 72,
+              height: 56,
               alignment: Alignment.center,
               child: isIcon
                   ? Icon(label as IconData, size: 22, color: AppColors.slate)
-                  : Text('$label', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400, color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal)),
+                  : Text(
+                      '$label',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w400,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.charcoal,
+                      ),
+                    ),
             ),
           ),
         ),

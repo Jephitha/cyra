@@ -72,6 +72,20 @@ Map<String, dynamic> _$$FetalMeasurementImplToJson(
   'notes': instance.notes,
 };
 
+_$ContractionImpl _$$ContractionImplFromJson(Map<String, dynamic> json) =>
+    _$ContractionImpl(
+      startTime: DateTime.parse(json['startTime'] as String),
+      duration: Duration(microseconds: (json['duration'] as num).toInt()),
+      intensity: (json['intensity'] as num?)?.toDouble() ?? 1.0,
+    );
+
+Map<String, dynamic> _$$ContractionImplToJson(_$ContractionImpl instance) =>
+    <String, dynamic>{
+      'startTime': instance.startTime.toIso8601String(),
+      'duration': instance.duration.inMicroseconds,
+      'intensity': instance.intensity,
+    };
+
 _$KickLogImpl _$$KickLogImplFromJson(Map<String, dynamic> json) =>
     _$KickLogImpl(
       id: json['id'] as String,
