@@ -8,7 +8,8 @@ import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/confidence_badge.dart';
-import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart' as indicator;
+import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart'
+    as indicator;
 import 'package:cyra/core/design/widgets/health_stat_card.dart';
 import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/core/ml/correlation_engine.dart';
@@ -46,7 +47,8 @@ class InsightsHubScreen extends ConsumerWidget {
 
     if (!state.aiDisclaimerAccepted) {
       return AIDisclaimerScreen(
-        onAccept: () => ref.read(_insightsHubProvider.notifier).acceptDisclaimer(),
+        onAccept: () =>
+            ref.read(_insightsHubProvider.notifier).acceptDisclaimer(),
       );
     }
 
@@ -59,7 +61,14 @@ class InsightsHubScreen extends ConsumerWidget {
             if (dashboard.nextPeriod.confidenceScore < 0.01) {
               return _buildEmptyState(context, isDark, ref);
             }
-            return _buildContent(context, dashboard, weeklyAsync, tipAsync, isDark, ref);
+            return _buildContent(
+              context,
+              dashboard,
+              weeklyAsync,
+              tipAsync,
+              isDark,
+              ref,
+            );
           },
           loading: () => _buildLoadingState(context, isDark),
           error: (_, __) => _buildEmptyState(context, isDark, ref),
@@ -76,7 +85,6 @@ class InsightsHubScreen extends ConsumerWidget {
     bool isDark,
     WidgetRef ref,
   ) {
-
     final prediction = dashboard.nextPeriod;
     final regularity = dashboard.regularity;
     final topSymptoms = dashboard.topSymptoms;
@@ -87,25 +95,48 @@ class InsightsHubScreen extends ConsumerWidget {
       if (fertileWindow.isInWindow) {
         fertileWindowStatus = 'In fertile window';
       } else {
-        fertileWindowStatus = 'Fertile window: ${_formatDate(fertileWindow.windowStart)} - ${_formatDate(fertileWindow.windowEnd)}';
+        fertileWindowStatus =
+            'Fertile window: ${_formatDate(fertileWindow.windowStart)} - ${_formatDate(fertileWindow.windowEnd)}';
       }
     }
 
     String ovulationStatus = 'Insufficient data';
     if (fertileWindow?.ovulationDate != null) {
-      ovulationStatus = 'Ovulation around ${_formatDate(fertileWindow!.ovulationDate!)}';
+      ovulationStatus =
+          'Ovulation around ${_formatDate(fertileWindow!.ovulationDate!)}';
     }
 
-    final symptomsLogged = topSymptoms.fold<int>(0, (int a, ImpactfulSymptom b) => a + b.frequency);
+    final symptomsLogged = topSymptoms.fold<int>(
+      0,
+      (int a, ImpactfulSymptom b) => a + b.frequency,
+    );
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xxxxl, AppSpacing.lg, AppSpacing.xxxl),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.xxxxl,
+        AppSpacing.lg,
+        AppSpacing.xxxl,
+      ),
       children: [
         _buildHeader(context, dashboard.currentPhase, isDark),
         const SizedBox(height: AppSpacing.lg),
-        _buildWeeklySummary(context, dashboard.weeklySummary, symptomsLogged, topSymptoms.length, weeklyAsync, isDark),
+        _buildWeeklySummary(
+          context,
+          dashboard.weeklySummary,
+          symptomsLogged,
+          topSymptoms.length,
+          weeklyAsync,
+          isDark,
+        ),
         const SizedBox(height: AppSpacing.lg),
-        _buildSmartPredictions(context, prediction, fertileWindowStatus, ovulationStatus, isDark),
+        _buildSmartPredictions(
+          context,
+          prediction,
+          fertileWindowStatus,
+          ovulationStatus,
+          isDark,
+        ),
         const SizedBox(height: AppSpacing.lg),
         _buildSymptomInsights(context, topSymptoms, isDark),
         const SizedBox(height: AppSpacing.lg),
@@ -119,8 +150,12 @@ class InsightsHubScreen extends ConsumerWidget {
   }
 
   Widget _buildLoadingState(BuildContext context, bool isDark) {
-    final baseColor = isDark ? AppColors.charcoal.withValues(alpha: 0.3) : AppColors.borderLight;
-    final highlightColor = isDark ? AppColors.charcoal.withValues(alpha: 0.5) : AppColors.mistWhite;
+    final baseColor = isDark
+        ? AppColors.charcoal.withValues(alpha: 0.3)
+        : AppColors.borderLight;
+    final highlightColor = isDark
+        ? AppColors.charcoal.withValues(alpha: 0.5)
+        : AppColors.mistWhite;
 
     return Shimmer.fromColors(
       baseColor: baseColor,
@@ -168,22 +203,26 @@ class InsightsHubScreen extends ConsumerWidget {
                 color: AppColors.forestGreen.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.auto_awesome, size: 40, color: AppColors.forestGreen),
+              child: Icon(
+                Icons.auto_awesome,
+                size: 40,
+                color: AppColors.forestGreen,
+              ),
             ),
             const SizedBox(height: AppSpacing.xxl),
             Text(
-              'Your AI Insights',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              'Your Local Insights',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Track your cycles to unlock personalized AI insights about your patterns and health.',
+              'Track your cycles to unlock private, on-device insights about your patterns and health.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColors.slate,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: AppColors.slate),
             ),
             const SizedBox(height: AppSpacing.xl),
             AppButton.primary(
@@ -199,14 +238,22 @@ class InsightsHubScreen extends ConsumerWidget {
 
   indicator.CyclePhase _toIndicatorPhase(models.CyclePhase phase) {
     switch (phase) {
-      case models.CyclePhase.menstrual: return indicator.CyclePhase.menstrual;
-      case models.CyclePhase.follicular: return indicator.CyclePhase.follicular;
-      case models.CyclePhase.ovulation: return indicator.CyclePhase.ovulation;
-      case models.CyclePhase.luteal: return indicator.CyclePhase.luteal;
+      case models.CyclePhase.menstrual:
+        return indicator.CyclePhase.menstrual;
+      case models.CyclePhase.follicular:
+        return indicator.CyclePhase.follicular;
+      case models.CyclePhase.ovulation:
+        return indicator.CyclePhase.ovulation;
+      case models.CyclePhase.luteal:
+        return indicator.CyclePhase.luteal;
     }
   }
 
-  Widget _buildHeader(BuildContext context, models.CyclePhase phase, bool isDark) {
+  Widget _buildHeader(
+    BuildContext context,
+    models.CyclePhase phase,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -222,7 +269,7 @@ class InsightsHubScreen extends ConsumerWidget {
             ),
             const SizedBox(width: AppSpacing.sm),
             Text(
-              'AI Insights',
+              'Local Insights',
               style: AppTypography.light.titleMedium?.copyWith(
                 color: AppColors.slate,
                 letterSpacing: 1.2,
@@ -232,7 +279,7 @@ class InsightsHubScreen extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Your Intelligence Center',
+          'Your Insight Center',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
             fontWeight: FontWeight.w600,
@@ -264,12 +311,18 @@ class InsightsHubScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.summarize_rounded, size: 20, color: AppColors.forestGreen),
+              Icon(
+                Icons.summarize_rounded,
+                size: 20,
+                color: AppColors.forestGreen,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Your Week in Review',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -321,19 +374,27 @@ class InsightsHubScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.forestGreen.withValues(alpha: isDark ? 0.15 : 0.08),
+              color: AppColors.forestGreen.withValues(
+                alpha: isDark ? 0.15 : 0.08,
+              ),
               borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.lightbulb_outlined, size: 18, color: AppColors.softGold),
+                Icon(
+                  Icons.lightbulb_outlined,
+                  size: 18,
+                  color: AppColors.softGold,
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     weekly?.keyInsight ?? weeklySummary,
                     style: AppTypography.light.bodySmall?.copyWith(
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.charcoal,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.charcoal,
                     ),
                   ),
                 ),
@@ -344,7 +405,11 @@ class InsightsHubScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
-                Icon(Icons.tips_and_updates_outlined, size: 16, color: AppColors.sage),
+                Icon(
+                  Icons.tips_and_updates_outlined,
+                  size: 16,
+                  color: AppColors.sage,
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
@@ -382,7 +447,9 @@ class InsightsHubScreen extends ConsumerWidget {
               Text(
                 'Smart Predictions',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -393,7 +460,8 @@ class InsightsHubScreen extends ConsumerWidget {
             _PredictionRow(
               icon: Icons.water_drop_rounded,
               label: 'Next Period',
-              value: 'In ${DateTime.now().daysUntil(prediction.predictedDate)} days',
+              value:
+                  'In ${DateTime.now().daysUntil(prediction.predictedDate)} days',
               badge: ConfidenceBadge(confidence: prediction.confidenceScore),
               isDark: isDark,
             ),
@@ -423,7 +491,10 @@ class InsightsHubScreen extends ConsumerWidget {
               ),
               child: Text(
                 'View details',
-                style: TextStyle(color: AppColors.forestGreen, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: AppColors.forestGreen,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
@@ -449,7 +520,9 @@ class InsightsHubScreen extends ConsumerWidget {
               Text(
                 'Symptom Insights',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -462,7 +535,9 @@ class InsightsHubScreen extends ConsumerWidget {
               child: Center(
                 child: Text(
                   'Track more symptoms to see patterns',
-                  style: AppTypography.light.bodySmall?.copyWith(color: AppColors.slate),
+                  style: AppTypography.light.bodySmall?.copyWith(
+                    color: AppColors.slate,
+                  ),
                 ),
               ),
             ),
@@ -474,10 +549,14 @@ class InsightsHubScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            ...topSymptoms.take(3).map((s) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: _ImpactfulSymptomCard(symptom: s, isDark: isDark),
-            )),
+            ...topSymptoms
+                .take(3)
+                .map(
+                  (s) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: _ImpactfulSymptomCard(symptom: s, isDark: isDark),
+                  ),
+                ),
           ],
           Align(
             alignment: Alignment.centerRight,
@@ -489,7 +568,10 @@ class InsightsHubScreen extends ConsumerWidget {
               ),
               child: Text(
                 'See all patterns',
-                style: TextStyle(color: AppColors.forestGreen, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: AppColors.forestGreen,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
@@ -517,12 +599,18 @@ class InsightsHubScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.repeat_rounded, size: 20, color: AppColors.forestGreen),
+              Icon(
+                Icons.repeat_rounded,
+                size: 20,
+                color: AppColors.forestGreen,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Cycle Insights',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -556,12 +644,16 @@ class InsightsHubScreen extends ConsumerWidget {
             child: TextButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => const TopicDetailScreen(topic: 'cycle_regularity'),
+                  builder: (_) =>
+                      const TopicDetailScreen(topic: 'cycle_regularity'),
                 ),
               ),
               child: Text(
                 'View cycle analysis',
-                style: TextStyle(color: AppColors.forestGreen, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: AppColors.forestGreen,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
@@ -582,12 +674,18 @@ class InsightsHubScreen extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: Row(
             children: [
-              Icon(Icons.tips_and_updates_outlined, size: 20, color: AppColors.softGold),
+              Icon(
+                Icons.tips_and_updates_outlined,
+                size: 20,
+                color: AppColors.softGold,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Personalized Tips',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -606,17 +704,25 @@ class InsightsHubScreen extends ConsumerWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.softGold.withValues(alpha: isDark ? 0.2 : 0.1),
+                      color: AppColors.softGold.withValues(
+                        alpha: isDark ? 0.2 : 0.1,
+                      ),
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
-                    child: Icon(Icons.tips_and_updates_outlined, size: 20, color: AppColors.softGold),
+                    child: Icon(
+                      Icons.tips_and_updates_outlined,
+                      size: 20,
+                      color: AppColors.softGold,
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(
                       tip,
                       style: AppTypography.light.bodySmall?.copyWith(
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.charcoal,
                       ),
                     ),
                   ),
@@ -646,7 +752,7 @@ class InsightsHubScreen extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Text(
-        'AI insights are educational and based on pattern recognition from your logged data. '
+        'Local insights are educational and use on-device rules and statistics from your logged data. '
         'They are not medical diagnoses. Always consult a healthcare provider for medical advice.',
         textAlign: TextAlign.center,
         style: AppTypography.light.labelSmall?.copyWith(
@@ -659,8 +765,18 @@ class InsightsHubScreen extends ConsumerWidget {
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}';
   }
@@ -693,13 +809,17 @@ class _PredictionRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: AppTypography.light.labelMedium?.copyWith(color: AppColors.slate),
+                style: AppTypography.light.labelMedium?.copyWith(
+                  color: AppColors.slate,
+                ),
               ),
               const SizedBox(height: AppSpacing.xxs),
               Text(
                 value,
                 style: AppTypography.light.bodyMedium?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -723,9 +843,13 @@ class _ImpactfulSymptomCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.warmIvory.withValues(alpha: 0.4),
+        color: isDark
+            ? AppColors.charcoal.withValues(alpha: 0.2)
+            : AppColors.warmIvory.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -736,7 +860,9 @@ class _ImpactfulSymptomCard extends StatelessWidget {
                 symptom.symptomName,
                 style: AppTypography.light.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                 ),
               ),
               const Spacer(),
@@ -746,7 +872,9 @@ class _ImpactfulSymptomCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             '${symptom.frequency} times this cycle \u00b7 Severity ${symptom.averageSeverity.toStringAsFixed(1)}',
-            style: AppTypography.light.bodySmall?.copyWith(color: AppColors.slate),
+            style: AppTypography.light.bodySmall?.copyWith(
+              color: AppColors.slate,
+            ),
           ),
         ],
       ),
@@ -760,16 +888,25 @@ class _SeverityBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = severity >= 3.5 ? AppColors.softGold : (severity >= 2.5 ? AppColors.sage : AppColors.slate);
+    final color = severity >= 3.5
+        ? AppColors.softGold
+        : (severity >= 2.5 ? AppColors.sage : AppColors.slate);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xxs,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
       child: Text(
         severity.toStringAsFixed(1),
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
       ),
     );
   }

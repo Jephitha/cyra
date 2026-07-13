@@ -38,7 +38,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       icon: Icons.loop,
       title: 'Understand Your Cycle',
       subtitle:
-          'Explainable AI that helps you understand your patterns without black-box predictions.',
+          'Explainable, on-device analysis that helps you understand your patterns without black-box predictions.',
       feature1: 'Evidence-based cycle insights',
       feature2: 'Clear, explainable predictions',
       feature3: 'Learn what your body is telling you',
@@ -97,7 +97,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       body: AnimatedBuilder(
         animation: _pageController,
         builder: (context, _) {
-          final progress = _pageController.hasClients ? _pageController.page ?? 0 : 0.0;
+          final progress = _pageController.hasClients
+              ? _pageController.page ?? 0
+              : 0.0;
           final index = progress.floor();
           final fraction = progress - index;
           final nextIndex = (index + 1).clamp(0, _gradients.length - 1);
@@ -199,10 +201,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Colors.transparent,
-            AppColors.shadow.withValues(alpha: 0.2),
-          ],
+          colors: [Colors.transparent, AppColors.shadow.withValues(alpha: 0.2)],
         ),
       ),
       child: Column(

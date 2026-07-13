@@ -238,11 +238,10 @@ temperature/sleep/HRV and feeds it into `OvulationDetector`/`HealthInsightsEngin
 Completed by T10/T10a: the authenticated `DataExportService` flow now generates a readable,
 shareable cycle and symptom PDF for care-team or OB-GYN visits, with journals opt-in only.
 
-### T15. AI-assisted insights (optional, evaluate positioning first)
-`core/ml/explanation_engine.dart` currently generates template-based natural-language summaries —
-no LLM integration exists. Decide explicitly whether "AI insights" should mean (a) keep it
-on-device/template-based and market it honestly as "smart local insights," or (b) integrate a real
-model. Don't let marketing copy get ahead of what's actually implemented.
+### [x] T15. AI-assisted insights (optional, evaluate positioning first)
+Decision: keep the deterministic, on-device prediction, correlation, and template engines and
+market them honestly as **Smart Local Insights**. No health data is sent to a remote model, and
+user-facing copy now states this explicitly instead of claiming an AI-powered implementation.
 
 ---
 

@@ -131,7 +131,10 @@ class InsightDetailCard extends StatelessWidget {
             ),
           ),
         ),
-        ConfidenceBadge(confidence: confidence, size: ConfidenceBadgeSize.small),
+        ConfidenceBadge(
+          confidence: confidence,
+          size: ConfidenceBadgeSize.small,
+        ),
       ],
     );
   }
@@ -145,7 +148,9 @@ class InsightDetailCard extends StatelessWidget {
           children: [
             Text(
               'Confidence',
-              style: AppTypography.light.labelSmall?.copyWith(color: AppColors.slate),
+              style: AppTypography.light.labelSmall?.copyWith(
+                color: AppColors.slate,
+              ),
             ),
             Text(
               '${(confidence * 100).round()}%',
@@ -203,7 +208,11 @@ class InsightDetailCard extends StatelessWidget {
   Widget _buildFooter(BuildContext context, bool isDark) {
     return Row(
       children: [
-        Icon(Icons.touch_app_outlined, size: 14, color: AppColors.slate.withValues(alpha: 0.5)),
+        Icon(
+          Icons.touch_app_outlined,
+          size: 14,
+          color: AppColors.slate.withValues(alpha: 0.5),
+        ),
         const SizedBox(width: AppSpacing.xs),
         Text(
           'Tap for details',
@@ -212,10 +221,14 @@ class InsightDetailCard extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        Icon(Icons.auto_awesome, size: 14, color: AppColors.forestGreen.withValues(alpha: 0.5)),
+        Icon(
+          Icons.auto_awesome,
+          size: 14,
+          color: AppColors.forestGreen.withValues(alpha: 0.5),
+        ),
         const SizedBox(width: AppSpacing.xs),
         Text(
-          'AI Insight',
+          'Local insight',
           style: AppTypography.light.labelSmall?.copyWith(
             color: AppColors.forestGreen.withValues(alpha: 0.5),
           ),
@@ -242,7 +255,9 @@ class _ConfidenceArc extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.xs),
       child: LinearProgressIndicator(
         value: confidence,
-        backgroundColor: isDark ? AppColors.charcoal.withValues(alpha: 0.3) : AppColors.borderLight,
+        backgroundColor: isDark
+            ? AppColors.charcoal.withValues(alpha: 0.3)
+            : AppColors.borderLight,
         color: color,
         minHeight: 6,
       ),

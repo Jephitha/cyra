@@ -21,7 +21,12 @@ class AIDisclaimerScreen extends StatelessWidget {
       child: Scaffold(
         body: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.xxxl, AppSpacing.xxl, AppSpacing.xxl),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xxl,
+              AppSpacing.xxxl,
+              AppSpacing.xxl,
+              AppSpacing.xxl,
+            ),
             children: [
               _buildHeader(context, isDark),
               const SizedBox(height: AppSpacing.xxxl),
@@ -63,7 +68,7 @@ class AIDisclaimerScreen extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xxl),
         Text(
-          'AI Insights & Intelligence',
+          'Smart Local Insights',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
@@ -72,7 +77,7 @@ class AIDisclaimerScreen extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         Text(
-          'Before you begin using Cyra\'s AI-powered insights, please review how this feature works.',
+          'Before you begin, review how Cyra creates private insights from the data stored on your device.',
           textAlign: TextAlign.center,
           style: AppTypography.light.bodyMedium?.copyWith(
             color: AppColors.slate,
@@ -91,12 +96,18 @@ class AIDisclaimerScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.check_circle_outlined, size: 22, color: AppColors.success),
+              Icon(
+                Icons.check_circle_outlined,
+                size: 22,
+                color: AppColors.success,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'What Cyra Can Do',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -105,31 +116,36 @@ class AIDisclaimerScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           _BulletPoint(
             icon: Icons.auto_awesome,
-            text: 'Provide educational insights about menstrual cycle phases, symptoms, and patterns based on your logged data.',
+            text:
+                'Provide educational insights about menstrual cycle phases, symptoms, and patterns based on your logged data.',
             isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.sm),
           _BulletPoint(
             icon: Icons.pattern_outlined,
-            text: 'Recognize patterns in your tracked symptoms, mood, and cycle length to help you understand your unique cycle.',
+            text:
+                'Recognize patterns in your tracked symptoms, mood, and cycle length to help you understand your unique cycle.',
             isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.sm),
           _BulletPoint(
             icon: Icons.calendar_month_outlined,
-            text: 'Generate predictions for your next period, fertile window, and ovulation based on your historical cycle data.',
+            text:
+                'Generate predictions for your next period, fertile window, and ovulation based on your historical cycle data.',
             isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.sm),
           _BulletPoint(
             icon: Icons.tips_and_updates_outlined,
-            text: 'Offer general health tips and educational content contextualized to your current cycle phase.',
+            text:
+                'Offer general health tips and educational content contextualized to your current cycle phase.',
             isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.sm),
           _BulletPoint(
             icon: Icons.shield_outlined,
-            text: 'Present information in a clear, accessible way to support your health literacy and awareness.',
+            text:
+                'Present information in a clear, accessible way to support your health literacy and awareness.',
             isDark: isDark,
           ),
         ],
@@ -150,7 +166,9 @@ class AIDisclaimerScreen extends StatelessWidget {
               Text(
                 'What Cyra Cannot Do',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -159,7 +177,8 @@ class AIDisclaimerScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           _BulletPoint(
             icon: Icons.medical_services_outlined,
-            text: 'Diagnose medical conditions, diseases, or disorders of any kind.',
+            text:
+                'Diagnose medical conditions, diseases, or disorders of any kind.',
             isDark: isDark,
             isWarning: true,
           ),
@@ -180,21 +199,24 @@ class AIDisclaimerScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           _BulletPoint(
             icon: Icons.person_off_outlined,
-            text: 'Replace professional medical advice, diagnosis, or treatment from a qualified healthcare provider.',
+            text:
+                'Replace professional medical advice, diagnosis, or treatment from a qualified healthcare provider.',
             isDark: isDark,
             isWarning: true,
           ),
           const SizedBox(height: AppSpacing.sm),
           _BulletPoint(
             icon: Icons.child_care_outlined,
-            text: 'Confirm or rule out pregnancy, fertility issues, or any other medical condition.',
+            text:
+                'Confirm or rule out pregnancy, fertility issues, or any other medical condition.',
             isDark: isDark,
             isWarning: true,
           ),
           const SizedBox(height: AppSpacing.sm),
           _BulletPoint(
             icon: Icons.emergency_outlined,
-            text: 'Provide emergency medical assistance. If you have a medical emergency, call emergency services immediately.',
+            text:
+                'Provide emergency medical assistance. If you have a medical emergency, call emergency services immediately.',
             isDark: isDark,
             isWarning: true,
           ),
@@ -206,19 +228,27 @@ class AIDisclaimerScreen extends StatelessWidget {
   Widget _buildWhenToSeeDoctor(BuildContext context, bool isDark) {
     return AppCard.standard(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      backgroundColor: AppColors.warning.withValues(alpha: isDark ? 0.12 : 0.06),
+      backgroundColor: AppColors.warning.withValues(
+        alpha: isDark ? 0.12 : 0.06,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.warning_amber_outlined, size: 22, color: AppColors.warning),
+              Icon(
+                Icons.warning_amber_outlined,
+                size: 22,
+                color: AppColors.warning,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   'When to See a Doctor',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -233,17 +263,39 @@ class AIDisclaimerScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          _WarningSign(text: 'Periods that suddenly stop for 90 days or more (and you are not pregnant)', isDark: isDark),
+          _WarningSign(
+            text:
+                'Periods that suddenly stop for 90 days or more (and you are not pregnant)',
+            isDark: isDark,
+          ),
           const SizedBox(height: AppSpacing.sm),
-          _WarningSign(text: 'Periods that last longer than 7 days or are unusually heavy (soaking through a pad or tampon every 1-2 hours)', isDark: isDark),
+          _WarningSign(
+            text:
+                'Periods that last longer than 7 days or are unusually heavy (soaking through a pad or tampon every 1-2 hours)',
+            isDark: isDark,
+          ),
           const SizedBox(height: AppSpacing.sm),
-          _WarningSign(text: 'Severe pain that interferes with daily life or is not relieved by over-the-counter medication', isDark: isDark),
+          _WarningSign(
+            text:
+                'Severe pain that interferes with daily life or is not relieved by over-the-counter medication',
+            isDark: isDark,
+          ),
           const SizedBox(height: AppSpacing.sm),
-          _WarningSign(text: 'Bleeding between periods or after intercourse', isDark: isDark),
+          _WarningSign(
+            text: 'Bleeding between periods or after intercourse',
+            isDark: isDark,
+          ),
           const SizedBox(height: AppSpacing.sm),
-          _WarningSign(text: 'Cycles shorter than 21 days or longer than 45 days', isDark: isDark),
+          _WarningSign(
+            text: 'Cycles shorter than 21 days or longer than 45 days',
+            isDark: isDark,
+          ),
           const SizedBox(height: AppSpacing.sm),
-          _WarningSign(text: 'Sudden changes in your cycle pattern that persist for multiple cycles', isDark: isDark),
+          _WarningSign(
+            text:
+                'Sudden changes in your cycle pattern that persist for multiple cycles',
+            isDark: isDark,
+          ),
         ],
       ),
     );
@@ -253,7 +305,9 @@ class AIDisclaimerScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.warmIvory.withValues(alpha: 0.4),
+        color: isDark
+            ? AppColors.charcoal.withValues(alpha: 0.2)
+            : AppColors.warmIvory.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Column(
@@ -266,7 +320,9 @@ class AIDisclaimerScreen extends StatelessWidget {
               Text(
                 'Medical Disclaimer',
                 style: AppTypography.light.labelMedium?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -274,18 +330,18 @@ class AIDisclaimerScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'The AI Insights feature in Cyra is designed for educational and informational purposes only. '
-            'It uses pattern recognition algorithms to analyze data you voluntarily log in the app. '
-            'All insights, predictions, and recommendations are pre-computed based on established medical '
-            'guidelines and your personal cycle data.\n\n'
+            'Smart Local Insights in Cyra are designed for educational and informational purposes only. '
+            'They use deterministic rules and statistical pattern analysis on data you voluntarily log. '
+            'This feature runs on your device and does not send your health data to a remote AI model. '
+            'Insights and predictions are generated from established cycle-tracking methods and your personal data.\n\n'
             'Cyra does not provide medical advice, diagnosis, or treatment. The information provided through '
-            'AI Insights should not be used as a substitute for professional medical care. Always consult '
+            'Smart Local Insights should not be used as a substitute for professional medical care. Always consult '
             'a qualified healthcare provider with any questions you may have regarding a medical condition '
             'or health concern.\n\n'
             'Your health data is encrypted and stored securely. Cyra does not share your personal health '
             'information with third parties without your explicit consent. For more information, review '
             'our Privacy Policy.\n\n'
-            'By using AI Insights, you acknowledge that:\n'
+            'By using Smart Local Insights, you acknowledge that:\n'
             '- You understand the limitations of this feature\n'
             '- You will not rely on it for medical decision-making\n'
             '- You will seek professional medical care when needed\n'
@@ -337,11 +393,7 @@ class AIDisclaimerScreen extends StatelessWidget {
           isDark: isDark,
         ),
         const SizedBox(height: AppSpacing.sm),
-        _ExternalLink(
-          label: 'Cyra Privacy Policy',
-          url: null,
-          isDark: isDark,
-        ),
+        _ExternalLink(label: 'Cyra Privacy Policy', url: null, isDark: isDark),
       ],
     );
   }
@@ -447,28 +499,36 @@ class _ExternalLink extends StatelessWidget {
   final String? url;
   final bool isDark;
 
-  const _ExternalLink({
-    required this.label,
-    this.url,
-    required this.isDark,
-  });
+  const _ExternalLink({required this.label, this.url, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       label: 'External link: $label',
       child: InkWell(
-        onTap: url != null ? () => launchUrl(Uri.parse(url!), mode: LaunchMode.externalApplication) : null,
+        onTap: url != null
+            ? () => launchUrl(
+                Uri.parse(url!),
+                mode: LaunchMode.externalApplication,
+              )
+            : null,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Row(
             children: [
-              Icon(url != null ? Icons.open_in_new_outlined : Icons.link_off, size: 16, color: AppColors.forestGreen),
+              Icon(
+                url != null ? Icons.open_in_new_outlined : Icons.link_off,
+                size: 16,
+                color: AppColors.forestGreen,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(color: AppColors.forestGreen, decoration: TextDecoration.underline),
+                  style: TextStyle(
+                    color: AppColors.forestGreen,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ],
