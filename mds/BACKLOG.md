@@ -228,7 +228,7 @@ real predicted period/fertile dates, not just a settings UI with no backing logi
 
 ## P4 — Breadth (parity + differentiation vs. incumbents)
 
-### T13. Wearable integration (Health Connect / Apple Health)
+### [x] T13. Wearable integration (Health Connect / Apple Health)
 DB table (`wearable_sources_table`) and Android manifest permission already present, but no
 `health` package dependency exists yet. Add it, build a sync service that reads
 temperature/sleep/HRV and feeds it into `OvulationDetector`/`HealthInsightsEngine`, and add a

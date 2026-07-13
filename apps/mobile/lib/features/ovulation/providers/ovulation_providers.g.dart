@@ -60,7 +60,7 @@ final fertileWindowProvider = AutoDisposeFutureProvider<FertileWindow>.internal(
 // ignore: unused_element
 typedef FertileWindowRef = AutoDisposeFutureProviderRef<FertileWindow>;
 String _$ovulationDetectionHash() =>
-    r'b92c1564476a54f4e65b8def20e47ef0ca7aaf0d';
+    r'fe695b7101ef20f3d48d8790d2d38caa18c79d0b';
 
 /// See also [ovulationDetection].
 @ProviderFor(ovulationDetection)
@@ -98,7 +98,7 @@ final conceptionLikelihoodProvider =
 // ignore: unused_element
 typedef ConceptionLikelihoodRef =
     AutoDisposeFutureProviderRef<ConceptionLikelihood>;
-String _$bbtForCycleHash() => r'64bfa9ad925c7157aac805dc2eb8f21d0f55bbb2';
+String _$bbtForCycleHash() => r'46af1fd5d0334b232b25373b6e9a1c94241890e9';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -238,7 +238,7 @@ class _BbtForCycleProviderElement
   String get cycleId => (origin as BbtForCycleProvider).cycleId;
 }
 
-String _$opkForCycleHash() => r'4382523bf0daa404a2f3d7c244c4db4e05f63cce';
+String _$opkForCycleHash() => r'6d878d56248e9abb287dfe7af865bdb3d23b6b1b';
 
 /// See also [opkForCycle].
 @ProviderFor(opkForCycle)
@@ -358,7 +358,7 @@ class _OpkForCycleProviderElement
   String get cycleId => (origin as OpkForCycleProvider).cycleId;
 }
 
-String _$mucusForCycleHash() => r'f6936fe026917674590a4d289909b04a9cfd91ab';
+String _$mucusForCycleHash() => r'01fb47c60986dcc8056820544c936fc64370bd89';
 
 /// See also [mucusForCycle].
 @ProviderFor(mucusForCycle)

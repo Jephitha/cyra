@@ -220,9 +220,9 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
               ),
               _buildDataTypeToggle(
                 isDark,
-                'Activity',
-                'activity',
-                Icons.directions_walk_rounded,
+                'Heart Rate Variability',
+                'hrv',
+                Icons.show_chart_rounded,
               ),
             ],
           ),
@@ -319,9 +319,9 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                 accentColor: AppColors.deviceGeneric,
               ),
               HealthStatCard(
-                label: 'Steps',
-                value: _formatSteps(summary.stepCount),
-                icon: Icons.directions_walk_rounded,
+                label: 'Avg HRV',
+                value: '${summary.averageHrv.toStringAsFixed(0)} ms',
+                icon: Icons.show_chart_rounded,
                 accentColor: AppColors.forestGreen,
               ),
             ],
@@ -337,7 +337,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
               HealthStatCard(label: '', value: '', icon: Icons.thermostat_rounded, isLoading: true),
               HealthStatCard(label: '', value: '', icon: Icons.monitor_heart_rounded, isLoading: true),
               HealthStatCard(label: '', value: '', icon: Icons.bedtime_rounded, isLoading: true),
-              HealthStatCard(label: '', value: '', icon: Icons.directions_walk_rounded, isLoading: true),
+              HealthStatCard(label: '', value: '', icon: Icons.show_chart_rounded, isLoading: true),
             ],
           ),
           error: (_, __) => AppCard.standard(
@@ -470,6 +470,9 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
     Color color;
 
     switch (type) {
+      case WearableType.healthConnect:
+        icon = Icons.health_and_safety_rounded;
+        color = AppColors.forestGreen;
       case WearableType.appleWatch:
         icon = Icons.watch_rounded;
         color = AppColors.shadow;
@@ -504,10 +507,4 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
     );
   }
 
-  String _formatSteps(int steps) {
-    if (steps >= 1000) {
-      return '${(steps / 1000).toStringAsFixed(1)}k';
-    }
-    return steps.toString();
-  }
 }

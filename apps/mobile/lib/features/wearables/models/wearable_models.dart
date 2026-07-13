@@ -4,6 +4,7 @@ part 'wearable_models.freezed.dart';
 part 'wearable_models.g.dart';
 
 enum WearableType {
+  healthConnect,
   appleWatch,
   fitbit,
   garmin,
@@ -16,6 +17,8 @@ enum WearableType {
 extension WearableTypeX on WearableType {
   String get displayName {
     switch (this) {
+      case WearableType.healthConnect:
+        return 'Health Connect';
       case WearableType.appleWatch:
         return 'Apple Watch';
       case WearableType.fitbit:
@@ -35,6 +38,8 @@ extension WearableTypeX on WearableType {
 
   String get description {
     switch (this) {
+      case WearableType.healthConnect:
+        return 'Temperature, heart rate, HRV, and sleep from connected apps and devices';
       case WearableType.appleWatch:
         return 'Temperature, heart rate, sleep, and activity tracking';
       case WearableType.fitbit:
@@ -78,6 +83,7 @@ class WearableDataPoint with _$WearableDataPoint {
     required double value,
     required String type,
     String? source,
+    String? externalId,
   }) = _WearableDataPoint;
 
   factory WearableDataPoint.fromJson(Map<String, dynamic> json) =>
@@ -103,6 +109,7 @@ class WearableDataSummary with _$WearableDataSummary {
     required double averageTemperature,
     required double averageHeartRate,
     required double averageSleepHours,
+    @Default(0.0) double averageHrv,
     required int stepCount,
     required int dataPointCount,
   }) = _WearableDataSummary;

@@ -55,8 +55,6 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
             _buildConnectedDevicesSection(isDark, connectedAsync),
             const SizedBox(height: AppSpacing.xl),
             _buildAvailableDevicesSection(isDark, availableAsync),
-            const SizedBox(height: AppSpacing.xl),
-            _buildDataTypePermissions(isDark),
             const SizedBox(height: AppSpacing.xxl),
             _buildPrivacyNote(isDark),
           ],
@@ -378,98 +376,6 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
     );
   }
 
-  Widget _buildDataTypePermissions(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Data Permissions',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        AppCard.standard(
-          child: Column(
-            children: [
-              _buildPermissionToggle(isDark, 'Temperature Sync', 'temperature',
-                  Icons.thermostat_rounded),
-              const Divider(
-                height: 1,
-                color: AppColors.borderLight,
-              ),
-              _buildPermissionToggle(isDark, 'Sleep Data Sync', 'sleep',
-                  Icons.bedtime_rounded),
-              const Divider(
-                height: 1,
-                color: AppColors.borderLight,
-              ),
-              _buildPermissionToggle(isDark, 'Heart Rate Sync', 'heartRate',
-                  Icons.monitor_heart_rounded),
-              const Divider(
-                height: 1,
-                color: AppColors.borderLight,
-              ),
-              _buildPermissionToggle(isDark, 'Activity Sync', 'activity',
-                  Icons.directions_walk_rounded),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Icon(
-              Icons.lock_rounded,
-              size: 14,
-              color: AppColors.slate,
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Text(
-              'Data is stored locally and encrypted',
-              style: TextStyle(
-                fontSize: 11,
-                color: AppColors.slate,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPermissionToggle(
-    bool isDark,
-    String label,
-    String dataType,
-    IconData icon,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: AppColors.forestGreen),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-              ),
-            ),
-          ),
-          Switch(
-            value: true,
-            activeTrackColor: AppColors.forestGreen,
-            onChanged: (_) {},
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildPrivacyNote(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -511,6 +417,9 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
     Color color;
 
     switch (type) {
+      case WearableType.healthConnect:
+        icon = Icons.health_and_safety_rounded;
+        color = AppColors.forestGreen;
       case WearableType.appleWatch:
         icon = Icons.watch_rounded;
         color = AppColors.shadow;

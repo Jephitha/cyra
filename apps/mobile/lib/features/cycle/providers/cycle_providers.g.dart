@@ -352,7 +352,7 @@ class _CycleDayForDateProviderElement
   DateTime get date => (origin as CycleDayForDateProvider).date;
 }
 
-String _$dashboardInsightsHash() => r'ad958e1baa1f17f9cb00249b03b6a864f4e25fd7';
+String _$dashboardInsightsHash() => r'64dd437e3b8a151aa5296af4e5f7f4b610ff8b9f';
 
 /// See also [dashboardInsights].
 @ProviderFor(dashboardInsights)

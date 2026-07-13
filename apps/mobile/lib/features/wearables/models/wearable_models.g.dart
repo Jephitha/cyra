@@ -40,6 +40,7 @@ Map<String, dynamic> _$$WearableDeviceImplToJson(
 };
 
 const _$WearableTypeEnumMap = {
+  WearableType.healthConnect: 'healthConnect',
   WearableType.appleWatch: 'appleWatch',
   WearableType.fitbit: 'fitbit',
   WearableType.garmin: 'garmin',
@@ -56,6 +57,7 @@ _$WearableDataPointImpl _$$WearableDataPointImplFromJson(
   value: (json['value'] as num).toDouble(),
   type: json['type'] as String,
   source: json['source'] as String?,
+  externalId: json['externalId'] as String?,
 );
 
 Map<String, dynamic> _$$WearableDataPointImplToJson(
@@ -65,6 +67,7 @@ Map<String, dynamic> _$$WearableDataPointImplToJson(
   'value': instance.value,
   'type': instance.type,
   'source': instance.source,
+  'externalId': instance.externalId,
 };
 
 _$WearableSyncStatusImpl _$$WearableSyncStatusImplFromJson(
@@ -93,6 +96,7 @@ _$WearableDataSummaryImpl _$$WearableDataSummaryImplFromJson(
   averageTemperature: (json['averageTemperature'] as num).toDouble(),
   averageHeartRate: (json['averageHeartRate'] as num).toDouble(),
   averageSleepHours: (json['averageSleepHours'] as num).toDouble(),
+  averageHrv: (json['averageHrv'] as num?)?.toDouble() ?? 0.0,
   stepCount: (json['stepCount'] as num).toInt(),
   dataPointCount: (json['dataPointCount'] as num).toInt(),
 );
@@ -103,6 +107,7 @@ Map<String, dynamic> _$$WearableDataSummaryImplToJson(
   'averageTemperature': instance.averageTemperature,
   'averageHeartRate': instance.averageHeartRate,
   'averageSleepHours': instance.averageSleepHours,
+  'averageHrv': instance.averageHrv,
   'stepCount': instance.stepCount,
   'dataPointCount': instance.dataPointCount,
 };

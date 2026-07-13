@@ -9,6 +9,8 @@ import 'package:cyra/features/cycle/repositories/cycle_repository.dart';
 import 'package:cyra/features/ovulation/models/bbt_record.dart';
 import 'package:cyra/features/ovulation/providers/ovulation_providers.dart';
 import 'package:cyra/features/symptoms/providers/symptom_providers.dart';
+import 'package:cyra/features/wearables/providers/wearable_providers.dart';
+import 'package:cyra/features/wearables/models/wearable_models.dart';
 
 part 'cycle_providers.g.dart';
 
@@ -63,6 +65,7 @@ Future<DashboardInsights> dashboardInsights(DashboardInsightsRef ref) async {
   final symptomRepo = ref.watch(symptomRepositoryProvider);
   final ovulationRepo = ref.watch(ovulationRepositoryProvider);
   final engine = ref.watch(healthInsightsEngineProvider);
+  final wearableService = ref.watch(wearableServiceProvider);
 
   final cycles = await cycleRepo.getAllCycles();
 
@@ -73,9 +76,23 @@ Future<DashboardInsights> dashboardInsights(DashboardInsightsRef ref) async {
       ? await cycleRepo.getCycleDays(activeCycle.id)
       : <CycleDay>[];
 
-  final bbtRecords = activeCycle != null
+  final manualBbtRecords = activeCycle != null
       ? await ovulationRepo.getBBTForCycle(activeCycle.id)
       : <BBTRecord>[];
+  final wearableTemperatures = activeCycle != null
+      ? await wearableService.getTemperatureData(
+          activeCycle.startDate,
+          DateTime.now(),
+        )
+      : const <WearableDataPoint>[];
+  final bbtRecords = _mergeBbtRecords(
+    manualBbtRecords,
+    wearableTemperatures.map(wearableService.mapToBBTRecord),
+  );
+  final wearableSummary = await wearableService.getDataSummary(
+    wearableService.platformSourceId,
+    days: 14,
+  );
 
   final now = DateTime.now();
   final symptoms = await symptomRepo.getSymptomsInRange(
@@ -88,7 +105,21 @@ Future<DashboardInsights> dashboardInsights(DashboardInsightsRef ref) async {
     recentDays: recentDays,
     bbtRecords: bbtRecords,
     symptoms: symptoms,
+    wearableSummary: wearableSummary,
   );
+}
+
+List<BBTRecord> _mergeBbtRecords(
+  List<BBTRecord> manual,
+  Iterable<BBTRecord> wearable,
+) {
+  DateTime day(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
+  final byDay = <DateTime, BBTRecord>{
+    for (final record in wearable) day(record.date): record,
+    for (final record in manual) day(record.date): record,
+  };
+  return byDay.values.toList()..sort((a, b) => a.date.compareTo(b.date));
 }
 
 @riverpod

@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
+import 'dart:io';
 
 import 'package:drift/drift.dart' hide Column;
 import 'package:health/health.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:cyra/core/database/app_database.dart';
 import 'package:cyra/core/security/encryption_service.dart';
@@ -12,29 +11,20 @@ import 'package:cyra/features/ovulation/models/bbt_record.dart';
 import 'package:cyra/features/ovulation/models/ovulation_models.dart';
 import 'package:cyra/features/wearables/models/wearable_models.dart';
 
-part 'wearable_service.g.dart';
-
-@Riverpod(keepAlive: true)
-WearableService wearableService(WearableServiceRef ref) {
-  return WearableService(
-    ref.watch(appDatabaseProvider),
-    ref.watch(encryptionServiceProvider),
-  );
-}
-
 class WearableService {
   final AppDatabase _db;
   final EncryptionService _encryption;
-  final Health _health = Health();
-  final _random = Random();
+  final Health _health;
 
   bool _healthInitialized = false;
   final _syncStatusController = StreamController<WearableSyncStatus>.broadcast();
   final List<WearableDevice> _devices = [];
 
   Stream<WearableSyncStatus> get syncStatusStream => _syncStatusController.stream;
+  String get platformSourceId => Platform.isIOS ? 'apple_health' : 'health_connect';
 
-  WearableService(this._db, this._encryption);
+  WearableService(this._db, this._encryption, {Health? health})
+      : _health = health ?? Health();
 
   Future<List<WearableDevice>> getAvailableDevices() async {
     await _ensureHealthInitialized();
@@ -48,140 +38,61 @@ class WearableService {
 
   Future<void> _ensureHealthInitialized() async {
     if (_healthInitialized) return;
-
-    final types = [
-      HealthDataType.BODY_TEMPERATURE,
-      HealthDataType.HEART_RATE,
-      HealthDataType.SLEEP_ASLEEP,
-      HealthDataType.STEPS,
-      HealthDataType.HEART_RATE_VARIABILITY_SDNN,
-    ];
-
-    final requested = await _health.requestAuthorization(types);
-    if (requested) {
-      await _discoverDevices();
-    }
+    await _health.configure();
+    await _discoverDevices();
     _healthInitialized = true;
   }
 
   Future<void> _discoverDevices() async {
     _devices.clear();
-
-    final now = DateTime.now();
-    final lastWeek = now.subtract(const Duration(days: 7));
-
-    final hasHeartRate = await _health.getHealthDataFromTypes(
-      types: [HealthDataType.HEART_RATE],
-      startTime: lastWeek,
-      endTime: now,
+    final id = platformSourceId;
+    final row = await (_db.select(_db.wearableSources)
+          ..where((table) => table.id.equals(id)))
+        .getSingleOrNull();
+    WearableDevice? saved;
+    if (row?.settingsJson != null) {
+      try {
+        saved = WearableDevice.fromJson(
+          jsonDecode(_encryption.decryptString(row!.settingsJson!))
+              as Map<String, dynamic>,
+        );
+      } catch (_) {}
+    }
+    _devices.add(
+      saved ??
+          WearableDevice(
+            id: id,
+            name: Platform.isIOS ? 'Apple Health' : 'Health Connect',
+            type: Platform.isIOS
+                ? WearableType.appleWatch
+                : WearableType.healthConnect,
+            isConnected: false,
+            isEnabled: false,
+            enabledDataTypes: const {
+              'temperature': true,
+              'heartRate': true,
+              'hrv': true,
+              'sleep': true,
+            },
+          ),
     );
-
-    final hasSleep = await _health.getHealthDataFromTypes(
-      types: [HealthDataType.SLEEP_ASLEEP],
-      startTime: lastWeek,
-      endTime: now,
-    );
-
-    final hasTemperature = await _health.getHealthDataFromTypes(
-      types: [HealthDataType.BODY_TEMPERATURE],
-      startTime: lastWeek,
-      endTime: now,
-    );
-
-    final hasSteps = await _health.getHealthDataFromTypes(
-      types: [HealthDataType.STEPS],
-      startTime: lastWeek,
-      endTime: now,
-    );
-
-    if (hasHeartRate.isNotEmpty || hasSleep.isNotEmpty) {
-      _devices.add(WearableDevice(
-        id: 'apple_watch',
-        name: 'Apple Watch',
-        type: WearableType.appleWatch,
-        isConnected: true,
-        isEnabled: true,
-        enabledDataTypes: {
-          'temperature': hasTemperature.isNotEmpty,
-          'heartRate': hasHeartRate.isNotEmpty,
-          'sleep': hasSleep.isNotEmpty,
-          'activity': hasSteps.isNotEmpty,
-        },
-        deviceModel: 'Apple Watch',
-        lastSyncAt: now,
-      ));
-    }
-
-    if (!_devices.any((d) => d.type == WearableType.oura)) {
-      _devices.add(WearableDevice(
-        id: 'oura_ring',
-        name: 'Oura Ring Gen 3',
-        type: WearableType.oura,
-        isConnected: false,
-        isEnabled: false,
-        lastSyncAt: null,
-      ));
-    }
-    if (!_devices.any((d) => d.type == WearableType.fitbit)) {
-      _devices.add(WearableDevice(
-        id: 'fitbit',
-        name: 'Fitbit Sense 2',
-        type: WearableType.fitbit,
-        isConnected: false,
-        isEnabled: false,
-        lastSyncAt: null,
-      ));
-    }
-    if (!_devices.any((d) => d.type == WearableType.garmin)) {
-      _devices.add(WearableDevice(
-        id: 'garmin',
-        name: 'Garmin Venu 3',
-        type: WearableType.garmin,
-        isConnected: false,
-        isEnabled: false,
-        lastSyncAt: null,
-      ));
-    }
-    if (!_devices.any((d) => d.type == WearableType.oneplus)) {
-      _devices.add(WearableDevice(
-        id: 'oneplus',
-        name: 'OnePlus Watch 2',
-        type: WearableType.oneplus,
-        isConnected: false,
-        isEnabled: false,
-        lastSyncAt: null,
-      ));
-    }
-    if (!_devices.any((d) => d.type == WearableType.oppo)) {
-      _devices.add(WearableDevice(
-        id: 'oppo',
-        name: 'Oppo Watch 4 Pro',
-        type: WearableType.oppo,
-        isConnected: false,
-        isEnabled: false,
-        lastSyncAt: null,
-      ));
-    }
-    if (!_devices.any((d) => d.type == WearableType.redmi)) {
-      _devices.add(WearableDevice(
-        id: 'redmi',
-        name: 'Redmi Watch 4',
-        type: WearableType.redmi,
-        isConnected: false,
-        isEnabled: false,
-        lastSyncAt: null,
-      ));
-    }
   }
 
   Future<bool> connect(WearableType type) async {
     _updateSyncStatus(isSyncing: true);
 
     try {
-      await Future<void>.delayed(const Duration(milliseconds: 800));
-
       final index = _devices.indexWhere((d) => d.type == type);
       if (index == -1) return false;
+
+      final authorized = await _health.requestAuthorization(_healthTypes);
+      if (!authorized) {
+        _updateSyncStatus(
+          isSyncing: false,
+          errorMessage: 'Health data permission was not granted.',
+        );
+        return false;
+      }
 
       final device = _devices[index];
       _devices[index] = device.copyWith(
@@ -191,6 +102,7 @@ class WearableService {
       );
 
       await _persistDevice(_devices[index]);
+      await _doSync(_devices[index]);
       _updateSyncStatus(isSyncing: false);
       return true;
     } catch (e) {
@@ -222,10 +134,12 @@ class WearableService {
       _updateSyncStatus(isSyncing: false, lastSync: DateTime.now());
     } catch (e) {
       _updateSyncStatus(isSyncing: false, errorMessage: e.toString());
+      rethrow;
     }
   }
 
   Future<void> syncAllDevices() async {
+    await _ensureHealthInitialized();
     final connected = _devices.where((d) => d.isConnected).toList();
     if (connected.isEmpty) return;
 
@@ -238,6 +152,7 @@ class WearableService {
       _updateSyncStatus(isSyncing: false, lastSync: DateTime.now());
     } catch (e) {
       _updateSyncStatus(isSyncing: false, errorMessage: e.toString());
+      rethrow;
     }
   }
 
@@ -251,18 +166,28 @@ class WearableService {
     if (device.enabledDataTypes['heartRate'] == true) {
       await _syncHeartRate(device.id, sevenDaysAgo, now);
     }
+    if (device.enabledDataTypes['hrv'] == true) {
+      await _syncHrv(device.id, sevenDaysAgo, now);
+    }
     if (device.enabledDataTypes['sleep'] == true) {
       await _syncSleep(device.id, sevenDaysAgo, now);
-    }
-    if (device.enabledDataTypes['activity'] == true) {
-      await _syncActivity(device.id, sevenDaysAgo, now);
     }
 
     final index = _devices.indexWhere((d) => d.id == device.id);
     if (index != -1) {
       _devices[index] = _devices[index].copyWith(lastSyncAt: now);
+      await _persistDevice(_devices[index]);
     }
   }
+
+  List<HealthDataType> get _healthTypes => [
+        HealthDataType.BODY_TEMPERATURE,
+        HealthDataType.HEART_RATE,
+        HealthDataType.SLEEP_ASLEEP,
+        Platform.isAndroid
+            ? HealthDataType.HEART_RATE_VARIABILITY_RMSSD
+            : HealthDataType.HEART_RATE_VARIABILITY_SDNN,
+      ].where(_health.isDataTypeAvailable).toList();
 
   Future<void> _syncTemperature(String deviceId, DateTime from, DateTime to) async {
     final data = await _health.getHealthDataFromTypes(
@@ -277,7 +202,8 @@ class WearableService {
         timestamp: point.dateFrom,
         value: numericValue.toDouble(),
         type: 'temperature',
-        source: deviceId,
+        source: point.sourceName.isEmpty ? deviceId : point.sourceName,
+        externalId: point.uuid,
       );
       await _storeDataPoint(dataPoint);
     }
@@ -296,9 +222,34 @@ class WearableService {
         timestamp: point.dateFrom,
         value: numericValue.toDouble(),
         type: 'heartRate',
-        source: deviceId,
+        source: point.sourceName.isEmpty ? deviceId : point.sourceName,
+        externalId: point.uuid,
       );
       await _storeDataPoint(dataPoint);
+    }
+  }
+
+  Future<void> _syncHrv(String deviceId, DateTime from, DateTime to) async {
+    final type = Platform.isAndroid
+        ? HealthDataType.HEART_RATE_VARIABILITY_RMSSD
+        : HealthDataType.HEART_RATE_VARIABILITY_SDNN;
+    final data = await _health.getHealthDataFromTypes(
+      types: [type],
+      startTime: from,
+      endTime: to,
+    );
+
+    for (final point in data) {
+      final numericValue = (point.value as NumericHealthValue).numericValue;
+      await _storeDataPoint(
+        WearableDataPoint(
+          timestamp: point.dateFrom,
+          value: numericValue.toDouble(),
+          type: 'hrv',
+          source: point.sourceName.isEmpty ? deviceId : point.sourceName,
+          externalId: point.uuid,
+        ),
+      );
     }
   }
 
@@ -313,7 +264,7 @@ class WearableService {
     for (final point in data) {
       final day = DateTime(point.dateFrom.year, point.dateFrom.month, point.dateFrom.day);
       final numericValue = (point.value as NumericHealthValue).numericValue;
-      final hours = numericValue.toDouble();
+      final hours = numericValue.toDouble() / 60;
       sleepHoursByDay.update(day, (v) => v + hours, ifAbsent: () => hours);
     }
 
@@ -323,25 +274,7 @@ class WearableService {
         value: entry.value,
         type: 'sleep',
         source: deviceId,
-      );
-      await _storeDataPoint(dataPoint);
-    }
-  }
-
-  Future<void> _syncActivity(String deviceId, DateTime from, DateTime to) async {
-    final data = await _health.getHealthDataFromTypes(
-      types: [HealthDataType.STEPS],
-      startTime: from,
-      endTime: to,
-    );
-
-    for (final point in data) {
-      final numericValue = (point.value as NumericHealthValue).numericValue;
-      final dataPoint = WearableDataPoint(
-        timestamp: point.dateFrom,
-        value: numericValue.toDouble(),
-        type: 'activity',
-        source: deviceId,
+        externalId: 'sleep_${entry.key.toIso8601String()}',
       );
       await _storeDataPoint(dataPoint);
     }
@@ -352,12 +285,12 @@ class WearableService {
     final encryptedJson = _encryption.encryptString(jsonStr);
     await _db.into(_db.wearableSources).insertOnConflictUpdate(
           WearableSourcesCompanion.insert(
-            id: '${DateTime.now().microsecondsSinceEpoch}_${_random.nextInt(99999)}',
+            id: '${point.type}_${point.externalId ?? point.timestamp.microsecondsSinceEpoch}',
             userId: 'default',
             sourceType: point.type,
             isConnected: const Value(true),
             settingsJson: Value(encryptedJson),
-            createdAt: DateTime.now(),
+            createdAt: point.timestamp,
             updatedAt: DateTime.now(),
           ),
         );
@@ -382,7 +315,7 @@ class WearableService {
 
   Future<bool> requestPermissions() async {
     await _ensureHealthInitialized();
-    return true;
+    return _health.requestAuthorization(_healthTypes);
   }
 
   Future<void> enableDataType(String deviceId, String dataType) async {
@@ -413,6 +346,10 @@ class WearableService {
     return _queryDataPoints('activity', from, to);
   }
 
+  Future<List<WearableDataPoint>> getHrvData(DateTime from, DateTime to) async {
+    return _queryDataPoints('hrv', from, to);
+  }
+
   Future<List<WearableDataPoint>> _queryDataPoints(
     String type,
     DateTime from,
@@ -441,7 +378,7 @@ class WearableService {
 
   BBTRecord mapToBBTRecord(WearableDataPoint temp) {
     return BBTRecord(
-      id: 'bt_${temp.timestamp.millisecondsSinceEpoch}_${_random.nextInt(99999)}',
+      id: 'wearable_${temp.externalId ?? temp.timestamp.microsecondsSinceEpoch}',
       date: temp.timestamp,
       temperature: temp.value,
       method: BBTMeasurementMethod.wearable,
@@ -461,6 +398,7 @@ class WearableService {
     final temps = await getTemperatureData(from, now);
     final heartRates = await getHeartRateData(from, now);
     final sleeps = await getSleepData(from, now);
+    final hrv = await getHrvData(from, now);
     final activities = await getActivityData(from, now);
 
     final avgTemp = temps.isEmpty
@@ -479,18 +417,27 @@ class WearableService {
         ? 0
         : activities.map((p) => p.value.toInt()).reduce((a, b) => a + b);
 
+    final avgHrv = hrv.isEmpty
+        ? 0.0
+        : hrv.map((p) => p.value).reduce((a, b) => a + b) / hrv.length;
+
     return WearableDataSummary(
       averageTemperature: double.parse(avgTemp.toStringAsFixed(2)),
       averageHeartRate: double.parse(avgHr.toStringAsFixed(1)),
       averageSleepHours: double.parse(avgSleep.toStringAsFixed(1)),
+      averageHrv: double.parse(avgHrv.toStringAsFixed(1)),
       stepCount: totalSteps,
       dataPointCount:
-          temps.length + heartRates.length + sleeps.length + activities.length,
+          temps.length +
+          heartRates.length +
+          sleeps.length +
+          hrv.length +
+          activities.length,
     );
   }
 
   Future<void> requestAuthorization() async {
-    await _ensureHealthInitialized();
+    await requestPermissions();
   }
 
   void _updateSyncStatus({
@@ -501,7 +448,7 @@ class WearableService {
     _syncStatusController.add(WearableSyncStatus(
       isSyncing: isSyncing,
       lastSuccessfulSync: lastSync,
-      pendingRecords: isSyncing ? _random.nextInt(50) + 10 : 0,
+      pendingRecords: 0,
       errorMessage: errorMessage,
     ));
   }

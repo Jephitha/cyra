@@ -8,6 +8,7 @@ import 'package:cyra/features/cycle/models/cycle.dart';
 import 'package:cyra/features/ovulation/models/bbt_record.dart';
 import 'package:cyra/features/ovulation/models/ovulation_models.dart';
 import 'package:cyra/features/symptoms/models/symptom_models.dart';
+import 'package:cyra/features/wearables/models/wearable_models.dart';
 
 part 'health_insights_engine.freezed.dart';
 part 'health_insights_engine.g.dart';
@@ -30,6 +31,7 @@ class HealthInsightsEngine {
     required List<CycleDay> recentDays,
     required List<BBTRecord> bbtRecords,
     required List<SymptomEntry> symptoms,
+    WearableDataSummary? wearableSummary,
     DateTime? currentDate,
   }) async {
     final now = currentDate ?? DateTime.now();
@@ -82,6 +84,21 @@ class HealthInsightsEngine {
           currentPhase: currentPhase,
         ),
       );
+    }
+    if (wearableSummary != null && wearableSummary.dataPointCount > 0) {
+      if (wearableSummary.averageSleepHours > 0) {
+        healthTips.add(
+          'Your synced sleep averaged '
+          '${wearableSummary.averageSleepHours.toStringAsFixed(1)} hours. '
+          'Sleep context can help explain day-to-day temperature changes.',
+        );
+      }
+      if (wearableSummary.averageHrv > 0) {
+        healthTips.add(
+          'HRV is being tracked as personal context. Focus on changes from '
+          'your own baseline rather than comparing a single value with others.',
+        );
+      }
     }
 
     return DashboardInsights(

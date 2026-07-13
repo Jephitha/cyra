@@ -10,6 +10,7 @@ import 'package:cyra/core/providers/settings_providers.dart';
 import 'package:cyra/features/privacy/screens/privacy_controls_screen.dart';
 import 'package:cyra/features/settings/screens/appearance_screen.dart';
 import 'package:cyra/features/settings/screens/notifications_screen.dart';
+import 'package:cyra/features/wearables/screens/wearables_hub_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -221,9 +222,13 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsRow(
             icon: Icons.watch_outlined,
             label: 'Connected Devices',
-            subtitle: 'Apple Watch, Fitbit, Oura Ring',
+            subtitle: 'Apple Health or Health Connect',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () {},
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const WearablesHubScreen(),
+              ),
+            ),
           ),
           const Divider(height: 1),
           wearableAsync.when(

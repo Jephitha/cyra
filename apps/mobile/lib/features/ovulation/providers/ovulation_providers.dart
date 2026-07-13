@@ -9,6 +9,7 @@ import 'package:cyra/features/ovulation/models/bbt_record.dart';
 import 'package:cyra/features/ovulation/models/opk_test_record.dart';
 import 'package:cyra/features/ovulation/models/mucus_observation.dart';
 import 'package:cyra/features/ovulation/repositories/ovulation_repository.dart';
+import 'package:cyra/features/wearables/providers/wearable_providers.dart';
 
 part 'ovulation_providers.g.dart';
 
@@ -43,7 +44,24 @@ Future<OvulationResult> ovulationDetection(OvulationDetectionRef ref) async {
     throw Exception('No active cycle. Start logging your cycle first.');
   }
 
-  final bbtData = await repo.getBBTForCycle(activeCycle.id);
+  final manualBbt = await repo.getBBTForCycle(activeCycle.id);
+  final wearableService = ref.watch(wearableServiceProvider);
+  final wearableTemperatures = await wearableService.getTemperatureData(
+    activeCycle.startDate,
+    activeCycle.endDate ?? DateTime.now(),
+  );
+  final bbtByDay = <DateTime, BBTRecord>{};
+  DateTime day(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
+  for (final point in wearableTemperatures) {
+    final record = wearableService.mapToBBTRecord(point);
+    bbtByDay[day(record.date)] = record;
+  }
+  for (final record in manualBbt) {
+    bbtByDay[day(record.date)] = record;
+  }
+  final bbtData = bbtByDay.values.toList()
+    ..sort((a, b) => a.date.compareTo(b.date));
   final opkData = await repo.getOPKRange(
     activeCycle.startDate,
     activeCycle.endDate ?? DateTime.now(),

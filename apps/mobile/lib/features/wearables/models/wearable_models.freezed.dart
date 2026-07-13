@@ -377,6 +377,7 @@ mixin _$WearableDataPoint {
   double get value => throw _privateConstructorUsedError;
   String get type => throw _privateConstructorUsedError;
   String? get source => throw _privateConstructorUsedError;
+  String? get externalId => throw _privateConstructorUsedError;
 
   /// Serializes this WearableDataPoint to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -395,7 +396,13 @@ abstract class $WearableDataPointCopyWith<$Res> {
     $Res Function(WearableDataPoint) then,
   ) = _$WearableDataPointCopyWithImpl<$Res, WearableDataPoint>;
   @useResult
-  $Res call({DateTime timestamp, double value, String type, String? source});
+  $Res call({
+    DateTime timestamp,
+    double value,
+    String type,
+    String? source,
+    String? externalId,
+  });
 }
 
 /// @nodoc
@@ -417,6 +424,7 @@ class _$WearableDataPointCopyWithImpl<$Res, $Val extends WearableDataPoint>
     Object? value = null,
     Object? type = null,
     Object? source = freezed,
+    Object? externalId = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -436,6 +444,10 @@ class _$WearableDataPointCopyWithImpl<$Res, $Val extends WearableDataPoint>
                 ? _value.source
                 : source // ignore: cast_nullable_to_non_nullable
                       as String?,
+            externalId: freezed == externalId
+                ? _value.externalId
+                : externalId // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -451,7 +463,13 @@ abstract class _$$WearableDataPointImplCopyWith<$Res>
   ) = __$$WearableDataPointImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({DateTime timestamp, double value, String type, String? source});
+  $Res call({
+    DateTime timestamp,
+    double value,
+    String type,
+    String? source,
+    String? externalId,
+  });
 }
 
 /// @nodoc
@@ -472,6 +490,7 @@ class __$$WearableDataPointImplCopyWithImpl<$Res>
     Object? value = null,
     Object? type = null,
     Object? source = freezed,
+    Object? externalId = freezed,
   }) {
     return _then(
       _$WearableDataPointImpl(
@@ -491,6 +510,10 @@ class __$$WearableDataPointImplCopyWithImpl<$Res>
             ? _value.source
             : source // ignore: cast_nullable_to_non_nullable
                   as String?,
+        externalId: freezed == externalId
+            ? _value.externalId
+            : externalId // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -504,6 +527,7 @@ class _$WearableDataPointImpl implements _WearableDataPoint {
     required this.value,
     required this.type,
     this.source,
+    this.externalId,
   });
 
   factory _$WearableDataPointImpl.fromJson(Map<String, dynamic> json) =>
@@ -517,10 +541,12 @@ class _$WearableDataPointImpl implements _WearableDataPoint {
   final String type;
   @override
   final String? source;
+  @override
+  final String? externalId;
 
   @override
   String toString() {
-    return 'WearableDataPoint(timestamp: $timestamp, value: $value, type: $type, source: $source)';
+    return 'WearableDataPoint(timestamp: $timestamp, value: $value, type: $type, source: $source, externalId: $externalId)';
   }
 
   @override
@@ -532,12 +558,15 @@ class _$WearableDataPointImpl implements _WearableDataPoint {
                 other.timestamp == timestamp) &&
             (identical(other.value, value) || other.value == value) &&
             (identical(other.type, type) || other.type == type) &&
-            (identical(other.source, source) || other.source == source));
+            (identical(other.source, source) || other.source == source) &&
+            (identical(other.externalId, externalId) ||
+                other.externalId == externalId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, timestamp, value, type, source);
+  int get hashCode =>
+      Object.hash(runtimeType, timestamp, value, type, source, externalId);
 
   /// Create a copy of WearableDataPoint
   /// with the given fields replaced by the non-null parameter values.
@@ -562,6 +591,7 @@ abstract class _WearableDataPoint implements WearableDataPoint {
     required final double value,
     required final String type,
     final String? source,
+    final String? externalId,
   }) = _$WearableDataPointImpl;
 
   factory _WearableDataPoint.fromJson(Map<String, dynamic> json) =
@@ -575,6 +605,8 @@ abstract class _WearableDataPoint implements WearableDataPoint {
   String get type;
   @override
   String? get source;
+  @override
+  String? get externalId;
 
   /// Create a copy of WearableDataPoint
   /// with the given fields replaced by the non-null parameter values.
@@ -829,6 +861,7 @@ mixin _$WearableDataSummary {
   double get averageTemperature => throw _privateConstructorUsedError;
   double get averageHeartRate => throw _privateConstructorUsedError;
   double get averageSleepHours => throw _privateConstructorUsedError;
+  double get averageHrv => throw _privateConstructorUsedError;
   int get stepCount => throw _privateConstructorUsedError;
   int get dataPointCount => throw _privateConstructorUsedError;
 
@@ -853,6 +886,7 @@ abstract class $WearableDataSummaryCopyWith<$Res> {
     double averageTemperature,
     double averageHeartRate,
     double averageSleepHours,
+    double averageHrv,
     int stepCount,
     int dataPointCount,
   });
@@ -876,6 +910,7 @@ class _$WearableDataSummaryCopyWithImpl<$Res, $Val extends WearableDataSummary>
     Object? averageTemperature = null,
     Object? averageHeartRate = null,
     Object? averageSleepHours = null,
+    Object? averageHrv = null,
     Object? stepCount = null,
     Object? dataPointCount = null,
   }) {
@@ -892,6 +927,10 @@ class _$WearableDataSummaryCopyWithImpl<$Res, $Val extends WearableDataSummary>
             averageSleepHours: null == averageSleepHours
                 ? _value.averageSleepHours
                 : averageSleepHours // ignore: cast_nullable_to_non_nullable
+                      as double,
+            averageHrv: null == averageHrv
+                ? _value.averageHrv
+                : averageHrv // ignore: cast_nullable_to_non_nullable
                       as double,
             stepCount: null == stepCount
                 ? _value.stepCount
@@ -920,6 +959,7 @@ abstract class _$$WearableDataSummaryImplCopyWith<$Res>
     double averageTemperature,
     double averageHeartRate,
     double averageSleepHours,
+    double averageHrv,
     int stepCount,
     int dataPointCount,
   });
@@ -942,6 +982,7 @@ class __$$WearableDataSummaryImplCopyWithImpl<$Res>
     Object? averageTemperature = null,
     Object? averageHeartRate = null,
     Object? averageSleepHours = null,
+    Object? averageHrv = null,
     Object? stepCount = null,
     Object? dataPointCount = null,
   }) {
@@ -958,6 +999,10 @@ class __$$WearableDataSummaryImplCopyWithImpl<$Res>
         averageSleepHours: null == averageSleepHours
             ? _value.averageSleepHours
             : averageSleepHours // ignore: cast_nullable_to_non_nullable
+                  as double,
+        averageHrv: null == averageHrv
+            ? _value.averageHrv
+            : averageHrv // ignore: cast_nullable_to_non_nullable
                   as double,
         stepCount: null == stepCount
             ? _value.stepCount
@@ -979,6 +1024,7 @@ class _$WearableDataSummaryImpl implements _WearableDataSummary {
     required this.averageTemperature,
     required this.averageHeartRate,
     required this.averageSleepHours,
+    this.averageHrv = 0.0,
     required this.stepCount,
     required this.dataPointCount,
   });
@@ -993,13 +1039,16 @@ class _$WearableDataSummaryImpl implements _WearableDataSummary {
   @override
   final double averageSleepHours;
   @override
+  @JsonKey()
+  final double averageHrv;
+  @override
   final int stepCount;
   @override
   final int dataPointCount;
 
   @override
   String toString() {
-    return 'WearableDataSummary(averageTemperature: $averageTemperature, averageHeartRate: $averageHeartRate, averageSleepHours: $averageSleepHours, stepCount: $stepCount, dataPointCount: $dataPointCount)';
+    return 'WearableDataSummary(averageTemperature: $averageTemperature, averageHeartRate: $averageHeartRate, averageSleepHours: $averageSleepHours, averageHrv: $averageHrv, stepCount: $stepCount, dataPointCount: $dataPointCount)';
   }
 
   @override
@@ -1013,6 +1062,8 @@ class _$WearableDataSummaryImpl implements _WearableDataSummary {
                 other.averageHeartRate == averageHeartRate) &&
             (identical(other.averageSleepHours, averageSleepHours) ||
                 other.averageSleepHours == averageSleepHours) &&
+            (identical(other.averageHrv, averageHrv) ||
+                other.averageHrv == averageHrv) &&
             (identical(other.stepCount, stepCount) ||
                 other.stepCount == stepCount) &&
             (identical(other.dataPointCount, dataPointCount) ||
@@ -1026,6 +1077,7 @@ class _$WearableDataSummaryImpl implements _WearableDataSummary {
     averageTemperature,
     averageHeartRate,
     averageSleepHours,
+    averageHrv,
     stepCount,
     dataPointCount,
   );
@@ -1052,6 +1104,7 @@ abstract class _WearableDataSummary implements WearableDataSummary {
     required final double averageTemperature,
     required final double averageHeartRate,
     required final double averageSleepHours,
+    final double averageHrv,
     required final int stepCount,
     required final int dataPointCount,
   }) = _$WearableDataSummaryImpl;
@@ -1065,6 +1118,8 @@ abstract class _WearableDataSummary implements WearableDataSummary {
   double get averageHeartRate;
   @override
   double get averageSleepHours;
+  @override
+  double get averageHrv;
   @override
   int get stepCount;
   @override
