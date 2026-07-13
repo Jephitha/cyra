@@ -234,9 +234,9 @@ DB table (`wearable_sources_table`) and Android manifest permission already pres
 temperature/sleep/HRV and feeds it into `OvulationDetector`/`HealthInsightsEngine`, and add a
 "Connect a wearable" flow in Settings.
 
-### T14. Clinician export (PDF/shareable summary)
-Not present anywhere in current codebase. New feature: generate a shareable cycle/symptom summary
-for OB-GYN visits, likely building on `DataExportService`.
+### [x] T14. Clinician export (PDF/shareable summary)
+Completed by T10/T10a: the authenticated `DataExportService` flow now generates a readable,
+shareable cycle and symptom PDF for care-team or OB-GYN visits, with journals opt-in only.
 
 ### T15. AI-assisted insights (optional, evaluate positioning first)
 `core/ml/explanation_engine.dart` currently generates template-based natural-language summaries —
