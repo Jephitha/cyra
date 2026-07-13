@@ -91,7 +91,7 @@ From the icon-only mark, generate full platform icon sets:
 - Verify the icon reads clearly at the smallest sizes (notification-bar/settings-list size,
   ~29–40px) — test by actually viewing it that small, not just at 1024px.
 
-### T-BRAND-3. Produce the neutral "hidden mode" icon set
+### [x] T-BRAND-3. Produce the neutral "hidden mode" icon set
 A **separate, unrelated-looking** icon (weather-themed per `DESIGN_SYSTEM.md`) with its own full
 platform icon set (same density/size requirements as T-BRAND-2), used by the `activity-alias` /
 alternate-icon implementation in backlog item T9a. This icon must not visually reference Cyra's

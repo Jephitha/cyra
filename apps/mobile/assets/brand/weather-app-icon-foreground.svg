@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <circle cx="650" cy="340" r="150" fill="#FFD15C"/>
+  <g fill="none" stroke="#FFD15C" stroke-width="38" stroke-linecap="round"><path d="M650 120v-65M650 625v-65M430 340h-65M935 340h-65M495 185l-47-47M852 542l-47-47M495 495l-47 47M852 138l-47 47"/></g>
+  <path d="M758 735H302c-108 0-190-70-190-163 0-85 68-151 160-162 36-101 128-165 235-150 87 12 153 72 177 151 96 5 172 73 172 160 0 91-43 164-98 164Z" fill="#F3F6F8" stroke="#9FB2C3" stroke-width="24" stroke-linejoin="round"/>
+</svg>
