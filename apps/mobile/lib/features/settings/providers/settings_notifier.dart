@@ -84,19 +84,6 @@ enum TemperatureUnit {
 }
 
 @Riverpod(keepAlive: true)
-class ThemeModeSettingNotifier extends _$ThemeModeSettingNotifier {
-  @override
-  ThemeMode build() => ThemeMode.system;
-
-  void setThemeMode(ThemeMode mode) {
-    state = mode;
-    ref
-        .read(appSettingsNotifierProvider.notifier)
-        .setValue('theme_mode', mode.name);
-  }
-}
-
-@Riverpod(keepAlive: true)
 class AccentColorSettingNotifier extends _$AccentColorSettingNotifier {
   @override
   AppAccentColor build() => AppAccentColor.forest;

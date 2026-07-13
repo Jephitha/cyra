@@ -23,22 +23,6 @@ final appSettingsNotifierProvider =
     );
 
 typedef _$AppSettingsNotifier = AsyncNotifier<Map<String, String>>;
-String _$themeModeSettingHash() => r'4527b63cc5b75ab7cdb35812b9f196903a76a3cf';
-
-/// See also [ThemeModeSetting].
-@ProviderFor(ThemeModeSetting)
-final themeModeSettingProvider =
-    AutoDisposeNotifierProvider<ThemeModeSetting, ThemeMode>.internal(
-      ThemeModeSetting.new,
-      name: r'themeModeSettingProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$themeModeSettingHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$ThemeModeSetting = AutoDisposeNotifier<ThemeMode>;
 String _$localeSettingHash() => r'31f3e375c5b30dd8fa95689d97a26e5a0dd75bab';
 
 /// See also [LocaleSetting].

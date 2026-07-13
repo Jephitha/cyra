@@ -109,7 +109,7 @@ equivalent) to use the new mark, not the default Flutter splash. Verify it looks
 both system light and dark mode (see T-THEME-1) — native splash screens are easy to leave
 hardcoded to one appearance by accident.
 
-### T-THEME-1. System-only dark/light mode — remove manual toggle, verify full coverage
+### [x] T-THEME-1. System-only dark/light mode — remove manual toggle, verify full coverage
 **Problem:** `app.dart` already wires `MaterialApp.router`'s `themeMode` from
 `themeModeSettingProvider`, and `AppearanceScreen` exposes a manual light/dark/system picker
 (`_buildThemeModeSection`, `themeModeSettingNotifierProvider`) that lets a user override the

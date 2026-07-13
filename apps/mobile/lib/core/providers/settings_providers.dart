@@ -36,19 +36,6 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 }
 
 @riverpod
-class ThemeModeSetting extends _$ThemeModeSetting {
-  @override
-  ThemeMode build() {
-    return ThemeMode.system;
-  }
-
-  void setThemeMode(ThemeMode mode) {
-    state = mode;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('theme_mode', mode.name);
-  }
-}
-
-@riverpod
 class LocaleSetting extends _$LocaleSetting {
   @override
   Locale build() {
@@ -57,7 +44,9 @@ class LocaleSetting extends _$LocaleSetting {
 
   void setLocale(Locale locale) {
     state = locale;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('locale', locale.languageCode);
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('locale', locale.languageCode);
   }
 }
 

@@ -12,27 +12,22 @@ class AppearanceScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeSettingNotifierProvider);
     final accentColor = ref.watch(accentColorSettingNotifierProvider);
     final textSize = ref.watch(textSizeSettingNotifierProvider);
     final fontStyle = ref.watch(fontStyleSettingNotifierProvider);
     final reduceMotion = ref.watch(reduceMotionSettingNotifierProvider);
     final highContrast = ref.watch(highContrastSettingNotifierProvider);
-    final showCyclePhaseColors = ref.watch(showCyclePhaseColorsNotifierProvider);
+    final showCyclePhaseColors = ref.watch(
+      showCyclePhaseColorsNotifierProvider,
+    );
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Appearance'),
-      ),
+      appBar: AppBar(title: const Text('Appearance')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          _buildPreviewCard(context, themeMode, accentColor, textSize, isDark),
-          const SizedBox(height: AppSpacing.xxl),
-          _buildSectionHeader('Theme'),
-          const SizedBox(height: AppSpacing.sm),
-          _buildThemeModeSection(context, ref, themeMode),
+          _buildPreviewCard(context, accentColor, textSize, isDark),
           const SizedBox(height: AppSpacing.xxl),
           _buildSectionHeader('Accent Color'),
           const SizedBox(height: AppSpacing.sm),
@@ -59,13 +54,16 @@ class AppearanceScreen extends ConsumerWidget {
 
   Widget _buildPreviewCard(
     BuildContext context,
-    ThemeMode themeMode,
     AppAccentColor accentColor,
     double textSize,
     bool isDark,
   ) {
-    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final subTextColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final textColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimaryLight;
+    final subTextColor = isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondaryLight;
 
     return AppCard.standard(
       child: Container(
@@ -85,7 +83,11 @@ class AppearanceScreen extends ConsumerWidget {
                     color: accentColor.color,
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
-                  child: const Icon(Icons.water_drop, color: AppColors.onBrand, size: 22),
+                  child: const Icon(
+                    Icons.water_drop,
+                    color: AppColors.onBrand,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Column(
@@ -93,7 +95,7 @@ class AppearanceScreen extends ConsumerWidget {
                   children: [
                     Text(
                       'Preview',
-                      style: AppTypography.light.titleSmall?.copyWith(
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: textColor,
                         fontSize: 14 * textSize,
@@ -101,7 +103,7 @@ class AppearanceScreen extends ConsumerWidget {
                     ),
                     Text(
                       'Current settings applied',
-                      style: AppTypography.light.bodySmall?.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: subTextColor,
                         fontSize: 12 * textSize,
                       ),
@@ -110,11 +112,7 @@ class AppearanceScreen extends ConsumerWidget {
                 ),
                 const Spacer(),
                 Icon(
-                  themeMode == ThemeMode.dark
-                      ? Icons.dark_mode
-                      : themeMode == ThemeMode.light
-                          ? Icons.light_mode
-                          : Icons.brightness_auto,
+                  isDark ? Icons.dark_mode : Icons.light_mode,
                   color: accentColor.color,
                   size: 22,
                 ),
@@ -132,10 +130,7 @@ class AppearanceScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Your fertile window is expected to begin soon.',
-              style: TextStyle(
-                fontSize: 12 * textSize,
-                color: subTextColor,
-              ),
+              style: TextStyle(fontSize: 12 * textSize, color: subTextColor),
             ),
           ],
         ),
@@ -157,37 +152,11 @@ class AppearanceScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildThemeModeSection(BuildContext context, WidgetRef ref, ThemeMode current) {
-    return AppCard.standard(
-      child: Column(
-        children: [
-          _ThemeOption(
-            icon: Icons.light_mode_outlined,
-            label: 'Light',
-            isSelected: current == ThemeMode.light,
-            onTap: () => ref.read(themeModeSettingNotifierProvider.notifier).setThemeMode(ThemeMode.light),
-          ),
-          const Divider(height: 1),
-          _ThemeOption(
-            icon: Icons.dark_mode_outlined,
-            label: 'Dark',
-            isSelected: current == ThemeMode.dark,
-            onTap: () => ref.read(themeModeSettingNotifierProvider.notifier).setThemeMode(ThemeMode.dark),
-          ),
-          const Divider(height: 1),
-          _ThemeOption(
-            icon: Icons.brightness_auto_outlined,
-            label: 'System',
-            subtitle: 'Follow device settings',
-            isSelected: current == ThemeMode.system,
-            onTap: () => ref.read(themeModeSettingNotifierProvider.notifier).setThemeMode(ThemeMode.system),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccentColorSection(BuildContext context, WidgetRef ref, AppAccentColor current) {
+  Widget _buildAccentColorSection(
+    BuildContext context,
+    WidgetRef ref,
+    AppAccentColor current,
+  ) {
     return AppCard.standard(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -196,7 +165,9 @@ class AppearanceScreen extends ConsumerWidget {
           children: AppAccentColor.values.map((color) {
             final isSelected = color == current;
             return GestureDetector(
-              onTap: () => ref.read(accentColorSettingNotifierProvider.notifier).setAccentColor(color),
+              onTap: () => ref
+                  .read(accentColorSettingNotifierProvider.notifier)
+                  .setAccentColor(color),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -220,15 +191,23 @@ class AppearanceScreen extends ConsumerWidget {
                           : null,
                     ),
                     child: isSelected
-                        ? const Icon(Icons.check, color: AppColors.onBrand, size: 22)
+                        ? const Icon(
+                            Icons.check,
+                            color: AppColors.onBrand,
+                            size: 22,
+                          )
                         : null,
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     color.label,
                     style: AppTypography.light.bodySmall?.copyWith(
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                      color: isSelected ? AppColors.forestGreen : AppColors.slate,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      color: isSelected
+                          ? AppColors.forestGreen
+                          : AppColors.slate,
                     ),
                   ),
                 ],
@@ -264,8 +243,9 @@ class AppearanceScreen extends ConsumerWidget {
                     divisions: 6,
                     activeColor: AppColors.forestGreen,
                     label: '${(textSize * 100).round()}%',
-                    onChanged: (v) =>
-                        ref.read(textSizeSettingNotifierProvider.notifier).setTextSize(v),
+                    onChanged: (v) => ref
+                        .read(textSizeSettingNotifierProvider.notifier)
+                        .setTextSize(v),
                   ),
                 ),
                 Icon(Icons.text_fields, size: 28, color: AppColors.forestGreen),
@@ -276,8 +256,14 @@ class AppearanceScreen extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Small', style: TextStyle(fontSize: 11, color: AppColors.slate)),
-                  Text('Large', style: TextStyle(fontSize: 11, color: AppColors.slate)),
+                  Text(
+                    'Small',
+                    style: TextStyle(fontSize: 11, color: AppColors.slate),
+                  ),
+                  Text(
+                    'Large',
+                    style: TextStyle(fontSize: 11, color: AppColors.slate),
+                  ),
                 ],
               ),
             ),
@@ -323,7 +309,9 @@ class AppearanceScreen extends ConsumerWidget {
                   // ignore: deprecated_member_use
                   onChanged: (v) {
                     if (v != null) {
-                      ref.read(fontStyleSettingNotifierProvider.notifier).setFontStyle(v);
+                      ref
+                          .read(fontStyleSettingNotifierProvider.notifier)
+                          .setFontStyle(v);
                     }
                   },
                 ),
@@ -349,7 +337,9 @@ class AppearanceScreen extends ConsumerWidget {
             icon: Icons.palette_outlined,
             label: 'Show Cycle Phase Colors',
             value: showPhaseColors,
-            onChanged: (v) => ref.read(showCyclePhaseColorsNotifierProvider.notifier).toggle(),
+            onChanged: (v) => ref
+                .read(showCyclePhaseColorsNotifierProvider.notifier)
+                .toggle(),
           ),
           const Divider(height: 1),
           _ToggleRow(
@@ -357,7 +347,8 @@ class AppearanceScreen extends ConsumerWidget {
             label: 'Reduce Motion',
             subtitle: 'Minimize animations and transitions',
             value: reduceMotion,
-            onChanged: (v) => ref.read(reduceMotionSettingNotifierProvider.notifier).toggle(),
+            onChanged: (v) =>
+                ref.read(reduceMotionSettingNotifierProvider.notifier).toggle(),
           ),
           const Divider(height: 1),
           _ToggleRow(
@@ -365,75 +356,10 @@ class AppearanceScreen extends ConsumerWidget {
             label: 'High Contrast',
             subtitle: 'Increase contrast for better readability',
             value: highContrast,
-            onChanged: (v) => ref.read(highContrastSettingNotifierProvider.notifier).toggle(),
+            onChanged: (v) =>
+                ref.read(highContrastSettingNotifierProvider.notifier).toggle(),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ThemeOption extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String? subtitle;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ThemeOption({
-    required this.icon,
-    required this.label,
-    this.subtitle,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: isSelected ? AppColors.forestGreen.withValues(alpha: 0.06) : Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: 22,
-                color: isSelected ? AppColors.forestGreen : AppColors.slate,
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: AppTypography.light.bodyMedium?.copyWith(
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: isSelected ? AppColors.forestGreen : null,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      Text(
-                        subtitle!,
-                        style: AppTypography.light.bodySmall?.copyWith(
-                          color: AppColors.slate,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (isSelected)
-                Icon(Icons.check_circle, color: AppColors.forestGreen, size: 22),
-            ],
-          ),
-        ),
       ),
     );
   }

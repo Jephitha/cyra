@@ -6,23 +6,6 @@ part of 'settings_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$themeModeSettingNotifierHash() =>
-    r'7e0593b7811a1f80052b6b7a919b7f237d0000a2';
-
-/// See also [ThemeModeSettingNotifier].
-@ProviderFor(ThemeModeSettingNotifier)
-final themeModeSettingNotifierProvider =
-    NotifierProvider<ThemeModeSettingNotifier, ThemeMode>.internal(
-      ThemeModeSettingNotifier.new,
-      name: r'themeModeSettingNotifierProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$themeModeSettingNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$ThemeModeSettingNotifier = Notifier<ThemeMode>;
 String _$accentColorSettingNotifierHash() =>
     r'5d5e0debe83b7b7a37d226584c9854c44cdef5ce';
 

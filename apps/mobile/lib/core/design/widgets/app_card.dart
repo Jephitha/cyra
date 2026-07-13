@@ -101,21 +101,16 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final effectiveBg = backgroundColor ??
+    final effectiveBg =
+        backgroundColor ??
         (isDark ? AppColors.surfaceDark : AppColors.surfaceLight);
     final effectivePadding = padding ?? const EdgeInsets.all(AppSpacing.lg);
 
     Widget cardBody = Container(
       decoration: BoxDecoration(
-        color: effectiveBg,
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: accentColor != null
-            ? Border(
-                left: BorderSide(
-                  color: accentColor!,
-                  width: 4,
-                ),
-              )
+            ? Border(left: BorderSide(color: accentColor!, width: 4))
             : null,
         boxShadow: elevation > 0
             ? [
@@ -129,8 +124,12 @@ class AppCard extends StatelessWidget {
               ]
             : null,
       ),
-      clipBehavior: Clip.antiAlias,
-      child: _buildContent(context, effectivePadding),
+      child: Material(
+        color: effectiveBg,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        clipBehavior: Clip.antiAlias,
+        child: _buildContent(context, effectivePadding),
+      ),
     );
 
     if (onTap != null) {
@@ -147,14 +146,13 @@ class AppCard extends StatelessWidget {
       );
     }
 
-    return Semantics(
-      container: true,
-      label: title,
-      child: cardBody,
-    );
+    return Semantics(container: true, label: title, child: cardBody);
   }
 
-  Widget _buildContent(BuildContext context, EdgeInsetsGeometry effectivePadding) {
+  Widget _buildContent(
+    BuildContext context,
+    EdgeInsetsGeometry effectivePadding,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (title != null) {
@@ -182,17 +180,11 @@ class AppCard extends StatelessWidget {
             height: 1,
             color: isDark ? AppColors.borderDark : AppColors.borderLight,
           ),
-          Padding(
-            padding: effectivePadding,
-            child: child,
-          ),
+          Padding(padding: effectivePadding, child: child),
         ],
       );
     }
 
-    return Padding(
-      padding: effectivePadding,
-      child: child,
-    );
+    return Padding(padding: effectivePadding, child: child);
   }
 }
