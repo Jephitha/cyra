@@ -262,8 +262,8 @@ boundary while free tracking, privacy, prediction explanations, and exports rema
 
 ## Cross-cutting: fix before/alongside the above
 
-### T18. Add automated tests
-Zero project-specific tests currently exist. Priority order:
+### [x] T18. Add automated tests
+The suite now covers the original priority order:
 1. Unit tests for `CyclePredictor`, `OvulationDetector`, `CorrelationEngine` (pure logic, easiest
    and highest-value to test, protects the core competitive differentiator).
 2. Unit tests for `EncryptionService` (encrypt/decrypt round-trip, tampered-ciphertext rejection).
@@ -273,7 +273,10 @@ Zero project-specific tests currently exist. Priority order:
    — it's the exact bug we just found).
 5. Integration test for the T4 end-to-end smoke flow.
 
-See `TESTING.md` for detail.
+Pure prediction/correlation and encryption tests, real in-memory Drift repository tests, Log Period
+widget save-flow coverage, and a file-backed T4 persistence integration test are all present. The
+repository coverage added here also caught and fixed historical cervical-mucus dates being replaced
+with insertion timestamps.
 
 ### T19. Point Supabase config at a real environment before any release build
 `.env` currently has `SUPABASE_URL=http://192.168.100.8:54321` (a LAN-local dev instance) baked

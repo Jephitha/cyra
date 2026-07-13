@@ -173,6 +173,7 @@ class OvulationRepository {
           consistency: Value(observation.consistency),
           color: Value(observation.color),
           amount: Value(observation.amount ?? ''),
+          createdAt: Value(observation.date),
         ),
       );
       return;
@@ -188,7 +189,9 @@ class OvulationRepository {
             consistency: Value(observation.consistency),
             color: Value(observation.color),
             amount: observation.amount ?? '',
-            createdAt: DateTime.now(),
+            // The schema predates a dedicated observation-date column, so
+            // createdAt is the persisted domain date for mucus records.
+            createdAt: observation.date,
           ),
         );
   }
