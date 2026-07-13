@@ -138,7 +138,7 @@ system setting. Product direction: **no manual override, system setting only, fo
 
 
 
-### T9. Surface privacy features in onboarding
+### [x] T9. Surface privacy features in onboarding
 `PrivacyService`'s private mode, auto-lock, and emergency lock are strong differentiators vs Flo —
 confirm the onboarding flow actually explains and offers these (not just buries them in settings),
 since "privacy-first" only works as a competitive moat if users know about it.

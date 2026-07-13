@@ -65,10 +65,14 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
     super.initState();
     _checkBiometrics();
     _pinFocusNode.addListener(() {
-      if (mounted) setState(() => _pinFocused = _pinFocusNode.hasFocus);
+      if (mounted) {
+        setState(() => _pinFocused = _pinFocusNode.hasFocus);
+      }
     });
     _confirmPinFocusNode.addListener(() {
-      if (mounted) setState(() => _confirmPinFocused = _confirmPinFocusNode.hasFocus);
+      if (mounted) {
+        setState(() => _confirmPinFocused = _confirmPinFocusNode.hasFocus);
+      }
     });
   }
 
@@ -161,17 +165,52 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
     }
   }
 
-  void _togglePrivacyOption(String key, bool value) {
+  Future<void> _togglePrivacyOption(String key, bool value) async {
     final notifier = ref.read(privacySettingsProvider.notifier);
-    switch (key) {
-      case 'biometric':
-        notifier.updateBiometric(value);
-      case 'privateMode':
-        notifier.updatePrivateMode(value);
-      case 'hiddenAppIcon':
-        notifier.updateHiddenAppIcon(value);
-      case 'emergencyLock':
-        notifier.updateEmergencyLock(value);
+    try {
+      switch (key) {
+        case 'biometric':
+          notifier.updateBiometric(value);
+        case 'privateMode':
+          final privacyService = ref.read(privacyServiceProvider);
+          if (value) {
+            await privacyService.enablePrivateMode();
+          } else {
+            await privacyService.disablePrivateMode();
+          }
+          notifier.updatePrivateMode(value);
+        case 'hiddenAppIcon':
+          notifier.updateHiddenAppIcon(value);
+        case 'emergencyLock':
+          notifier.updateEmergencyLock(value);
+      }
+    } on PrivacyException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Could not save that privacy choice. Please try again.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _setAutoLockDuration(AutoLockDuration duration) async {
+    try {
+      await ref.read(privacyServiceProvider).setAutoLockDuration(duration);
+      ref
+          .read(privacySettingsProvider.notifier)
+          .updateAutoLock(duration.duration.inMinutes);
+    } on PrivacyException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Could not save the auto-lock timer. Please try again.',
+          ),
+        ),
+      );
     }
   }
 
@@ -342,9 +381,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             ),
           ),
           SizedBox(height: _currentStep == 0 ? AppSpacing.sm : AppSpacing.xxxl),
-          Expanded(
-            child: _buildStepBody(),
-          ),
+          Expanded(child: _buildStepBody()),
         ],
       ),
     );
@@ -382,7 +419,8 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             key: 'privateMode',
             icon: Icons.visibility_off_rounded,
             title: 'Private Mode',
-            description: 'Hide sensitive content from previews and notifications.',
+            description:
+                'Hide sensitive content from previews and notifications.',
             enabled: config.privateModeEnabled,
           ),
           _PrivacyOption(
@@ -404,15 +442,27 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
         ];
 
         return ListView.separated(
-          itemCount: options.length,
+          itemCount: options.length + 1,
           shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
           separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
           itemBuilder: (context, index) {
+            if (index == options.length) {
+              final selectedDuration = AutoLockDuration.values.firstWhere(
+                (duration) =>
+                    duration.duration.inMinutes == config.autoLockMinutes,
+                orElse: () => AutoLockDuration.fiveMinutes,
+              );
+              return _AutoLockOptionCard(
+                selectedDuration: selectedDuration,
+                onChanged: _setAutoLockDuration,
+              );
+            }
             final option = options[index];
             return _PrivacyOptionCard(
               option: option,
-              onToggle: (value) => _togglePrivacyOption(option.key, value),
+              onToggle: (value) {
+                _togglePrivacyOption(option.key, value);
+              },
             );
           },
         );
@@ -591,7 +641,9 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
                 });
               } else {
                 _confirmPinController.text = v.substring(0, 5);
-                _confirmPinController.selection = TextSelection.collapsed(offset: 5);
+                _confirmPinController.selection = TextSelection.collapsed(
+                  offset: 5,
+                );
               }
             },
           ),
@@ -654,8 +706,8 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
                     color: _showPinError
                         ? AppColors.error
                         : isFocused
-                            ? AppColors.forestGreen
-                            : AppColors.borderLight,
+                        ? AppColors.forestGreen
+                        : AppColors.borderLight,
                     width: isFocused ? 2 : 1,
                   ),
                 ),
@@ -710,9 +762,13 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
                       counterText: '',
                     ),
                     onChanged: onChanged,
-                    buildCounter: (
-                      _, {required currentLength, required isFocused, maxLength}
-                    ) => null,
+                    buildCounter:
+                        (
+                          _, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) => null,
                   ),
                 ),
               ),
@@ -736,7 +792,9 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
     return Consumer(
       builder: (context, consumerRef, child) {
         final config = consumerRef.watch(privacySettingsProvider);
-        final biometricEnabled = _skipBiometricStep ? false : config.biometricEnabled;
+        final biometricEnabled = _skipBiometricStep
+            ? false
+            : config.biometricEnabled;
         final items = [
           _SummaryItem(
             icon: biometricEnabled
@@ -775,6 +833,18 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             title: 'Emergency Privacy Gesture',
             value: config.emergencyLockEnabled ? 'Active' : 'Off',
             enabled: config.emergencyLockEnabled,
+          ),
+          _SummaryItem(
+            icon: Icons.timer_outlined,
+            title: 'Auto-Lock',
+            value: AutoLockDuration.values
+                .firstWhere(
+                  (duration) =>
+                      duration.duration.inMinutes == config.autoLockMinutes,
+                  orElse: () => AutoLockDuration.fiveMinutes,
+                )
+                .label,
+            enabled: true,
           ),
         ];
 
@@ -921,16 +991,17 @@ class _PrivacyOptionCard extends StatelessWidget {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: 12,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 option.icon,
                 size: 20,
-                color: option.enabled
-                    ? AppColors.forestGreen
-                    : AppColors.slate,
+                color: option.enabled ? AppColors.forestGreen : AppColors.slate,
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -985,6 +1056,84 @@ class _PrivacyOptionCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AutoLockOptionCard extends StatelessWidget {
+  final AutoLockDuration selectedDuration;
+  final ValueChanged<AutoLockDuration> onChanged;
+
+  const _AutoLockOptionCard({
+    required this.selectedDuration,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.timer_outlined,
+            size: 20,
+            color: AppColors.forestGreen,
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Auto-Lock',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.charcoal,
+                  ),
+                ),
+                Text(
+                  'Require your PIN or biometrics again after inactivity.',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    height: 1.25,
+                    color: AppColors.slate,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          DropdownButtonHideUnderline(
+            child: DropdownButton<AutoLockDuration>(
+              key: const Key('privacy-auto-lock-dropdown'),
+              value: selectedDuration,
+              isDense: true,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              items: AutoLockDuration.values
+                  .map(
+                    (duration) => DropdownMenuItem(
+                      value: duration,
+                      child: Text(duration.label),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (duration) {
+                if (duration != null) onChanged(duration);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
