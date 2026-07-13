@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:cyra/app/app_routes.dart';
+import 'package:cyra/core/navigation/navigation_intent_service.dart';
 import 'package:cyra/core/notifications/cycle_notification_gateway.dart';
 import 'package:cyra/core/security/privacy_service.dart';
 import 'package:cyra/core/providers/security_providers.dart';
@@ -12,6 +14,7 @@ part 'notification_helper.g.dart';
 class NotificationHelper implements CycleNotificationGateway {
   final FlutterLocalNotificationsPlugin _plugin;
   final PrivacyService _privacyService;
+  final NavigationIntentService _navigation;
 
   static const String _channelId = 'cyra_cycle_reminders';
   static const String _channelName = 'Cycle Reminders';
@@ -36,7 +39,7 @@ class NotificationHelper implements CycleNotificationGateway {
 
   bool _initialized = false;
 
-  NotificationHelper(this._plugin, this._privacyService);
+  NotificationHelper(this._plugin, this._privacyService, this._navigation);
 
   @override
   Future<void> initialize() async {
@@ -60,6 +63,11 @@ class NotificationHelper implements CycleNotificationGateway {
       initSettings,
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
+
+    final launch = await _plugin.getNotificationAppLaunchDetails();
+    if (launch?.didNotificationLaunchApp == true) {
+      _navigation.open(launch?.notificationResponse?.payload);
+    }
 
     await _createChannels();
     _initialized = true;
@@ -142,7 +150,7 @@ class NotificationHelper implements CycleNotificationGateway {
       title: title,
       body: body,
       scheduledDate: scheduledDate,
-      payload: '/calendar',
+      payload: AppRoutes.logPeriod,
     );
   }
 
@@ -167,7 +175,7 @@ class NotificationHelper implements CycleNotificationGateway {
       title: title,
       body: body,
       scheduledDate: scheduledDate,
-      payload: '/ovulation',
+      payload: AppRoutes.ovulation,
     );
   }
 
@@ -184,7 +192,7 @@ class NotificationHelper implements CycleNotificationGateway {
         'Ovulation is estimated for today',
       ),
       scheduledDate: scheduledDate,
-      payload: '/ovulation',
+      payload: AppRoutes.ovulation,
     );
   }
 
@@ -365,7 +373,7 @@ class NotificationHelper implements CycleNotificationGateway {
   }
 
   void _onNotificationTap(NotificationResponse response) {
-    // Handle notification tap navigation based on payload
+    _navigation.open(response.payload);
   }
 }
 
@@ -373,5 +381,6 @@ class NotificationHelper implements CycleNotificationGateway {
 NotificationHelper notificationHelper(NotificationHelperRef ref) {
   final plugin = FlutterLocalNotificationsPlugin();
   final privacy = ref.read(privacyServiceProvider);
-  return NotificationHelper(plugin, privacy);
+  final navigation = ref.read(navigationIntentServiceProvider);
+  return NotificationHelper(plugin, privacy, navigation);
 }

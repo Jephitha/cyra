@@ -284,10 +284,11 @@ development/staging/production dart-defines, with offline development allowed. D
 Android and iOS release-build guards reject missing, HTTP, localhost/private-network, and placeholder
 release configuration. Real staging/production values stay in CI/store secrets; see `ENVIRONMENTS.md`.
 
-### T20. Add routes for imperatively-pushed screens
-`LogPeriodScreen`, `CycleDetailScreen`, `PredictionDetailScreen`, etc. aren't declared as
-`GoRoute`s. Not urgent, but needed before deep-linking (e.g., a reminder notification opening
-`LogPeriodScreen` directly) can work.
+### [x] T20. Add routes for imperatively-pushed screens
+Added stable GoRoutes for cycle logging/history/detail/predictions, symptom logging, ovulation and
+its three log flows, pregnancy, appearance, notifications, wearables, and Premium. Date and cycle
+parameters are URI-safe. Notification taps/cold starts now navigate through GoRouter, period
+reminders open Log Period directly, and locked deep links resume their destination after unlock.
 
 ---
 

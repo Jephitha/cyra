@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cyra/app/app_routes.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
@@ -121,7 +122,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
         if (authenticated) {
           ref.read(authStateNotifierProvider.notifier).authenticate();
           ref.read(failedPinAttemptsProvider.notifier).reset();
-          if (context.mounted) context.go('/dashboard');
+          if (context.mounted) context.go(_destinationAfterUnlock());
         }
       }
     } catch (_) {
@@ -180,7 +181,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
       ref.read(authStateNotifierProvider.notifier).authenticate();
       if (!mounted) return;
       ref.read(failedPinAttemptsProvider.notifier).reset();
-      context.go('/dashboard');
+      context.go(_destinationAfterUnlock());
     } else {
       ref.read(failedPinAttemptsProvider.notifier).increment();
       final newAttempts = attempts + 1;
@@ -194,6 +195,11 @@ class _LockScreenState extends ConsumerState<LockScreen>
         _startLockout();
       }
     }
+  }
+
+  String _destinationAfterUnlock() {
+    final route = GoRouterState.of(context).uri.queryParameters['continue'];
+    return route != null && route.startsWith('/') ? route : AppRoutes.dashboard;
   }
 
   void _startLockout() {
