@@ -144,6 +144,12 @@ confirm the onboarding flow actually explains and offers these (not just buries 
 since "privacy-first" only works as a competitive moat if users know about it.
 
 ### T9a. Implement "Hide App Icon" for real — Weather-themed disguise
+**Implementation status (2026-07-13):** Platform-channel, Android alias, and iOS alternate-icon
+support are implemented. Android compiles and its packaged manifest/assets have been inspected.
+Final real-device verification remains pending because no Android or iOS device is attached to the
+development host. iOS supports changing the icon but does not expose a public API for changing the
+home-screen label at runtime, so its label remains "Cyra"; Android switches both icon and label.
+
 **Problem:** `privacy_setup_screen.dart` and `privacy_controls_screen.dart` already have a
 "Hide App Icon" toggle (`config.hiddenAppIconEnabled`) with copy promising "Replace the Cyra icon
 with a neutral icon on your home screen" — but this is currently a UI checkbox with no OS-level

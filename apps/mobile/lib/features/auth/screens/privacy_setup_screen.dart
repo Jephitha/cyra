@@ -64,6 +64,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   void initState() {
     super.initState();
     _checkBiometrics();
+    _syncHiddenAppIcon();
     _pinFocusNode.addListener(() {
       if (mounted) {
         setState(() => _pinFocused = _pinFocusNode.hasFocus);
@@ -74,6 +75,19 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
         setState(() => _confirmPinFocused = _confirmPinFocusNode.hasFocus);
       }
     });
+  }
+
+  Future<void> _syncHiddenAppIcon() async {
+    try {
+      final hidden = await ref
+          .read(appIconServiceProvider)
+          .isHiddenAppIconEnabled();
+      if (mounted) {
+        ref.read(privacySettingsProvider.notifier).updateHiddenAppIcon(hidden);
+      }
+    } on AppIconException {
+      // Keep the in-memory setting if the launcher cannot report its state.
+    }
   }
 
   @override
@@ -180,20 +194,25 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
           }
           notifier.updatePrivateMode(value);
         case 'hiddenAppIcon':
+          await ref.read(appIconServiceProvider).setHiddenAppIcon(value);
           notifier.updateHiddenAppIcon(value);
         case 'emergencyLock':
           notifier.updateEmergencyLock(value);
       }
     } on PrivacyException {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Could not save that privacy choice. Please try again.',
-          ),
-        ),
-      );
+      _showPrivacySaveError();
+    } on AppIconException {
+      _showPrivacySaveError();
     }
+  }
+
+  void _showPrivacySaveError() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Could not save that privacy choice. Please try again.'),
+      ),
+    );
   }
 
   Future<void> _setAutoLockDuration(AutoLockDuration duration) async {
@@ -428,7 +447,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             icon: Icons.app_shortcut_outlined,
             title: 'Hide App Icon',
             description:
-                'Replace the Cyra icon with a neutral icon on your home screen.',
+                'Replace the Cyra icon with a neutral weather icon on your home screen.',
             enabled: config.hiddenAppIconEnabled,
           ),
           _PrivacyOption(

@@ -8,6 +8,7 @@ import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/security/biometric_auth_service.dart';
+import 'package:cyra/core/security/app_icon_service.dart';
 import 'package:cyra/core/security/data_export_service.dart';
 import 'package:cyra/core/security/privacy_service.dart';
 import 'package:cyra/features/auth/providers/auth_providers.dart';
@@ -17,17 +18,34 @@ class PrivacyControlsScreen extends ConsumerStatefulWidget {
   const PrivacyControlsScreen({super.key});
 
   @override
-  ConsumerState<PrivacyControlsScreen> createState() => _PrivacyControlsScreenState();
+  ConsumerState<PrivacyControlsScreen> createState() =>
+      _PrivacyControlsScreenState();
 }
 
 class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
+    _syncHiddenAppIcon();
+  }
 
+  Future<void> _syncHiddenAppIcon() async {
+    try {
+      final hidden = await ref
+          .read(appIconServiceProvider)
+          .isHiddenAppIconEnabled();
+      if (mounted) {
+        ref.read(privacySettingsProvider.notifier).updateHiddenAppIcon(hidden);
+      }
+    } on AppIconException {
+      // Keep the in-memory setting if the launcher cannot report its state.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Privacy & Security'),
-      ),
+      appBar: AppBar(title: const Text('Privacy & Security')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
@@ -126,7 +144,9 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
     return _SettingRow(
       icon: Icons.pin_outlined,
       label: 'PIN Code',
-      subtitle: enabled ? 'Change your PIN code' : 'Set a PIN code for extra security',
+      subtitle: enabled
+          ? 'Change your PIN code'
+          : 'Set a PIN code for extra security',
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -149,7 +169,8 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
                 final confirmed = await _showConfirmDialog(
                   context,
                   title: 'Disable PIN Code?',
-                  message: 'Your data will no longer be protected by a PIN. You can re-enable this at any time.',
+                  message:
+                      'Your data will no longer be protected by a PIN. You can re-enable this at any time.',
                 );
                 if (confirmed == true && mounted) {
                   await authService.clearPinCode();
@@ -209,7 +230,9 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
           }
           if (mounted) {
             ref.read(privacySettingsProvider.notifier).updatePrivateMode(value);
-            context.showSnackBar(value ? 'Private mode enabled' : 'Private mode disabled');
+            context.showSnackBar(
+              value ? 'Private mode enabled' : 'Private mode disabled',
+            );
           }
         },
       ),
@@ -224,17 +247,26 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
     return _SettingRow(
       icon: Icons.apps_outlined,
       label: 'Hidden App Icon',
-      subtitle: 'Change app icon to neutral "Health" icon',
+      subtitle: 'Change the home screen icon to a neutral weather symbol',
       trailing: Switch.adaptive(
         value: hiddenAppIcon,
         activeTrackColor: AppColors.forestGreen,
-        onChanged: (value) {
-          ref.read(privacySettingsProvider.notifier).updateHiddenAppIcon(value);
-          context.showSnackBar(
-            value
-                ? 'Hidden app icon enabled'
-                : 'Hidden app icon disabled',
-          );
+        onChanged: (value) async {
+          try {
+            await ref.read(appIconServiceProvider).setHiddenAppIcon(value);
+            if (!mounted) return;
+            ref
+                .read(privacySettingsProvider.notifier)
+                .updateHiddenAppIcon(value);
+            context.showSnackBar(
+              value
+                  ? 'Weather home screen icon enabled'
+                  : 'Cyra home screen icon restored',
+            );
+          } on AppIconException catch (error) {
+            if (!mounted) return;
+            context.showSnackBar(error.message, isError: true);
+          }
         },
       ),
     );
@@ -274,10 +306,17 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.sm),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.sm,
+            ),
             child: Text(
               'Manage your personal data. Exports are encrypted and saved locally.',
-              style: AppTypography.light.bodySmall?.copyWith(color: AppColors.slate),
+              style: AppTypography.light.bodySmall?.copyWith(
+                color: AppColors.slate,
+              ),
             ),
           ),
           const Divider(height: 1),
@@ -338,7 +377,12 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
         reason: 'Authenticate to export your data',
       );
       if (!authenticated) {
-        if (mounted) context.showSnackBar('Authentication required to export data', isError: true);
+        if (mounted) {
+          context.showSnackBar(
+            'Authentication required to export data',
+            isError: true,
+          );
+        }
         return;
       }
 
@@ -346,7 +390,9 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       final file = await exportService.exportAllDataAsJson();
 
       if (mounted) {
-        context.showSnackBar('Data exported successfully: ${file.path.split('/').last}');
+        context.showSnackBar(
+          'Data exported successfully: ${file.path.split('/').last}',
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -365,7 +411,12 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
         reason: 'Authenticate to export your data',
       );
       if (!authenticated) {
-        if (mounted) context.showSnackBar('Authentication required to export data', isError: true);
+        if (mounted) {
+          context.showSnackBar(
+            'Authentication required to export data',
+            isError: true,
+          );
+        }
         return;
       }
 
@@ -373,7 +424,9 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       final file = await exportService.exportDateRange(range.start, range.end);
 
       if (mounted) {
-        context.showSnackBar('Data exported successfully: ${file.path.split('/').last}');
+        context.showSnackBar(
+          'Data exported successfully: ${file.path.split('/').last}',
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -389,7 +442,8 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
     final confirmed = await _showConfirmDialog(
       context,
       title: 'Delete Data Range?',
-      message: 'This will permanently delete all health data from '
+      message:
+          'This will permanently delete all health data from '
           '${DateFormat.yMd().format(range.start)} to ${DateFormat.yMd().format(range.end)}. '
           'This action cannot be undone.',
       isDestructive: true,
@@ -403,7 +457,12 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
         reason: 'Authenticate to delete data',
       );
       if (!authenticated) {
-        if (context.mounted) context.showSnackBar('Authentication required to delete data', isError: true);
+        if (context.mounted) {
+          context.showSnackBar(
+            'Authentication required to delete data',
+            isError: true,
+          );
+        }
         return;
       }
 
@@ -424,7 +483,8 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
     final firstConfirm = await _showConfirmDialog(
       context,
       title: 'Delete All Data?',
-      message: 'This will permanently delete ALL your health data, including cycles, symptoms, journal entries, '
+      message:
+          'This will permanently delete ALL your health data, including cycles, symptoms, journal entries, '
           'and all other recorded information. This action cannot be undone.',
       isDestructive: true,
       confirmLabel: 'Continue',
@@ -434,7 +494,8 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
     final secondConfirm = await _showConfirmDialog(
       context,
       title: 'Are you absolutely sure?',
-      message: 'All your data will be permanently erased. This includes years of health tracking data.',
+      message:
+          'All your data will be permanently erased. This includes years of health tracking data.',
       isDestructive: true,
       confirmLabel: 'Delete Everything',
     );
@@ -446,7 +507,12 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
         reason: 'Authenticate to delete all data',
       );
       if (!authenticated) {
-        if (context.mounted) context.showSnackBar('Authentication required to delete all data', isError: true);
+        if (context.mounted) {
+          context.showSnackBar(
+            'Authentication required to delete all data',
+            isError: true,
+          );
+        }
         return;
       }
 
@@ -504,9 +570,9 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppColors.forestGreen,
-            ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.forestGreen),
           ),
           child: child!,
         );
@@ -653,10 +719,7 @@ class _AutoLockDropdown extends ConsumerWidget {
           fontWeight: FontWeight.w500,
         ),
         items: durationOptions.entries.map((entry) {
-          return DropdownMenuItem(
-            value: entry.value,
-            child: Text(entry.value),
-          );
+          return DropdownMenuItem(value: entry.value, child: Text(entry.value));
         }).toList(),
         onChanged: (value) {
           final minutes = durationOptions.entries
