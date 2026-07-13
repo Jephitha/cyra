@@ -1,9 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:cyra/core/constants/api_constants.dart';
+import 'package:cyra/core/networking/supabase_environment.dart';
 
 part 'supabase_client.g.dart';
 
@@ -12,12 +11,14 @@ class SupabaseClientService {
 
   SupabaseClientService(this._client);
 
-  static Future<void> initialize() async {
-    await dotenv.load();
+  static Future<bool> initialize() async {
+    final config = SupabaseEnvironmentConfig.current();
+    if (!config.enabled) return false;
     await Supabase.initialize(
-      url: dotenv.env['SUPABASE_URL'] ?? ApiConstants.supabaseUrl,
-      publishableKey: dotenv.env['SUPABASE_ANON_KEY'] ?? ApiConstants.supabaseAnonKey,
+      url: config.url,
+      publishableKey: config.publishableKey,
     );
+    return true;
   }
 
   SupabaseClient get client => _client;
@@ -82,7 +83,11 @@ class SupabaseClientService {
   }
 
   Future<Map<String, dynamic>?> fetchById(String table, String id) async {
-    final response = await _client.from(table).select().eq('id', id).maybeSingle();
+    final response = await _client
+        .from(table)
+        .select()
+        .eq('id', id)
+        .maybeSingle();
     return response;
   }
 
@@ -91,17 +96,18 @@ class SupabaseClientService {
     Map<String, dynamic> data, {
     String? conflictColumn,
   }) async {
-    await _client.from(table).upsert(
-          data,
-          onConflict: conflictColumn,
-        );
+    await _client.from(table).upsert(data, onConflict: conflictColumn);
   }
 
   Future<void> insert(String table, Map<String, dynamic> data) async {
     await _client.from(table).insert(data);
   }
 
-  Future<void> update(String table, String id, Map<String, dynamic> data) async {
+  Future<void> update(
+    String table,
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     await _client.from(table).update(data).eq('id', id);
   }
 
@@ -120,7 +126,9 @@ class SupabaseClientService {
     void Function(Map<String, dynamic>)? onUpdate,
     void Function(Map<String, dynamic>)? onDelete,
   }) {
-    final channel = _client.channel('public:$table').onPostgresChanges(
+    final channel = _client
+        .channel('public:$table')
+        .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: table,
@@ -149,7 +157,9 @@ class SupabaseClientService {
     void Function(Map<String, dynamic>)? onUpdate,
     void Function(Map<String, dynamic>)? onDelete,
   }) {
-    final channel = _client.channel('user:$table:$userId').onPostgresChanges(
+    final channel = _client
+        .channel('user:$table:$userId')
+        .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: table,
@@ -186,7 +196,9 @@ class SupabaseClientService {
     Uint8List data, {
     String? contentType,
   }) async {
-    await _client.storage.from(bucket).uploadBinary(
+    await _client.storage
+        .from(bucket)
+        .uploadBinary(
           path,
           data,
           fileOptions: FileOptions(contentType: contentType),

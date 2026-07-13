@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:cyra/core/database/daos/cycle_dao.dart';
 import 'package:cyra/core/networking/supabase_client.dart';
+import 'package:cyra/core/networking/supabase_environment.dart';
 import 'package:cyra/core/notifications/cycle_reminder_scheduler.dart';
 import 'package:cyra/core/providers/settings_providers.dart';
 import 'package:cyra/core/security/encryption_service.dart';
@@ -20,7 +21,15 @@ import 'package:cyra/features/wearables/providers/wearable_providers.dart';
 
 Future<void> bootstrapApp() async {
   try {
-    await SupabaseClientService.initialize();
+    final initialized = await SupabaseClientService.initialize();
+    if (!initialized) {
+      debugPrint(
+        'Supabase is disabled: no development dart-defines were supplied.',
+      );
+    }
+  } on SupabaseConfigurationException catch (e, st) {
+    debugPrint('Supabase configuration is invalid: $e\n$st');
+    if (kReleaseMode) rethrow;
   } catch (e, st) {
     debugPrint('Supabase initialization failed: $e\n$st');
   }

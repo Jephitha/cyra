@@ -278,10 +278,11 @@ widget save-flow coverage, and a file-backed T4 persistence integration test are
 repository coverage added here also caught and fixed historical cervical-mucus dates being replaced
 with insertion timestamps.
 
-### T19. Point Supabase config at a real environment before any release build
-`.env` currently has `SUPABASE_URL=http://192.168.100.8:54321` (a LAN-local dev instance) baked
-into the shipped debug APK. Confirm build config properly separates dev/staging/prod before this
-goes anywhere near a real user.
+### [x] T19. Point Supabase config at a real environment before any release build
+The LAN `.env` is no longer an app asset. Supabase values now come only from compile-time
+development/staging/production dart-defines, with offline development allowed. Dart validation plus
+Android and iOS release-build guards reject missing, HTTP, localhost/private-network, and placeholder
+release configuration. Real staging/production values stay in CI/store secrets; see `ENVIRONMENTS.md`.
 
 ### T20. Add routes for imperatively-pushed screens
 `LogPeriodScreen`, `CycleDetailScreen`, `PredictionDetailScreen`, etc. aren't declared as

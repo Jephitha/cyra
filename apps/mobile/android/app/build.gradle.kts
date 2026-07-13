@@ -1,7 +1,50 @@
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+fun decodedDartDefines(): Map<String, String> {
+    val encoded = project.findProperty("dart-defines") as? String ?: return emptyMap()
+    return encoded.split(',').mapNotNull { value ->
+        val decoded = runCatching {
+            String(Base64.getDecoder().decode(value), Charsets.UTF_8)
+        }.getOrNull() ?: return@mapNotNull null
+        val separator = decoded.indexOf('=')
+        if (separator <= 0) null
+        else decoded.substring(0, separator) to decoded.substring(separator + 1)
+    }.toMap()
+}
+
+fun validateReleaseSupabaseConfig() {
+    val defines = decodedDartDefines()
+    val environment = defines["APP_ENV"]?.lowercase()
+    val url = defines["SUPABASE_URL"].orEmpty()
+    val key = defines["SUPABASE_ANON_KEY"].orEmpty()
+    val privateHost = Regex(
+        "^https://(localhost|127\\.|10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.)",
+        RegexOption.IGNORE_CASE,
+    )
+
+    require(environment == "staging" || environment == "production") {
+        "Release builds require --dart-define=APP_ENV=staging or production."
+    }
+    require(url.startsWith("https://") && !privateHost.containsMatchIn(url)) {
+        "Release builds require a public HTTPS SUPABASE_URL dart-define."
+    }
+    require(key.length >= 20 && !key.contains("your_", ignoreCase = true)) {
+        "Release builds require a non-placeholder SUPABASE_ANON_KEY dart-define."
+    }
+}
+
+gradle.taskGraph.whenReady {
+    val releaseRequested = allTasks.any { task ->
+        task.project == project &&
+            task.name.contains("Release", ignoreCase = true)
+    }
+    if (releaseRequested) validateReleaseSupabaseConfig()
 }
 
 android {
