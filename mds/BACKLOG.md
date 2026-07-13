@@ -247,10 +247,10 @@ user-facing copy now states this explicitly instead of claiming an AI-powered im
 
 ## P5 — Monetization (only after the free experience is solid)
 
-### T16. Design the free/paid boundary
-No IAP infrastructure exists yet at all. Before adding a package, decide what's gated (advanced
-insights? wearable sync? clinician export?) — keep core tracking + privacy features free per the
-original competitive strategy (ad-free-by-default is part of the trust story).
+### [x] T16. Design the free/paid boundary
+Defined in `MONETIZATION.md`: core tracking, prediction explanations, privacy/security, reminders,
+and data deletion/export (including clinician PDF) remain free and ad-free. Premium covers wearable
+sync and advanced longitudinal analysis; previously synced or user-authored records are never hidden.
 
 ### T17. Integrate `in_app_purchase` or RevenueCat
 Standard subscription plumbing once the boundary is decided.
