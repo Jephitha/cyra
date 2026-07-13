@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/flow_intensity_picker.dart';
 import 'package:cyra/core/design/widgets/symptom_selector.dart';
 import 'package:cyra/core/constants/cycle_constants.dart';
+import 'package:cyra/core/notifications/cycle_reminder_scheduler.dart';
 import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/features/cycle/models/cycle.dart';
 import 'package:cyra/features/cycle/providers/cycle_providers.dart';
@@ -115,6 +117,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
       ref.invalidate(nextPeriodPredictionProvider);
       ref.invalidate(cycleDaysProvider(activeCycle!.id));
 
+      final reminderScheduler = ref.read(cycleReminderSchedulerProvider);
+      unawaited(_refreshReminders(reminderScheduler));
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -134,6 +139,15 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _refreshReminders(CycleReminderScheduler scheduler) async {
+    try {
+      await scheduler.reschedule();
+    } catch (_) {
+      // Logging health data succeeds even if the OS notification service is
+      // temporarily unavailable; startup will retry the schedule later.
     }
   }
 

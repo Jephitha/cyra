@@ -5,9 +5,11 @@ import android.content.pm.PackageManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.util.TimeZone
 
 class MainActivity : FlutterFragmentActivity() {
     private val channelName = "com.getmycyra.app/app_icon"
+    private val timeZoneChannelName = "com.getmycyra.app/timezone"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -24,6 +26,13 @@ class MainActivity : FlutterFragmentActivity() {
                         result.success(true)
                     }
                     "isHiddenAppIconEnabled" -> result.success(isHiddenAppIconEnabled())
+                    else -> result.notImplemented()
+                }
+            }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, timeZoneChannelName)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "getTimeZoneName" -> result.success(TimeZone.getDefault().id)
                     else -> result.notImplemented()
                 }
             }

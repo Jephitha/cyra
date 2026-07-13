@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:cyra/core/database/daos/cycle_dao.dart';
 import 'package:cyra/core/networking/supabase_client.dart';
+import 'package:cyra/core/notifications/cycle_reminder_scheduler.dart';
 import 'package:cyra/core/security/encryption_service.dart';
 import 'package:cyra/core/security/pin_auth_service.dart';
 import 'package:cyra/core/security/secure_storage_service.dart';
@@ -63,4 +64,10 @@ Future<void> bootstrapServices(ProviderContainer container) async {
     container.read(journalRepositoryProvider),
     container.read(symptomDaoProvider),
   ).loadIfNeeded();
+
+  try {
+    await container.read(cycleReminderSchedulerProvider).reschedule();
+  } catch (e, st) {
+    debugPrint('Cycle reminder scheduling failed: $e\n$st');
+  }
 }

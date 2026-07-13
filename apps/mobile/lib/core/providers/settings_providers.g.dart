@@ -71,7 +71,7 @@ final pinEnabledProvider = AsyncNotifierProvider<PinEnabled, bool>.internal(
 
 typedef _$PinEnabled = AsyncNotifier<bool>;
 String _$notificationsEnabledHash() =>
-    r'5de3bd2829ec877d05b31a5700d789792fe454c2';
+    r'b27d102ff95e76dc143ff93d33a1d1e28a5c181a';
 
 /// See also [NotificationsEnabled].
 @ProviderFor(NotificationsEnabled)
@@ -87,6 +87,26 @@ final notificationsEnabledProvider =
     );
 
 typedef _$NotificationsEnabled = AsyncNotifier<bool>;
+String _$cycleReminderSettingsNotifierHash() =>
+    r'a865f35e7e9549db7f3201b3c9e0dbe98e7f8398';
+
+/// See also [CycleReminderSettingsNotifier].
+@ProviderFor(CycleReminderSettingsNotifier)
+final cycleReminderSettingsNotifierProvider =
+    AsyncNotifierProvider<
+      CycleReminderSettingsNotifier,
+      CycleReminderSettings
+    >.internal(
+      CycleReminderSettingsNotifier.new,
+      name: r'cycleReminderSettingsNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$cycleReminderSettingsNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$CycleReminderSettingsNotifier = AsyncNotifier<CycleReminderSettings>;
 String _$privateModeSettingHash() =>
     r'3aeede6728e783a4d3ad98f5f5de1117dd607cc1';
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:cyra/core/database/daos/cycle_dao.dart';
+import 'package:cyra/core/notifications/cycle_reminder_settings.dart';
 
 part 'settings_providers.g.dart';
 
@@ -88,13 +89,32 @@ class NotificationsEnabled extends _$NotificationsEnabled {
   Future<bool> build() async {
     final dao = ref.read(settingsDaoProvider);
     final val = await dao.getValue('notifications_enabled');
-    return val != 'false';
+    return val == 'true';
   }
 
   Future<void> setEnabled(bool enabled) async {
     final dao = ref.read(settingsDaoProvider);
     await dao.setValue('notifications_enabled', enabled.toString());
     state = AsyncData(enabled);
+  }
+}
+
+@Riverpod(keepAlive: true)
+class CycleReminderSettingsNotifier extends _$CycleReminderSettingsNotifier {
+  @override
+  Future<CycleReminderSettings> build() async {
+    final settings = await ref.read(settingsDaoProvider).getAllSettings();
+    return CycleReminderSettings.fromMap({
+      for (final setting in settings) setting.key: setting.value,
+    });
+  }
+
+  Future<void> save(CycleReminderSettings value) async {
+    final dao = ref.read(settingsDaoProvider);
+    for (final entry in value.toMap().entries) {
+      await dao.setValue(entry.key, entry.value);
+    }
+    state = AsyncData(value);
   }
 }
 

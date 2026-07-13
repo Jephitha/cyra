@@ -4,6 +4,7 @@ import UIKit
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var appIconChannel: FlutterMethodChannel?
+  private var timeZoneChannel: FlutterMethodChannel?
 
   override func application(
     _ application: UIApplication,
@@ -40,6 +41,19 @@ import UIKit
       }
     }
     appIconChannel = channel
+
+    let zoneChannel = FlutterMethodChannel(
+      name: "com.getmycyra.app/timezone",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    zoneChannel.setMethodCallHandler { call, result in
+      if call.method == "getTimeZoneName" {
+        result(TimeZone.current.identifier)
+      } else {
+        result(FlutterMethodNotImplemented)
+      }
+    }
+    timeZoneChannel = zoneChannel
   }
 
   private func setHiddenAppIcon(_ hidden: Bool, result: @escaping FlutterResult) {

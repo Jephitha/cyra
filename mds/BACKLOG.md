@@ -219,7 +219,7 @@ Verify call-sites exist for security-relevant events (unlock attempts, emergency
 activation, data export/delete). If not called anywhere yet, wire it in — an audit log that's
 never written to is a false promise.
 
-### T12. Local reminder notifications
+### [x] T12. Local reminder notifications
 `flutter_local_notifications` is a dependency and `notifications_screen.dart` exists (settings for
 "notify how many days before") — confirm actual scheduled notifications are implemented against
 real predicted period/fertile dates, not just a settings UI with no backing logic.

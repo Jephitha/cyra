@@ -1,36 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:cyra/core/notifications/cycle_notification_gateway.dart';
 import 'package:cyra/core/security/privacy_service.dart';
 import 'package:cyra/core/providers/security_providers.dart';
 
 part 'notification_helper.g.dart';
 
-class NotificationHelper {
+class NotificationHelper implements CycleNotificationGateway {
   final FlutterLocalNotificationsPlugin _plugin;
   final PrivacyService _privacyService;
 
   static const String _channelId = 'cyra_cycle_reminders';
   static const String _channelName = 'Cycle Reminders';
-  static const String _channelDescription = 'Period, fertile window and medication reminders';
+  static const String _channelDescription =
+      'Period, fertile window and medication reminders';
 
   static const String _fertileChannelId = 'cyra_fertile_window';
   static const String _fertileChannelName = 'Fertile Window';
-  static const String _fertileChannelDescription = 'Fertile window notifications';
+  static const String _fertileChannelDescription =
+      'Fertile window notifications';
 
   static const String _pillChannelId = 'cyra_pill_reminder';
   static const String _pillChannelName = 'Pill Reminder';
   static const String _pillChannelDescription = 'Daily pill reminders';
+  static const MethodChannel _timeZoneChannel = MethodChannel(
+    'com.getmycyra.app/timezone',
+  );
+
+  static const int _periodReminderId = 1000;
+  static const int _fertileReminderId = 2000;
+  static const int _ovulationReminderId = 2001;
+
+  bool _initialized = false;
 
   NotificationHelper(this._plugin, this._privacyService);
 
+  @override
   Future<void> initialize() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    if (_initialized) return;
+    await _setLocalTimeZone();
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
 
     const initSettings = InitializationSettings(
@@ -44,11 +62,28 @@ class NotificationHelper {
     );
 
     await _createChannels();
+    _initialized = true;
+  }
+
+  Future<void> _setLocalTimeZone() async {
+    try {
+      final name = await _timeZoneChannel.invokeMethod<String>(
+        'getTimeZoneName',
+      );
+      if (name != null && name.isNotEmpty) {
+        tz.setLocalLocation(tz.getLocation(name));
+      }
+    } catch (_) {
+      // Unit tests, unsupported platforms, and unknown platform timezone names
+      // keep tz.local as the safe fallback.
+    }
   }
 
   Future<void> _createChannels() async {
-    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
     if (androidPlugin != null) {
       await androidPlugin.createNotificationChannel(
@@ -84,66 +119,83 @@ class NotificationHelper {
     }
   }
 
+  @override
   Future<void> schedulePeriodReminder({
-    required int id,
     required DateTime scheduledDate,
-    required DateTime periodStartDate,
-    int cycleLength = 28,
-    int daysBeforeReminder = 2,
+    required DateTime predictedPeriodDate,
   }) async {
-    final predictedDate = periodStartDate.add(Duration(days: cycleLength));
-    final reminderDate = predictedDate.subtract(Duration(days: daysBeforeReminder));
+    if (!scheduledDate.isAfter(DateTime.now())) return;
 
-    if (reminderDate.isBefore(DateTime.now())) return;
-
-    final daysUntil = reminderDate.difference(DateTime.now()).inDays;
+    final daysUntil = _calendarDaysBetween(scheduledDate, predictedPeriodDate);
     final title = _privacyService.sanitizeNotificationContent('Cyra');
     final body = daysUntil == 0
-        ? _privacyService.sanitizeNotificationContent('Your period is predicted to start today')
+        ? _privacyService.sanitizeNotificationContent(
+            'Your period is predicted to start today',
+          )
         : _privacyService.sanitizeNotificationContent(
-            'Your period is predicted in $daysUntil day${daysUntil > 1 ? 's' : ''}');
+            'Your period is predicted in $daysUntil day${daysUntil > 1 ? 's' : ''}',
+          );
 
     await _scheduleNotification(
-      id: id,
+      id: _periodReminderId,
       channelId: _channelId,
       title: title,
       body: body,
-      scheduledDate: reminderDate,
+      scheduledDate: scheduledDate,
+      payload: '/calendar',
     );
   }
 
+  @override
   Future<void> scheduleFertileWindowReminder({
-    required int id,
     required DateTime scheduledDate,
-    required DateTime cycleStartDate,
-    int cycleLength = 28,
-    int fertileWindowDay = 8,
+    required DateTime fertileWindowStart,
   }) async {
-    final ovulationDay = cycleLength - 14;
-    final fertileStart = cycleStartDate.add(Duration(days: fertileWindowDay - 1));
-    final fertilePeak = cycleStartDate.add(Duration(days: ovulationDay - 1));
+    if (!scheduledDate.isAfter(DateTime.now())) return;
 
     final title = _privacyService.sanitizeNotificationContent('Cyra');
-    String body;
-
-    final daysSinceFertileStart = DateTime.now().difference(fertileStart).inDays;
-    if (daysSinceFertileStart <= 0) {
-      body = _privacyService.sanitizeNotificationContent('Your fertile window is opening soon');
-    } else if (fertilePeak.isAfter(DateTime.now())) {
-      final daysToPeak = fertilePeak.difference(DateTime.now()).inDays;
-      body = _privacyService.sanitizeNotificationContent(
-        'Fertile window open. Ovulation expected in ~$daysToPeak day${daysToPeak != 1 ? 's' : ''}');
-    } else {
-      return;
-    }
+    final daysUntil = _calendarDaysBetween(scheduledDate, fertileWindowStart);
+    final body = _privacyService.sanitizeNotificationContent(
+      daysUntil == 0
+          ? 'Your fertile window is expected to open today'
+          : 'Your fertile window is expected in $daysUntil day${daysUntil == 1 ? '' : 's'}',
+    );
 
     await _scheduleNotification(
-      id: id,
+      id: _fertileReminderId,
       channelId: _fertileChannelId,
       title: title,
       body: body,
       scheduledDate: scheduledDate,
+      payload: '/ovulation',
     );
+  }
+
+  @override
+  Future<void> scheduleOvulationReminder({
+    required DateTime scheduledDate,
+  }) async {
+    if (!scheduledDate.isAfter(DateTime.now())) return;
+    await _scheduleNotification(
+      id: _ovulationReminderId,
+      channelId: _fertileChannelId,
+      title: _privacyService.sanitizeNotificationContent('Cyra'),
+      body: _privacyService.sanitizeNotificationContent(
+        'Ovulation is estimated for today',
+      ),
+      scheduledDate: scheduledDate,
+      payload: '/ovulation',
+    );
+  }
+
+  int _calendarDaysBetween(DateTime scheduled, DateTime target) {
+    final scheduledDay = DateTime(
+      scheduled.year,
+      scheduled.month,
+      scheduled.day,
+    );
+    final date = DateTime(target.year, target.month, target.day);
+    return date.difference(scheduledDay).inDays;
   }
 
   Future<void> schedulePillReminder({
@@ -153,7 +205,11 @@ class NotificationHelper {
   }) async {
     final now = DateTime.now();
     var scheduledDate = DateTime(
-      now.year, now.month, now.day, reminderTime.hour, reminderTime.minute,
+      now.year,
+      now.month,
+      now.day,
+      reminderTime.hour,
+      reminderTime.minute,
     );
 
     if (scheduledDate.isBefore(now)) {
@@ -162,7 +218,10 @@ class NotificationHelper {
 
     final title = _privacyService.sanitizeNotificationContent('Cyra');
     final body = _privacyService.sanitizeNotificationContent(
-      pillName != null ? 'Time to take $pillName' : 'Time to take your medication');
+      pillName != null
+          ? 'Time to take $pillName'
+          : 'Time to take your medication',
+    );
 
     await _scheduleNotification(
       id: id,
@@ -202,14 +261,18 @@ class NotificationHelper {
   }
 
   Future<void> cancelPeriodReminders() async {
-    await _plugin.cancel(1000);
-    await _plugin.cancel(1001);
-    await _plugin.cancel(1002);
+    await _plugin.cancel(_periodReminderId);
   }
 
   Future<void> cancelFertileWindowReminders() async {
-    await _plugin.cancel(2000);
-    await _plugin.cancel(2001);
+    await _plugin.cancel(_fertileReminderId);
+    await _plugin.cancel(_ovulationReminderId);
+  }
+
+  @override
+  Future<void> cancelCycleReminders() async {
+    await cancelPeriodReminders();
+    await cancelFertileWindowReminders();
   }
 
   Future<void> cancelPillReminders() async {
@@ -220,26 +283,35 @@ class NotificationHelper {
     return _plugin.pendingNotificationRequests();
   }
 
+  @override
   Future<bool> requestPermissions() async {
-    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    var granted = true;
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
     if (androidPlugin != null) {
-      await androidPlugin.requestNotificationsPermission();
+      granted = await androidPlugin.requestNotificationsPermission() ?? false;
     }
 
-    final iosPlugin = _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
+    final iosPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
 
     if (iosPlugin != null) {
-      await iosPlugin.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+      granted =
+          (await iosPlugin.requestPermissions(
+                alert: true,
+                badge: true,
+                sound: true,
+              ) ??
+              false) &&
+          granted;
     }
 
-    return true;
+    return granted;
   }
 
   Future<void> _scheduleNotification({
@@ -248,6 +320,7 @@ class NotificationHelper {
     required String title,
     required String body,
     required DateTime scheduledDate,
+    String? payload,
     bool androidAllowWhileIdle = false,
     bool repeatDaily = false,
   }) async {
@@ -264,9 +337,8 @@ class NotificationHelper {
           : AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents:
-          repeatDaily ? DateTimeComponents.time : null,
-      payload: null,
+      matchDateTimeComponents: repeatDaily ? DateTimeComponents.time : null,
+      payload: payload,
     );
   }
 
@@ -301,7 +373,5 @@ class NotificationHelper {
 NotificationHelper notificationHelper(NotificationHelperRef ref) {
   final plugin = FlutterLocalNotificationsPlugin();
   final privacy = ref.read(privacyServiceProvider);
-  final helper = NotificationHelper(plugin, privacy);
-  helper.initialize();
-  return helper;
+  return NotificationHelper(plugin, privacy);
 }
