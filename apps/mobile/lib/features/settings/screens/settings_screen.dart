@@ -10,6 +10,8 @@ import 'package:cyra/core/providers/settings_providers.dart';
 import 'package:cyra/features/privacy/screens/privacy_controls_screen.dart';
 import 'package:cyra/features/settings/screens/appearance_screen.dart';
 import 'package:cyra/features/settings/screens/notifications_screen.dart';
+import 'package:cyra/features/subscriptions/paywall_screen.dart';
+import 'package:cyra/features/subscriptions/subscription_controller.dart';
 import 'package:cyra/features/wearables/screens/wearables_hub_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -17,17 +19,18 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
           _buildSectionHeader('Account'),
           const SizedBox(height: AppSpacing.sm),
           _buildAccountSection(context),
+          const SizedBox(height: AppSpacing.xxl),
+          _buildSectionHeader('Subscription'),
+          const SizedBox(height: AppSpacing.sm),
+          _buildSubscriptionSection(context, ref),
           const SizedBox(height: AppSpacing.xxl),
           _buildSectionHeader('Privacy & Security'),
           const SizedBox(height: AppSpacing.sm),
@@ -70,6 +73,21 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildSubscriptionSection(BuildContext context, WidgetRef ref) {
+    final subscription = ref.watch(subscriptionControllerProvider);
+    return AppCard.standard(
+      child: _SettingsRow(
+        icon: Icons.auto_awesome_outlined,
+        label: 'Cyra Premium',
+        subtitle: subscription.isPremium
+            ? 'Active'
+            : 'Wearable sync and advanced trends',
+        trailing: Icon(Icons.chevron_right, color: AppColors.slate),
+        onTap: () => _openPaywall(context),
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: AppSpacing.xs),
@@ -92,7 +110,10 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.person_outline,
             label: 'Profile',
             subtitle: 'Name, email, date of birth',
-            trailing: Text('Jotham', style: TextStyle(color: AppColors.slate, fontSize: 14)),
+            trailing: Text(
+              'Jotham',
+              style: TextStyle(color: AppColors.slate, fontSize: 14),
+            ),
             onTap: () => _showProfileEditDialog(context),
           ),
           const Divider(height: 1),
@@ -126,7 +147,9 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: 'Lock, PIN, private mode, data controls',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const PrivacyControlsScreen()),
+              MaterialPageRoute<void>(
+                builder: (_) => const PrivacyControlsScreen(),
+              ),
             ),
           ),
         ],
@@ -164,7 +187,9 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: 'Period reminders, cycle alerts, privacy',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()),
+              MaterialPageRoute<void>(
+                builder: (_) => const NotificationsScreen(),
+              ),
             ),
           ),
           const Divider(height: 1),
@@ -177,7 +202,9 @@ class SettingsScreen extends ConsumerWidget {
                 trailing: Switch.adaptive(
                   value: enabled,
                   activeTrackColor: AppColors.forestGreen,
-                  onChanged: (v) => ref.read(notificationsEnabledProvider.notifier).setEnabled(v),
+                  onChanged: (v) => ref
+                      .read(notificationsEnabledProvider.notifier)
+                      .setEnabled(v),
                 ),
               );
             },
@@ -240,7 +267,15 @@ class SettingsScreen extends ConsumerWidget {
                 trailing: Switch.adaptive(
                   value: enabled,
                   activeTrackColor: AppColors.forestGreen,
-                  onChanged: (v) => ref.read(wearableSyncEnabledProvider.notifier).setEnabled(v),
+                  onChanged: (v) {
+                    if (v && !ref.read(isPremiumProvider)) {
+                      _openPaywall(context);
+                      return;
+                    }
+                    ref
+                        .read(wearableSyncEnabledProvider.notifier)
+                        .setEnabled(v);
+                  },
                 ),
               );
             },
@@ -252,6 +287,12 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  void _openPaywall(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const PaywallScreen()));
+  }
+
   Widget _buildUnitsSection(BuildContext context) {
     return AppCard.standard(
       child: Column(
@@ -260,7 +301,10 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.straighten_outlined,
             label: 'Units System',
             subtitle: 'Metric or Imperial',
-            trailing: Text('Metric', style: TextStyle(color: AppColors.slate, fontSize: 14)),
+            trailing: Text(
+              'Metric',
+              style: TextStyle(color: AppColors.slate, fontSize: 14),
+            ),
             onTap: () => _showUnitsPicker(context),
           ),
           const Divider(height: 1),
@@ -268,7 +312,10 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.thermostat_outlined,
             label: 'Temperature',
             subtitle: 'Celsius or Fahrenheit',
-            trailing: Text('Celsius', style: TextStyle(color: AppColors.slate, fontSize: 14)),
+            trailing: Text(
+              'Celsius',
+              style: TextStyle(color: AppColors.slate, fontSize: 14),
+            ),
             onTap: () => _showTemperaturePicker(context),
           ),
         ],
@@ -284,7 +331,10 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.language_outlined,
             label: 'App Language',
             subtitle: 'Change display language',
-            trailing: Text('English', style: TextStyle(color: AppColors.slate, fontSize: 14)),
+            trailing: Text(
+              'English',
+              style: TextStyle(color: AppColors.slate, fontSize: 14),
+            ),
             onTap: () => _showLanguagePicker(context),
           ),
         ],
@@ -299,7 +349,10 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsRow(
             icon: Icons.info_outline,
             label: 'Version',
-            trailing: Text(AppConstants.appVersion, style: TextStyle(color: AppColors.slate, fontSize: 14)),
+            trailing: Text(
+              AppConstants.appVersion,
+              style: TextStyle(color: AppColors.slate, fontSize: 14),
+            ),
           ),
           const Divider(height: 1),
           _SettingsRow(
@@ -453,13 +506,19 @@ class SettingsScreen extends ConsumerWidget {
             ListTile(
               leading: Icon(Icons.language, color: AppColors.slate),
               title: const Text('Spanish'),
-              trailing: Text('Coming Soon', style: TextStyle(color: AppColors.slate, fontSize: 12)),
+              trailing: Text(
+                'Coming Soon',
+                style: TextStyle(color: AppColors.slate, fontSize: 12),
+              ),
               enabled: false,
             ),
             ListTile(
               leading: Icon(Icons.language, color: AppColors.slate),
               title: const Text('French'),
-              trailing: Text('Coming Soon', style: TextStyle(color: AppColors.slate, fontSize: 12)),
+              trailing: Text(
+                'Coming Soon',
+                style: TextStyle(color: AppColors.slate, fontSize: 12),
+              ),
               enabled: false,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -468,6 +527,7 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+
   void _showSyncSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
@@ -552,10 +612,7 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.slate),
-            ),
+            child: Text('Cancel', style: TextStyle(color: AppColors.slate)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),

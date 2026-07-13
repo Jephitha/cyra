@@ -15,6 +15,7 @@ import 'package:cyra/features/cycle/providers/cycle_providers.dart';
 import 'package:cyra/features/journal/providers/journal_providers.dart';
 import 'package:cyra/features/ovulation/providers/ovulation_providers.dart';
 import 'package:cyra/features/symptoms/providers/symptom_providers.dart';
+import 'package:cyra/features/subscriptions/subscription_controller.dart';
 import 'package:cyra/features/wearables/providers/wearable_providers.dart';
 
 Future<void> bootstrapApp() async {
@@ -33,22 +34,22 @@ Future<void> bootstrapServices(ProviderContainer container) async {
 
   final secureStorage = container.read(secureStorageServiceProvider);
 
-  final onboardingComplete =
-      await secureStorage.readString('onboarding_complete');
+  final onboardingComplete = await secureStorage.readString(
+    'onboarding_complete',
+  );
   if (onboardingComplete == 'true') {
     container.read(onboardingStateProvider.notifier).complete();
   }
 
-  final privacySetupComplete =
-      await secureStorage.readString('privacy_setup_complete');
+  final privacySetupComplete = await secureStorage.readString(
+    'privacy_setup_complete',
+  );
   if (privacySetupComplete == 'true') {
     final hasPin = await container.read(pinAuthServiceProvider).hasPin();
     if (hasPin) {
       container.read(authStateNotifierProvider.notifier).lock();
     } else {
-      container
-          .read(authStateNotifierProvider.notifier)
-          .authenticate();
+      container.read(authStateNotifierProvider.notifier).authenticate();
     }
   } else {
     try {
@@ -74,7 +75,8 @@ Future<void> bootstrapServices(ProviderContainer container) async {
   }
 
   try {
-    if (await container.read(wearableSyncEnabledProvider.future)) {
+    if (await container.read(wearableSyncEnabledProvider.future) &&
+        container.read(isPremiumProvider)) {
       await container.read(wearableServiceProvider).syncAllDevices();
     }
   } catch (e, st) {

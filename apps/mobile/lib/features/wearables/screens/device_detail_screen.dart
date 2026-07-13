@@ -8,6 +8,8 @@ import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/health_stat_card.dart';
+import 'package:cyra/features/subscriptions/paywall_screen.dart';
+import 'package:cyra/features/subscriptions/subscription_controller.dart';
 import 'package:cyra/features/wearables/models/wearable_models.dart';
 import 'package:cyra/features/wearables/providers/wearable_providers.dart';
 
@@ -86,25 +88,21 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 if (_device.deviceModel != null)
                   Text(
                     'Model: ${_device.deviceModel}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.slate,
-                    ),
+                    style: TextStyle(fontSize: 13, color: AppColors.slate),
                   ),
                 if (_device.firmwareVersion != null)
                   Text(
                     'Firmware: ${_device.firmwareVersion}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.slate,
-                    ),
+                    style: TextStyle(fontSize: 13, color: AppColors.slate),
                   ),
               ],
             ),
@@ -135,10 +133,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
         if (_device.lastSyncAt != null)
           Text(
             'Last sync: ${DateFormat.yMd().add_jm().format(_device.lastSyncAt!)}',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.slate,
-            ),
+            style: TextStyle(fontSize: 12, color: AppColors.slate),
           ),
       ],
     );
@@ -155,17 +150,30 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
   }
 
   Future<void> _performSync() async {
+    if (!ref.read(isPremiumProvider)) {
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const PaywallScreen()));
+      if (!mounted || !ref.read(isPremiumProvider)) return;
+    }
     setState(() => _isSyncing = true);
     try {
       final service = ref.read(wearableServiceProvider);
       await service.syncData(_device.id);
       ref.invalidate(deviceDataSummaryProvider(_device.id));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sync complete')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Sync complete')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Sync failed'), backgroundColor: Theme.of(context).colorScheme.error));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sync failed'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSyncing = false);
@@ -194,30 +202,21 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                 'temperature',
                 Icons.thermostat_rounded,
               ),
-              const Divider(
-                height: 1,
-                color: AppColors.borderLight,
-              ),
+              const Divider(height: 1, color: AppColors.borderLight),
               _buildDataTypeToggle(
                 isDark,
                 'Sleep Data',
                 'sleep',
                 Icons.bedtime_rounded,
               ),
-              const Divider(
-                height: 1,
-                color: AppColors.borderLight,
-              ),
+              const Divider(height: 1, color: AppColors.borderLight),
               _buildDataTypeToggle(
                 isDark,
                 'Heart Rate',
                 'heartRate',
                 Icons.monitor_heart_rounded,
               ),
-              const Divider(
-                height: 1,
-                color: AppColors.borderLight,
-              ),
+              const Divider(height: 1, color: AppColors.borderLight),
               _buildDataTypeToggle(
                 isDark,
                 'Heart Rate Variability',
@@ -334,20 +333,37 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
             mainAxisSpacing: AppSpacing.sm,
             childAspectRatio: 1.4,
             children: const [
-              HealthStatCard(label: '', value: '', icon: Icons.thermostat_rounded, isLoading: true),
-              HealthStatCard(label: '', value: '', icon: Icons.monitor_heart_rounded, isLoading: true),
-              HealthStatCard(label: '', value: '', icon: Icons.bedtime_rounded, isLoading: true),
-              HealthStatCard(label: '', value: '', icon: Icons.show_chart_rounded, isLoading: true),
+              HealthStatCard(
+                label: '',
+                value: '',
+                icon: Icons.thermostat_rounded,
+                isLoading: true,
+              ),
+              HealthStatCard(
+                label: '',
+                value: '',
+                icon: Icons.monitor_heart_rounded,
+                isLoading: true,
+              ),
+              HealthStatCard(
+                label: '',
+                value: '',
+                icon: Icons.bedtime_rounded,
+                isLoading: true,
+              ),
+              HealthStatCard(
+                label: '',
+                value: '',
+                icon: Icons.show_chart_rounded,
+                isLoading: true,
+              ),
             ],
           ),
           error: (_, __) => AppCard.standard(
             child: Center(
               child: Text(
                 'Could not load data summary',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.slate,
-                ),
+                style: TextStyle(fontSize: 13, color: AppColors.slate),
               ),
             ),
           ),
@@ -441,17 +457,11 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.slate),
-            ),
+            child: Text('Cancel', style: TextStyle(color: AppColors.slate)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              'Disconnect',
-              style: TextStyle(color: AppColors.error),
-            ),
+            child: Text('Disconnect', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -506,5 +516,4 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
       child: Icon(icon, size: 28, color: color),
     );
   }
-
 }

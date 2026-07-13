@@ -20,6 +20,8 @@ import 'package:cyra/features/insights/models/insight_models.dart';
 import 'package:cyra/features/insights/screens/topic_detail_screen.dart';
 import 'package:cyra/features/insights/screens/health_tips_screen.dart';
 import 'package:cyra/features/insights/screens/ai_disclaimer_screen.dart';
+import 'package:cyra/features/subscriptions/paywall_screen.dart';
+import 'package:cyra/features/subscriptions/subscription_controller.dart';
 
 final _insightsHubProvider = ChangeNotifierProvider<_InsightsHubState>((ref) {
   return _InsightsHubState();
@@ -43,6 +45,7 @@ class InsightsHubScreen extends ConsumerWidget {
     final dashboardAsync = ref.watch(dashboardInsightsProvider);
     final weeklyAsync = ref.watch(weeklySummaryProvider);
     final tipAsync = ref.watch(healthTipProvider);
+    final isPremium = ref.watch(isPremiumProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (!state.aiDisclaimerAccepted) {
@@ -68,6 +71,7 @@ class InsightsHubScreen extends ConsumerWidget {
               tipAsync,
               isDark,
               ref,
+              isPremium,
             );
           },
           loading: () => _buildLoadingState(context, isDark),
@@ -84,6 +88,7 @@ class InsightsHubScreen extends ConsumerWidget {
     AsyncValue<String> tipAsync,
     bool isDark,
     WidgetRef ref,
+    bool isPremium,
   ) {
     final prediction = dashboard.nextPeriod;
     final regularity = dashboard.regularity;
@@ -138,14 +143,59 @@ class InsightsHubScreen extends ConsumerWidget {
           isDark,
         ),
         const SizedBox(height: AppSpacing.lg),
-        _buildSymptomInsights(context, topSymptoms, isDark),
-        const SizedBox(height: AppSpacing.lg),
-        _buildCycleInsights(context, regularity, isDark),
+        if (isPremium) ...[
+          _buildSymptomInsights(context, topSymptoms, isDark),
+          const SizedBox(height: AppSpacing.lg),
+          _buildCycleInsights(context, regularity, isDark),
+        ] else
+          _buildPremiumAnalysisCard(context, isDark),
         const SizedBox(height: AppSpacing.lg),
         _buildPersonalizedTips(context, tipAsync, isDark),
         const SizedBox(height: AppSpacing.lg),
         _buildDisclaimer(context, isDark),
       ],
+    );
+  }
+
+  Widget _buildPremiumAnalysisCard(BuildContext context, bool isDark) {
+    return AppCard.standard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.insights_outlined, color: AppColors.softGold),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  'Advanced patterns',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Cyra Premium compares symptoms and cycle trends across multiple cycles. Your current predictions and explanations remain free.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.slate),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AppButton.ghost(
+            'Explore Premium',
+            icon: Icons.arrow_forward_rounded,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const PaywallScreen()),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

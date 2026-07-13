@@ -7,6 +7,8 @@ import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
+import 'package:cyra/features/subscriptions/paywall_screen.dart';
+import 'package:cyra/features/subscriptions/subscription_controller.dart';
 import 'package:cyra/features/wearables/models/wearable_models.dart';
 import 'package:cyra/features/wearables/providers/wearable_providers.dart';
 import 'package:cyra/features/wearables/screens/device_detail_screen.dart';
@@ -87,7 +89,9 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
                   ),
                 ),
                 const Spacer(),
@@ -97,22 +101,20 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
                   isLoading: status.isSyncing,
                   onPressed: status.isSyncing
                       ? null
-                      : () => ref.read(syncAllDevicesProvider),
+                      : () async {
+                          if (!await _requirePremium()) return;
+                          ref.read(syncAllDevicesProvider);
+                        },
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
             if (status.isSyncing) ...[
-              const LinearProgressIndicator(
-                color: AppColors.forestGreen,
-              ),
+              const LinearProgressIndicator(color: AppColors.forestGreen),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'Syncing ${status.pendingRecords} records...',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.slate,
-                ),
+                style: TextStyle(fontSize: 13, color: AppColors.slate),
               ),
             ] else ...[
               Row(
@@ -121,10 +123,7 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
                     status.lastSuccessfulSync != null
                         ? 'Last sync: ${DateFormat.yMMMd().add_jm().format(status.lastSuccessfulSync!)}'
                         : 'No sync yet',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.slate,
-                    ),
+                    style: TextStyle(fontSize: 13, color: AppColors.slate),
                   ),
                   if (status.pendingRecords > 0) ...[
                     const SizedBox(width: AppSpacing.md),
@@ -153,10 +152,7 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   status.errorMessage!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.error,
-                  ),
+                  style: TextStyle(fontSize: 12, color: AppColors.error),
                 ),
               ],
             ],
@@ -190,13 +186,12 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
               return AppCard.standard(
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.xl,
+                    ),
                     child: Text(
                       'No devices connected',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.slate,
-                      ),
+                      style: TextStyle(fontSize: 14, color: AppColors.slate),
                     ),
                   ),
                 ),
@@ -263,7 +258,9 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                 ),
               ),
               const SizedBox(height: AppSpacing.xxs),
@@ -271,10 +268,7 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
                 device.lastSyncAt != null
                     ? 'Synced ${DateFormat.yMd().add_jm().format(device.lastSyncAt!)}'
                     : 'Not synced yet',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.slate,
-                ),
+                style: TextStyle(fontSize: 12, color: AppColors.slate),
               ),
             ],
           ),
@@ -283,9 +277,7 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
           width: 8,
           height: 8,
           decoration: BoxDecoration(
-            color: device.isConnected
-                ? AppColors.success
-                : AppColors.slate,
+            color: device.isConnected ? AppColors.success : AppColors.slate,
             shape: BoxShape.circle,
           ),
         ),
@@ -391,11 +383,7 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.privacy_tip_rounded,
-            size: 18,
-            color: AppColors.sage,
-          ),
+          Icon(Icons.privacy_tip_rounded, size: 18, color: AppColors.sage),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -454,7 +442,10 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
     );
   }
 
-  Future<bool> _confirmDisconnect(BuildContext context, WearableDevice device) async {
+  Future<bool> _confirmDisconnect(
+    BuildContext context,
+    WearableDevice device,
+  ) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -465,17 +456,11 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.slate),
-            ),
+            child: Text('Cancel', style: TextStyle(color: AppColors.slate)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              'Disconnect',
-              style: TextStyle(color: AppColors.error),
-            ),
+            child: Text('Disconnect', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -492,6 +477,7 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
   }
 
   Future<void> _connectDevice(WearableDevice device) async {
+    if (!await _requirePremium()) return;
     final service = ref.read(wearableServiceProvider);
     final success = await service.connect(device.type);
     if (success) {
@@ -501,10 +487,22 @@ class _WearablesHubScreenState extends ConsumerState<WearablesHubScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? '${device.name} connected' : 'Failed to connect ${device.name}'),
+          content: Text(
+            success
+                ? '${device.name} connected'
+                : 'Failed to connect ${device.name}',
+          ),
           backgroundColor: success ? null : Theme.of(context).colorScheme.error,
         ),
       );
     }
+  }
+
+  Future<bool> _requirePremium() async {
+    if (ref.read(isPremiumProvider)) return true;
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const PaywallScreen()));
+    return mounted && ref.read(isPremiumProvider);
   }
 }

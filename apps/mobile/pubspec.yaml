@@ -41,6 +41,7 @@ dependencies:
   json_annotation: ^4.9.0
   equatable: ^2.0.0
   timezone: ^0.10.0
+  in_app_purchase: ^3.3.0
 
 dev_dependencies:
   flutter_test:

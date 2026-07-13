@@ -252,8 +252,11 @@ Defined in `MONETIZATION.md`: core tracking, prediction explanations, privacy/se
 and data deletion/export (including clinician PDF) remain free and ad-free. Premium covers wearable
 sync and advanced longitudinal analysis; previously synced or user-authored records are never hidden.
 
-### T17. Integrate `in_app_purchase` or RevenueCat
-Standard subscription plumbing once the boundary is decided.
+### [x] T17. Integrate `in_app_purchase` or RevenueCat
+Integrated the first-party `in_app_purchase` plugin with store-provided products/pricing,
+receipt-gated entitlement updates, transaction completion, restore purchases, unavailable-store
+handling, and a Premium screen. Wearable sync and advanced multi-cycle analysis enforce the T16
+boundary while free tracking, privacy, prediction explanations, and exports remain available.
 
 ---
 
