@@ -59,7 +59,7 @@ class _MoodTrackerScreenState extends ConsumerState<MoodTrackerScreen> {
       case 1:
         return AppColors.error;
       case 2:
-        return Colors.orange;
+        return AppColors.warning;
       case 3:
         return AppColors.warning;
       case 4:
@@ -427,7 +427,7 @@ class _MoodTrackerScreenState extends ConsumerState<MoodTrackerScreen> {
                   return LineTooltipItem(
                     '${DateFormat('MMM d').format(mood.date)}\nMood: ${mood.moodRating}/5',
                     TextStyle(
-                      color: Colors.white,
+                      color: AppColors.onBrand,
                       fontWeight: FontWeight.w500,
                       fontSize: 12,
                     ),

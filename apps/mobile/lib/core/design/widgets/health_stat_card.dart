@@ -170,7 +170,7 @@ class HealthStatCard extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.onBrand,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -179,7 +179,7 @@ class HealthStatCard extends StatelessWidget {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.onBrand,
                     borderRadius: BorderRadius.circular(AppRadius.xs),
                   ),
                 ),
@@ -190,7 +190,7 @@ class HealthStatCard extends StatelessWidget {
               width: 80,
               height: 24,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.onBrand,
                 borderRadius: BorderRadius.circular(AppRadius.xs),
               ),
             ),
@@ -199,7 +199,7 @@ class HealthStatCard extends StatelessWidget {
               width: 60,
               height: 16,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.onBrand,
                 borderRadius: BorderRadius.circular(AppRadius.xs),
               ),
             ),

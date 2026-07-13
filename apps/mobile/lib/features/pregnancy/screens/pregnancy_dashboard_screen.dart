@@ -213,7 +213,7 @@ class PregnancyDashboardScreen extends ConsumerWidget {
               Icon(
                 Icons.favorite_border_rounded,
                 size: 16,
-                color: const Color(0xFFE86B6B),
+                color: AppColors.period,
               ),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
@@ -421,13 +421,13 @@ class PregnancyDashboardScreen extends ConsumerWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFE86B6B).withValues(alpha: 0.15),
+              color: AppColors.period.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.timer_rounded,
               size: 24,
-              color: const Color(0xFFE86B6B),
+              color: AppColors.period,
             ),
           ),
           const SizedBox(width: AppSpacing.md),

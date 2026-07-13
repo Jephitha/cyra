@@ -866,7 +866,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
         color: AppColors.surfaceLight,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppColors.shadow.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -978,7 +978,7 @@ class _PrivacyOptionCard extends StatelessWidget {
                     ? const Icon(
                         Icons.check,
                         size: 16,
-                        color: Colors.white,
+                        color: AppColors.onBrand,
                       )
                     : null,
               ),

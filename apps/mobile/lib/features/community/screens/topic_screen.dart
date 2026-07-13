@@ -105,7 +105,7 @@ class _TopicScreenState extends ConsumerState<TopicScreen> {
           ),
         ).then((_) => _onRefresh()),
         backgroundColor: AppColors.forestGreen,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.onBrand,
         icon: const Icon(Icons.edit_rounded),
         label: const Text('New Post'),
       ),

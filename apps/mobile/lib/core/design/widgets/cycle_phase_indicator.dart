@@ -21,7 +21,7 @@ extension on CyclePhase {
   Color get color {
     switch (this) {
       case CyclePhase.menstrual:
-        return const Color(0xFFE86B6B);
+        return AppColors.period;
       case CyclePhase.follicular:
         return AppColors.sage;
       case CyclePhase.ovulation:

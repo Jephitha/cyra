@@ -32,7 +32,7 @@ class PregnancyWeekWidget extends StatelessWidget {
       case 2:
         return AppColors.softGold;
       case 3:
-        return const Color(0xFFE57373);
+        return AppColors.symptomRed;
       default:
         return AppColors.sage;
     }

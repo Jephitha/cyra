@@ -509,12 +509,12 @@ class _NewJournalEntryScreenState extends ConsumerState<NewJournalEntryScreen> {
                               setState(() => _photoPaths.removeAt(index)),
                           child: Container(
                             padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: Colors.black54,
+                            decoration: BoxDecoration(
+                              color: AppColors.shadow.withValues(alpha: 0.54),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.close_rounded,
-                                size: 14, color: Colors.white),
+                                size: 14, color: AppColors.onBrand),
                           ),
                         ),
                       ),
@@ -681,7 +681,7 @@ class _NewJournalEntryScreenState extends ConsumerState<NewJournalEntryScreen> {
       case 1:
         return AppColors.error;
       case 2:
-        return const Color(0xFFE86B6B);
+        return AppColors.period;
       case 3:
         return AppColors.softGold;
       case 4:

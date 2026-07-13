@@ -318,13 +318,13 @@ class _KickCounterState extends State<KickCounter>
         child: InkWell(
           onTap: _handleKickLog,
           customBorder: const CircleBorder(),
-          splashColor: Colors.white.withValues(alpha: 0.15),
-          highlightColor: Colors.white.withValues(alpha: 0.08),
+          splashColor: AppColors.onBrand.withValues(alpha: 0.15),
+          highlightColor: AppColors.onBrand.withValues(alpha: 0.08),
           child: const Center(
             child: Icon(
               Icons.child_care_rounded,
               size: 36,
-              color: Colors.white,
+              color: AppColors.onBrand,
             ),
           ),
         ),
@@ -344,13 +344,13 @@ class _KickCounterState extends State<KickCounter>
         child: InkWell(
           onTap: _handleStartStop,
           customBorder: const CircleBorder(),
-          splashColor: Colors.white.withValues(alpha: 0.15),
-          highlightColor: Colors.white.withValues(alpha: 0.08),
+          splashColor: AppColors.onBrand.withValues(alpha: 0.15),
+          highlightColor: AppColors.onBrand.withValues(alpha: 0.08),
           child: const Center(
             child: Icon(
               Icons.play_arrow_rounded,
               size: 32,
-              color: Colors.white,
+              color: AppColors.onBrand,
             ),
           ),
         ),

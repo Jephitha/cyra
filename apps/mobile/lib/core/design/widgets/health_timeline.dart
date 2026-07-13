@@ -47,7 +47,7 @@ class HealthTimeline extends StatelessWidget {
       case TimelineEntryType.symptom:
         return AppColors.sage;
       case TimelineEntryType.pregnancy:
-        return const Color(0xFFE91E90);
+        return AppColors.timelineJournal;
       case TimelineEntryType.journal:
         return AppColors.slate;
       case TimelineEntryType.fertility:
@@ -371,7 +371,7 @@ class _TimelineDot extends StatelessWidget {
               child: Icon(
                 icon,
                 size: radius * 1.2,
-                color: Colors.white,
+                color: AppColors.onBrand,
               ),
             ),
           ),

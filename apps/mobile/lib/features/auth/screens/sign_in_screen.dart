@@ -147,7 +147,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 ? const SizedBox(
                     height: 20,
                     width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onBrand),
                   )
                 : Text(_isSignUp ? 'Create Account' : 'Sign In'),
             ),

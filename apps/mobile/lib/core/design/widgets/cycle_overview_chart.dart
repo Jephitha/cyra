@@ -254,7 +254,7 @@ class _CycleOverviewChartState extends State<CycleOverviewChart> {
             return BarTooltipItem(
               'Cycle ${cycle.cycleNumber}\n${cycle.lengthDays} days',
               TextStyle(
-                color: Colors.white,
+                color: AppColors.onBrand,
                 fontWeight: FontWeight.w500,
                 fontSize: 12,
               ),

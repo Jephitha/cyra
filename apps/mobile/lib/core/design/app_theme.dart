@@ -41,10 +41,10 @@ abstract final class AppTheme {
       seedColor: seed,
       brightness: brightness,
       surface: surface,
-      onPrimary: Colors.white,
-      onSecondary: Colors.white,
+      onPrimary: AppColors.onBrand,
+      onSecondary: AppColors.onBrand,
       error: AppColors.error,
-      onError: Colors.white,
+      onError: AppColors.onBrand,
     );
 
     return ThemeData(
@@ -56,7 +56,7 @@ abstract final class AppTheme {
       cardTheme: CardThemeData(
         color: surface,
         elevation: 1,
-        shadowColor: Colors.black.withValues(alpha: 0.08),
+        shadowColor: AppColors.shadow.withValues(alpha: 0.08),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
         ),
@@ -175,7 +175,7 @@ abstract final class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: surface,
         elevation: 6,
-        shadowColor: Colors.black.withValues(alpha: 0.15),
+        shadowColor: AppColors.shadow.withValues(alpha: 0.15),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
         ),
@@ -187,7 +187,7 @@ abstract final class AppTheme {
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: surface,
         elevation: 8,
-        shadowColor: Colors.black.withValues(alpha: 0.15),
+        shadowColor: AppColors.shadow.withValues(alpha: 0.15),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppRadius.xl),
@@ -245,7 +245,7 @@ abstract final class AppTheme {
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.charcoal,
         contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: Colors.white,
+          color: AppColors.onBrand,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(AppRadius.sm)),

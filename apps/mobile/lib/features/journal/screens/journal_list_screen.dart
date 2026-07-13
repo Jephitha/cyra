@@ -426,7 +426,7 @@ class JournalListScreen extends ConsumerWidget {
       case 1:
         return AppColors.error;
       case 2:
-        return const Color(0xFFE86B6B);
+        return AppColors.period;
       case 3:
         return AppColors.softGold;
       case 4:

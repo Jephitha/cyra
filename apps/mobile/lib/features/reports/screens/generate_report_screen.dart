@@ -70,7 +70,7 @@ class GenerateReportScreen extends ConsumerWidget {
         'fertility_report',
         'Fertility Report',
         Icons.favorite_rounded,
-        const Color(0xFFE86B6B),
+        AppColors.period,
         'BBT, OPK results, and fertile window analysis.',
       ),
       _ReportTypeConfig(

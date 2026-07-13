@@ -346,7 +346,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
                     height: 6,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white,
+                      color: AppColors.onBrand,
                     ),
                   ),
                 )

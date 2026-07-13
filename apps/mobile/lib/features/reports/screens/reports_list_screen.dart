@@ -63,7 +63,7 @@ class ReportsListScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child:
-                  const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+                  const Icon(Icons.delete_outline, color: AppColors.onBrand, size: 28),
             ),
             confirmDismiss: (_) async {
               return await showDialog<bool>(
@@ -177,7 +177,7 @@ class ReportsListScreen extends ConsumerWidget {
         color = AppColors.forestGreen;
       case 'fertility_report':
         icon = Icons.favorite_rounded;
-        color = const Color(0xFFE86B6B);
+        color = AppColors.period;
       case 'symptom_report':
         icon = Icons.healing_rounded;
         color = AppColors.sage;

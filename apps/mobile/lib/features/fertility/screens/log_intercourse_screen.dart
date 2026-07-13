@@ -255,7 +255,7 @@ class _LogIntercourseScreenState extends State<LogIntercourseScreen> {
                       time,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: isSelected
-                            ? (isDark ? Colors.white : AppColors.forestGreen)
+                            ? (isDark ? AppColors.onBrand : AppColors.forestGreen)
                             : (isDark ? AppColors.textSecondaryDark : AppColors.slate),
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                       ),
@@ -284,7 +284,7 @@ class _LogIntercourseScreenState extends State<LogIntercourseScreen> {
           Icon(
             _unprotected ? Icons.favorite_rounded : Icons.shield_outlined,
             size: 20,
-            color: _unprotected ? const Color(0xFFE86B6B) : AppColors.slate,
+            color: _unprotected ? AppColors.period : AppColors.slate,
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

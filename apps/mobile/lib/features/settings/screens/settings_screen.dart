@@ -493,7 +493,7 @@ class SettingsScreen extends ConsumerWidget {
                 onPressed: () => Navigator.of(ctx).pop(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.forestGreen,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.onBrand,
                 ),
                 child: const Text('Close'),
               ),

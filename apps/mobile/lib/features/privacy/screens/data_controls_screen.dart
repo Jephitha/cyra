@@ -202,7 +202,7 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
                                               ? FontWeight.w600
                                               : FontWeight.w400,
                                           color: isSelected
-                                              ? Colors.white
+                                              ? AppColors.onBrand
                                               : null,
                                         ),
                                       ),

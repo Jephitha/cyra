@@ -85,7 +85,7 @@ class AppearanceScreen extends ConsumerWidget {
                     color: accentColor.color,
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
-                  child: const Icon(Icons.water_drop, color: Colors.white, size: 22),
+                  child: const Icon(Icons.water_drop, color: AppColors.onBrand, size: 22),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Column(
@@ -220,7 +220,7 @@ class AppearanceScreen extends ConsumerWidget {
                           : null,
                     ),
                     child: isSelected
-                        ? const Icon(Icons.check, color: Colors.white, size: 22)
+                        ? const Icon(Icons.check, color: AppColors.onBrand, size: 22)
                         : null,
                   ),
                   const SizedBox(height: AppSpacing.xs),

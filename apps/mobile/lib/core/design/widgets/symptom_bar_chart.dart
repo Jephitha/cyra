@@ -160,7 +160,7 @@ class SymptomBarChart extends StatelessWidget {
                     return BarTooltipItem(
                       '${data.label}\n${data.value.toStringAsFixed(0)}',
                       TextStyle(
-                        color: Colors.white,
+                        color: AppColors.onBrand,
                         fontWeight: FontWeight.w500,
                         fontSize: 12,
                       ),

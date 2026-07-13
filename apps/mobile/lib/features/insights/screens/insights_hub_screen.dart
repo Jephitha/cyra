@@ -148,7 +148,7 @@ class InsightsHubScreen extends ConsumerWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.onBrand,
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
     );

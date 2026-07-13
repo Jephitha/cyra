@@ -151,7 +151,7 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.decoySurface,
       body: Stack(
         children: [
           AnimatedBuilder(
@@ -186,13 +186,13 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: AppColors.shadow.withValues(alpha: 0.05),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.lock_outline_rounded,
                     size: 16,
-                    color: Colors.black.withValues(alpha: 0.2),
+                    color: AppColors.shadow.withValues(alpha: 0.2),
                   ),
                 ),
               ),
@@ -229,12 +229,12 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.12),
+                    color: AppColors.onBrand.withValues(alpha: 0.12),
                   ),
                   child: Icon(
                     Icons.shield_outlined,
                     size: 40,
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: AppColors.onBrand.withValues(alpha: 0.8),
                   ),
                 ),
               ),
@@ -244,7 +244,7 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: AppColors.onBrand.withValues(alpha: 0.9),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -253,7 +253,7 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: AppColors.onBrand.withValues(alpha: 0.6),
                 ),
               ),
             ],
@@ -285,11 +285,11 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
         vertical: AppSpacing.xxl,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.onBrand,
         borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppColors.shadow.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -302,7 +302,7 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
           style: const TextStyle(
             fontSize: 36,
             fontWeight: FontWeight.w300,
-            color: Color(0xFF333333),
+            color: AppColors.decoyInk,
           ),
         ),
       ),
@@ -355,7 +355,7 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
       height: 60,
       margin: const EdgeInsets.all(3),
       child: Material(
-        color: isOperator ? const Color(0xFFE8E8E8) : Colors.white,
+        color: isOperator ? AppColors.decoyKey : AppColors.onBrand,
         borderRadius: BorderRadius.circular(AppRadius.sm),
         child: InkWell(
           onTap: () => _onCalculatorInput(label),
@@ -366,7 +366,7 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: isOperator ? FontWeight.w500 : FontWeight.w400,
-                color: const Color(0xFF333333),
+                color: AppColors.decoyInk,
               ),
             ),
           ),

@@ -671,4 +671,3 @@ class _AutoLockDropdown extends ConsumerWidget {
     );
   }
 }
-

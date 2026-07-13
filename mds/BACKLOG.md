@@ -97,7 +97,7 @@ platform icon set (same density/size requirements as T-BRAND-2), used by the `ac
 alternate-icon implementation in backlog item T9a. This icon must not visually reference Cyra's
 brand in any way — that's the entire point of it.
 
-### T-BRAND-4. Apply the new palette/typography across the app
+### [x] T-BRAND-4. Apply the new palette/typography across the app
 Update `core/design/app_colors.dart`, `app_theme.dart`, `app_typography.dart`, and the design
 token files to match `DESIGN_SYSTEM.md`. Sweep existing screens for hardcoded colors that bypass
 the design tokens (common in early-stage codebases) and replace them with token references so a

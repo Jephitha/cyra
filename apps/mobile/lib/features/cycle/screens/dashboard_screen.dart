@@ -161,7 +161,7 @@ class DashboardScreen extends ConsumerWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.onBrand,
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
     );
@@ -463,10 +463,10 @@ class DashboardScreen extends ConsumerWidget {
           Container(
             width: 48, height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFE86B6B).withValues(alpha: 0.12),
+              color: AppColors.period.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.child_care_rounded, size: 24, color: Color(0xFFE86B6B)),
+            child: const Icon(Icons.child_care_rounded, size: 24, color: AppColors.period),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -496,10 +496,10 @@ class DashboardScreen extends ConsumerWidget {
           Container(
             width: 48, height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFE86B6B).withValues(alpha: 0.12),
+              color: AppColors.period.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.child_care_rounded, size: 24, color: Color(0xFFE86B6B)),
+            child: const Icon(Icons.child_care_rounded, size: 24, color: AppColors.period),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -521,8 +521,8 @@ class DashboardScreen extends ConsumerWidget {
               MaterialPageRoute<void>(builder: (_) => const PregnancyDashboardScreen()),
             ),
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFFE86B6B),
-              side: const BorderSide(color: Color(0xFFE86B6B)),
+              foregroundColor: AppColors.period,
+              side: const BorderSide(color: AppColors.period),
             ),
             child: const Text('Open'),
           ),
@@ -542,10 +542,10 @@ class DashboardScreen extends ConsumerWidget {
           Container(
             width: 48, height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFE86B6B).withValues(alpha: 0.12),
+              color: AppColors.period.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.child_care_rounded, size: 24, color: Color(0xFFE86B6B)),
+            child: const Icon(Icons.child_care_rounded, size: 24, color: AppColors.period),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -567,8 +567,8 @@ class DashboardScreen extends ConsumerWidget {
               MaterialPageRoute<void>(builder: (_) => const PregnancyDashboardScreen()),
             ),
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFFE86B6B),
-              side: const BorderSide(color: Color(0xFFE86B6B)),
+              foregroundColor: AppColors.period,
+              side: const BorderSide(color: AppColors.period),
             ),
             child: const Text('View'),
           ),
@@ -620,7 +620,7 @@ class DashboardScreen extends ConsumerWidget {
                 label: 'Period Length',
                 value: '$periodLength days',
                 icon: Icons.water_drop_rounded,
-                accentColor: const Color(0xFFE86B6B),
+                accentColor: AppColors.period,
               ),
             ),
             const SizedBox(width: AppSpacing.md),

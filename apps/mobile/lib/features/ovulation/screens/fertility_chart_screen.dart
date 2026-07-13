@@ -225,7 +225,7 @@ class _FertilityChartBodyState extends ConsumerState<_FertilityChartBody> {
           _legendItem(
             context,
             Icons.circle,
-            const Color(0xFFE86B6B),
+            AppColors.period,
             'Coverline',
           ),
         ],

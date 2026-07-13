@@ -237,7 +237,7 @@ class _ConditionDetailScreenState
                     ),
                     child: _selectedSymptoms.contains(symptom)
                         ? Icon(Icons.check,
-                            size: 14, color: Colors.white)
+                            size: 14, color: AppColors.onBrand)
                         : null,
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -526,11 +526,11 @@ class _ConditionDetailScreenState
   Widget _buildPatternShimmer(bool isDark) {
     return Shimmer.fromColors(
       baseColor: isDark ? AppColors.charcoal : AppColors.borderLight,
-      highlightColor: isDark ? AppColors.surfaceDark : Colors.white,
+      highlightColor: isDark ? AppColors.surfaceDark : AppColors.onBrand,
       child: Container(
         height: 120,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.onBrand,
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
       ),

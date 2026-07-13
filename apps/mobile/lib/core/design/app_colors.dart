@@ -27,6 +27,43 @@ abstract final class AppColors {
   static const Color error = Color(0xFFD32F2F);
   static const Color info = Color(0xFF1976D2);
 
+  // Health data visualization (semantic, not decorative brand colors)
+  static const Color period = Color(0xFFE86B6B);
+  static const Color periodLight = Color(0xFFFFB3BA);
+  static const Color periodMedium = Color(0xFFFF6B6B);
+  static const Color periodHeavy = Color(0xFFE04848);
+  static const Color periodVeryHeavy = Color(0xFFB71C1C);
+  static const Color symptomGreen = Color(0xFF81C784);
+  static const Color symptomPurple = Color(0xFF9575CD);
+  static const Color symptomRed = Color(0xFFE57373);
+  static const Color symptomBlue = Color(0xFF64B5F6);
+  static const Color symptomOrange = Color(0xFFFF8A65);
+  static const Color symptomCyan = Color(0xFF4DD0E1);
+  static const Color symptomSky = Color(0xFF4FC3F7);
+  static const Color symptomCritical = Color(0xFFE53935);
+  static const Color symptomUrgent = Color(0xFFFF5252);
+  static const Color phasePurple = Color(0xFF7C5CBF);
+  static const Color phaseBlue = Color(0xFF5B8DEF);
+  static const Color hormoneBlue = Color(0xFF5B6ABF);
+  static const Color timelineJournal = Color(0xFFE91E90);
+
+  // External integration identity colors
+  static const Color deviceGeneric = Color(0xFF7B61FF);
+  static const Color deviceApple = Color(0xFF000000);
+  static const Color deviceFitbit = Color(0xFF00B0B9);
+  static const Color deviceGarmin = Color(0xFF1976D2);
+  static const Color deviceOura = Color(0xFF607D8B);
+  static const Color deviceSamsung = Color(0xFFEB0029);
+  static const Color deviceGoogle = Color(0xFF0D7A3F);
+  static const Color deviceXiaomi = Color(0xFFFF6B00);
+
+  // Fixed contrast colors used on known solid backgrounds
+  static const Color onBrand = Color(0xFFFFFFFF);
+  static const Color shadow = Color(0xFF000000);
+  static const Color decoyInk = Color(0xFF333333);
+  static const Color decoySurface = Color(0xFFF5F5F5);
+  static const Color decoyKey = Color(0xFFE8E8E8);
+
   // Light theme
   static const Color backgroundLight = Color(0xFFFAFAF8);
   static const Color surfaceLight = Color(0xFFFFFFFF);

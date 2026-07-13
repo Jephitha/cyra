@@ -307,7 +307,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
         children: [
           Icon(
             Icons.favorite_rounded,
-            color: Colors.white,
+            color: AppColors.onBrand,
             size: 28,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -315,7 +315,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
             'Thank you for being part of the Cyra Community.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: AppColors.onBrand.withValues(alpha: 0.9),
               fontSize: 14,
               height: 1.5,
             ),
@@ -325,7 +325,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
             'Together we create a safe, supportive space for all.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
+              color: AppColors.onBrand.withValues(alpha: 0.7),
               fontSize: 12,
             ),
           ),

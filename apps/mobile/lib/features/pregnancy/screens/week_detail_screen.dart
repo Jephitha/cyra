@@ -249,7 +249,7 @@ class WeekDetailScreen extends StatelessWidget {
               Icon(
                 Icons.favorite_border_rounded,
                 size: 20,
-                color: const Color(0xFFE86B6B),
+                color: AppColors.period,
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
@@ -454,7 +454,7 @@ class WeekDetailScreen extends StatelessWidget {
       case 2:
         return AppColors.softGold;
       case 3:
-        return const Color(0xFFE57373);
+        return AppColors.symptomRed;
       default:
         return AppColors.sage;
     }

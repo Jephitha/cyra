@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'app_colors.dart';
 
 abstract final class AppTypography {
-  static TextTheme _interTextTheme({
+  static TextTheme _humanistTextTheme({
     required Color color,
     required Color onSurface,
   }) {
-    final base = GoogleFonts.interTextTheme();
+    final base = GoogleFonts.nunitoSansTextTheme();
     return base.copyWith(
       displayLarge: base.displayLarge?.copyWith(
         fontSize: 57,
@@ -116,13 +117,13 @@ abstract final class AppTypography {
     );
   }
 
-  static TextTheme get light => _interTextTheme(
-        color: const Color(0xFF1A1A1A),
-        onSurface: const Color(0xFF6B7280),
-      );
+  static TextTheme get light => _humanistTextTheme(
+    color: AppColors.textPrimaryLight,
+    onSurface: AppColors.textSecondaryLight,
+  );
 
-  static TextTheme get dark => _interTextTheme(
-        color: const Color(0xFFF3F4F6),
-        onSurface: const Color(0xFF9CA3AF),
-      );
+  static TextTheme get dark => _humanistTextTheme(
+    color: AppColors.textPrimaryDark,
+    onSurface: AppColors.textSecondaryDark,
+  );
 }

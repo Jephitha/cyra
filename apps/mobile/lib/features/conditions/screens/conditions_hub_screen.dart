@@ -442,7 +442,7 @@ class ConditionsHubScreen extends ConsumerWidget {
       children: [
         Shimmer.fromColors(
           baseColor: isDark ? AppColors.charcoal : AppColors.borderLight,
-          highlightColor: isDark ? AppColors.surfaceDark : Colors.white,
+          highlightColor: isDark ? AppColors.surfaceDark : AppColors.onBrand,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -450,7 +450,7 @@ class ConditionsHubScreen extends ConsumerWidget {
                 width: 200,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.onBrand,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -459,7 +459,7 @@ class ConditionsHubScreen extends ConsumerWidget {
                 width: double.infinity,
                 height: 14,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.onBrand,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -469,7 +469,7 @@ class ConditionsHubScreen extends ConsumerWidget {
                 child: Container(
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.onBrand,
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                 ),

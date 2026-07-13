@@ -263,7 +263,7 @@ class _ContractionTimerState extends State<ContractionTimer>
             child: Icon(
               _isActive ? Icons.stop_rounded : Icons.play_arrow_rounded,
               size: 40,
-              color: Colors.white,
+              color: AppColors.onBrand,
             ),
           ),
         ),

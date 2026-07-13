@@ -316,7 +316,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                 label: 'Avg Sleep',
                 value: '${summary.averageSleepHours.toStringAsFixed(1)} hrs',
                 icon: Icons.bedtime_rounded,
-                accentColor: const Color(0xFF7B61FF),
+                accentColor: AppColors.deviceGeneric,
               ),
               HealthStatCard(
                 label: 'Steps',
@@ -472,25 +472,25 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
     switch (type) {
       case WearableType.appleWatch:
         icon = Icons.watch_rounded;
-        color = Colors.black;
+        color = AppColors.shadow;
       case WearableType.fitbit:
         icon = Icons.fitness_center_rounded;
         color = AppColors.softGold;
       case WearableType.garmin:
         icon = Icons.explore_rounded;
-        color = Colors.blueGrey;
+        color = AppColors.deviceOura;
       case WearableType.oura:
         icon = Icons.ring_volume_rounded;
-        color = const Color(0xFF7B61FF);
+        color = AppColors.deviceGeneric;
       case WearableType.oneplus:
         icon = Icons.devices_rounded;
-        color = const Color(0xFFEB0029);
+        color = AppColors.deviceSamsung;
       case WearableType.oppo:
         icon = Icons.watch_rounded;
-        color = const Color(0xFF0D7A3F);
+        color = AppColors.deviceGoogle;
       case WearableType.redmi:
         icon = Icons.watch_rounded;
-        color = const Color(0xFFFF6B00);
+        color = AppColors.deviceXiaomi;
     }
 
     return Container(

@@ -188,7 +188,7 @@ class AppButton extends StatelessWidget {
         : AppColors.forestGreen;
     final textColor = effectiveDisabled
         ? (isDark ? AppColors.textSecondaryDark : AppColors.slate)
-        : Colors.white;
+        : AppColors.onBrand;
 
     return Material(
       color: bgColor,
@@ -196,8 +196,8 @@ class AppButton extends StatelessWidget {
       child: InkWell(
         onTap: effectiveDisabled ? null : () => onPressed?.call(),
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        splashColor: Colors.white.withValues(alpha: 0.15),
-        highlightColor: Colors.white.withValues(alpha: 0.08),
+        splashColor: AppColors.onBrand.withValues(alpha: 0.15),
+        highlightColor: AppColors.onBrand.withValues(alpha: 0.08),
         child: _buttonLabel(textColor: textColor),
       ),
     );
@@ -305,7 +305,7 @@ class AppButton extends StatelessWidget {
         : AppColors.forestGreen;
     final iconColor = effectiveDisabled
         ? (isDark ? AppColors.textSecondaryDark : AppColors.slate)
-        : Colors.white;
+        : AppColors.onBrand;
 
     return Semantics(
       button: true,
@@ -318,8 +318,8 @@ class AppButton extends StatelessWidget {
         child: InkWell(
           onTap: effectiveDisabled ? null : () => onPressed?.call(),
           borderRadius: BorderRadius.circular(_iconSize),
-          splashColor: Colors.white.withValues(alpha: 0.15),
-          highlightColor: Colors.white.withValues(alpha: 0.08),
+          splashColor: AppColors.onBrand.withValues(alpha: 0.15),
+          highlightColor: AppColors.onBrand.withValues(alpha: 0.08),
           child: SizedBox(
             width: _iconSize,
             height: _iconSize,
@@ -330,7 +330,7 @@ class AppButton extends StatelessWidget {
                       height: 22,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
-                        color: Colors.white,
+                        color: AppColors.onBrand,
                       ),
                     )
                   : Icon(icon, color: iconColor, size: _iconSize * 0.45),

@@ -239,7 +239,7 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
                       ),
                       child: const Icon(
                         Icons.water_drop,
-                        color: Colors.white,
+                        color: AppColors.onBrand,
                         size: 20,
                       ),
                     ),
@@ -312,7 +312,7 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+            color: AppColors.shadow.withValues(alpha: isDark ? 0.3 : 0.08),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),

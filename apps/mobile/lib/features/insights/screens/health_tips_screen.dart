@@ -534,7 +534,7 @@ class _FilterChip extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isSelected
-                    ? (isDark ? Colors.white : AppColors.forestGreen)
+                    ? (isDark ? AppColors.onBrand : AppColors.forestGreen)
                     : (isDark ? AppColors.textSecondaryDark : AppColors.slate),
               ),
             ),
@@ -573,11 +573,11 @@ class _CategoryIcon extends StatelessWidget {
       case TipCategory.exercise:
         return AppColors.sage;
       case TipCategory.sleep:
-        return const Color(0xFF5B6ABF);
+        return AppColors.hormoneBlue;
       case TipCategory.stress:
         return AppColors.softGold;
       case TipCategory.symptomManagement:
-        return const Color(0xFFE86B6B);
+        return AppColors.period;
     }
   }
 

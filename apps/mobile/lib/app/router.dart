@@ -187,7 +187,7 @@ class MainShell extends StatelessWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) => _onTabTapped(context, index),
-        backgroundColor: isDark ? AppColors.charcoal : Colors.white,
+        backgroundColor: isDark ? AppColors.charcoal : AppColors.onBrand,
         indicatorColor: AppColors.forestGreen.withValues(alpha: 0.15),
         destinations: const [
           NavigationDestination(

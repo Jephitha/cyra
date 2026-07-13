@@ -19,9 +19,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   static const _pageCount = 3;
 
   final _gradients = [
-    [AppColors.forestGreen, const Color(0xFF0D2B1E)],
-    [const Color(0xFF1B4332), const Color(0xFF2D6A4F)],
-    [const Color(0xFF2D6A4F), AppColors.forestGreenDark],
+    [AppColors.forestGreen, AppColors.forestGreenDark],
+    [AppColors.forestGreen, AppColors.forestGreenLight],
+    [AppColors.forestGreenLight, AppColors.forestGreenDark],
   ];
 
   final _pageData = const [
@@ -160,7 +160,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.9),
+              color: AppColors.onBrand.withValues(alpha: 0.9),
               letterSpacing: -0.3,
             ),
           ),
@@ -177,7 +177,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: AppColors.onBrand.withValues(alpha: 0.7),
                   ),
                 ),
               ),
@@ -201,7 +201,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           end: Alignment.bottomCenter,
           colors: [
             Colors.transparent,
-            Colors.black.withValues(alpha: 0.2),
+            AppColors.shadow.withValues(alpha: 0.2),
           ],
         ),
       ),
@@ -233,8 +233,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           height: 8,
           decoration: BoxDecoration(
             color: _currentPage == index
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.35),
+                ? AppColors.onBrand
+                : AppColors.onBrand.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -277,7 +277,7 @@ class _OnboardingPage extends StatelessWidget {
                   fontSize: 28,
                   fontWeight: FontWeight.w600,
                   height: 1.25,
-                  color: Colors.white,
+                  color: AppColors.onBrand,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -288,7 +288,7 @@ class _OnboardingPage extends StatelessWidget {
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
                   height: 1.55,
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: AppColors.onBrand.withValues(alpha: 0.8),
                 ),
               ),
               const SizedBox(height: AppSpacing.xxxl),
@@ -306,7 +306,7 @@ class _OnboardingPage extends StatelessWidget {
       height: 140,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white.withValues(alpha: 0.12),
+        color: AppColors.onBrand.withValues(alpha: 0.12),
       ),
       child: Center(
         child: Container(
@@ -314,12 +314,12 @@ class _OnboardingPage extends StatelessWidget {
           height: 100,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withValues(alpha: 0.1),
+            color: AppColors.onBrand.withValues(alpha: 0.1),
           ),
           child: Icon(
             data.icon,
             size: 52,
-            color: Colors.white.withValues(alpha: 0.9),
+            color: AppColors.onBrand.withValues(alpha: 0.9),
           ),
         ),
       ),
@@ -339,7 +339,7 @@ class _OnboardingPage extends StatelessWidget {
                 width: 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.5),
+                  color: AppColors.onBrand.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -349,7 +349,7 @@ class _OnboardingPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
-                  color: Colors.white.withValues(alpha: 0.75),
+                  color: AppColors.onBrand.withValues(alpha: 0.75),
                 ),
               ),
             ],

@@ -296,7 +296,7 @@ class _LogOPKScreenState extends ConsumerState<LogOPKScreen> {
                       time,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: isSelected
-                            ? (isDark ? Colors.white : AppColors.forestGreen)
+                            ? (isDark ? AppColors.onBrand : AppColors.forestGreen)
                             : (isDark
                                   ? AppColors.textSecondaryDark
                                   : AppColors.slate),
@@ -501,7 +501,7 @@ class _ResultOption extends StatelessWidget {
       width: 40,
       height: 56,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.onBrand,
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: AppColors.borderLight),
       ),

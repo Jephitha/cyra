@@ -265,7 +265,7 @@ class _BBTChartState extends State<BBTChart> {
               return LineTooltipItem(
                 '${DateFormat('MMM d').format(point.date)}\n${point.temperature.toStringAsFixed(1)}°C',
                 TextStyle(
-                  color: Colors.white,
+                  color: AppColors.onBrand,
                   fontWeight: FontWeight.w500,
                   fontSize: 12,
                 ),

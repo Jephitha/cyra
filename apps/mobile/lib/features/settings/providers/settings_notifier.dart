@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:cyra/core/providers/settings_providers.dart';
+import 'package:cyra/core/design/app_colors.dart';
 
 part 'settings_notifier.g.dart';
 
@@ -13,13 +14,13 @@ enum AppAccentColor {
   Color get color {
     switch (this) {
       case AppAccentColor.forest:
-        return const Color(0xFF1B4332);
+        return AppColors.forestGreen;
       case AppAccentColor.sage:
-        return const Color(0xFF7A9E7E);
+        return AppColors.sage;
       case AppAccentColor.gold:
-        return const Color(0xFFC9A94E);
+        return AppColors.softGold;
       case AppAccentColor.slate:
-        return const Color(0xFF6B7280);
+        return AppColors.slate;
     }
   }
 
@@ -89,7 +90,9 @@ class ThemeModeSettingNotifier extends _$ThemeModeSettingNotifier {
 
   void setThemeMode(ThemeMode mode) {
     state = mode;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('theme_mode', mode.name);
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('theme_mode', mode.name);
   }
 }
 
@@ -100,7 +103,9 @@ class AccentColorSettingNotifier extends _$AccentColorSettingNotifier {
 
   void setAccentColor(AppAccentColor color) {
     state = color;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('accent_color', color.name);
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('accent_color', color.name);
   }
 }
 
@@ -111,7 +116,9 @@ class TextSizeSettingNotifier extends _$TextSizeSettingNotifier {
 
   void setTextSize(double scale) {
     state = scale.clamp(0.8, 1.4);
-    ref.read(appSettingsNotifierProvider.notifier).setValue('text_size', state.toStringAsFixed(2));
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('text_size', state.toStringAsFixed(2));
   }
 }
 
@@ -122,7 +129,9 @@ class FontStyleSettingNotifier extends _$FontStyleSettingNotifier {
 
   void setFontStyle(FontStyleSetting style) {
     state = style;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('font_style', style.name);
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('font_style', style.name);
   }
 }
 
@@ -133,7 +142,9 @@ class ReduceMotionSettingNotifier extends _$ReduceMotionSettingNotifier {
 
   void toggle() {
     state = !state;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('reduce_motion', state.toString());
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('reduce_motion', state.toString());
   }
 }
 
@@ -144,7 +155,9 @@ class HighContrastSettingNotifier extends _$HighContrastSettingNotifier {
 
   void toggle() {
     state = !state;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('high_contrast', state.toString());
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('high_contrast', state.toString());
   }
 }
 
@@ -155,7 +168,9 @@ class ShowCyclePhaseColorsNotifier extends _$ShowCyclePhaseColorsNotifier {
 
   void toggle() {
     state = !state;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('show_cycle_phase_colors', state.toString());
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('show_cycle_phase_colors', state.toString());
   }
 }
 
@@ -166,7 +181,9 @@ class PrivateModeNotifier extends _$PrivateModeNotifier {
 
   void toggle() {
     state = !state;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('private_mode', state.toString());
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('private_mode', state.toString());
   }
 }
 
@@ -177,7 +194,9 @@ class AutoLockDurationNotifier extends _$AutoLockDurationNotifier {
 
   void setDuration(Duration duration) {
     state = duration;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('auto_lock_duration', duration.inSeconds.toString());
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('auto_lock_duration', duration.inSeconds.toString());
   }
 }
 
@@ -188,7 +207,9 @@ class UnitsSystemNotifier extends _$UnitsSystemNotifier {
 
   void setUnitsSystem(UnitsSystem system) {
     state = system;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('units_system', system.name);
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('units_system', system.name);
   }
 }
 
@@ -199,18 +220,23 @@ class TemperatureUnitNotifier extends _$TemperatureUnitNotifier {
 
   void setTemperatureUnit(TemperatureUnit unit) {
     state = unit;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('temperature_unit', unit.name);
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('temperature_unit', unit.name);
   }
 }
 
 @Riverpod(keepAlive: true)
-class NotificationPreviewSettingNotifier extends _$NotificationPreviewSettingNotifier {
+class NotificationPreviewSettingNotifier
+    extends _$NotificationPreviewSettingNotifier {
   @override
   NotificationPreviewMode build() => NotificationPreviewMode.nameOnly;
 
   void setPreviewMode(NotificationPreviewMode mode) {
     state = mode;
-    ref.read(appSettingsNotifierProvider.notifier).setValue('notification_preview', mode.name);
+    ref
+        .read(appSettingsNotifierProvider.notifier)
+        .setValue('notification_preview', mode.name);
   }
 }
 

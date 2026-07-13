@@ -225,10 +225,10 @@ class _JournalEntryScreenState extends ConsumerState<JournalEntryScreen> {
       Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => Scaffold(
-            backgroundColor: Colors.black,
+            backgroundColor: AppColors.shadow,
             appBar: AppBar(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.shadow,
+              foregroundColor: AppColors.onBrand,
               actions: [
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
@@ -606,14 +606,14 @@ class _JournalEntryScreenState extends ConsumerState<JournalEntryScreen> {
                         },
                         child: Container(
                           padding: const EdgeInsets.all(2),
-                          decoration: const BoxDecoration(
-                            color: Colors.black54,
+                          decoration: BoxDecoration(
+                            color: AppColors.shadow.withValues(alpha: 0.54),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.close_rounded,
                             size: 14,
-                            color: Colors.white,
+                            color: AppColors.onBrand,
                           ),
                         ),
                       ),
@@ -625,14 +625,14 @@ class _JournalEntryScreenState extends ConsumerState<JournalEntryScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 4, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.black54,
+                          color: AppColors.shadow.withValues(alpha: 0.54),
                           borderRadius:
                               BorderRadius.circular(AppRadius.xs),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.lock_rounded,
                           size: 11,
-                          color: Colors.white70,
+                          color: AppColors.onBrand.withValues(alpha: 0.70),
                         ),
                       ),
                     ),
@@ -808,7 +808,7 @@ class _JournalEntryScreenState extends ConsumerState<JournalEntryScreen> {
       case 1:
         return AppColors.error;
       case 2:
-        return const Color(0xFFE86B6B);
+        return AppColors.period;
       case 3:
         return AppColors.softGold;
       case 4:

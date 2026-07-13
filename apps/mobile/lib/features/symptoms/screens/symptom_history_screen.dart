@@ -142,7 +142,7 @@ class _SymptomHistoryScreenState extends ConsumerState<SymptomHistoryScreen> {
                     fontSize: 13,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                     color: isSelected
-                        ? Colors.white
+                        ? AppColors.onBrand
                         : (isDark ? AppColors.textSecondaryDark : AppColors.slate),
                   ),
                 ),

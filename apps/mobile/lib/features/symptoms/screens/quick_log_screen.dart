@@ -491,7 +491,7 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
       case 1:
         return AppColors.error;
       case 2:
-        return Colors.orange;
+        return AppColors.warning;
       case 3:
         return AppColors.warning;
       case 4:

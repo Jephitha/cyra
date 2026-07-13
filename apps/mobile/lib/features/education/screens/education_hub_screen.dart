@@ -647,7 +647,7 @@ class _CategoryChip extends StatelessWidget {
 Color _categoryColor(String id) {
   switch (id) {
     case 'menstrual_health':
-      return const Color(0xFFE86B6B);
+      return AppColors.period;
     case 'fertility':
       return AppColors.softGold;
     case 'pregnancy':
@@ -655,9 +655,9 @@ Color _categoryColor(String id) {
     case 'nutrition':
       return AppColors.sage;
     case 'hormonal_health':
-      return const Color(0xFF7C5CBF);
+      return AppColors.phasePurple;
     case 'wellness':
-      return const Color(0xFF5B8DEF);
+      return AppColors.phaseBlue;
     default:
       return AppColors.forestGreen;
   }

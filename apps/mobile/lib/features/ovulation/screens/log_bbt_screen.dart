@@ -418,7 +418,7 @@ class _LogBBTScreenState extends ConsumerState<LogBBTScreen> {
                       _methodLabel(method),
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: isSelected
-                            ? (isDark ? Colors.white : AppColors.forestGreen)
+                            ? (isDark ? AppColors.onBrand : AppColors.forestGreen)
                             : (isDark
                                   ? AppColors.textSecondaryDark
                                   : AppColors.slate),

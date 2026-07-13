@@ -176,13 +176,13 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
                   ),
                   child: Center(
                     child: isCompleted
-                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        ? const Icon(Icons.check, size: 16, color: AppColors.onBrand)
                         : Text(
                             '$stepNum',
                             style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: isCurrent || isCompleted
-                                      ? Colors.white
+                                      ? AppColors.onBrand
                                       : AppColors.slate,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -758,7 +758,7 @@ class _SetupPregnancyScreenState extends ConsumerState<SetupPregnancyScreen> {
       case 2:
         return AppColors.softGold;
       case 3:
-        return const Color(0xFFE57373);
+        return AppColors.symptomRed;
       default:
         return AppColors.sage;
     }

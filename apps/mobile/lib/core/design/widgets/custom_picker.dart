@@ -348,7 +348,7 @@ class _PickerOption extends StatelessWidget {
         ? selectedColor.withValues(alpha: isDark ? 0.3 : 0.12)
         : Colors.transparent;
     final textColor = isSelected
-        ? (isDark ? Colors.white : selectedColor)
+        ? (isDark ? AppColors.onBrand : selectedColor)
         : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7);
 
     return Padding(

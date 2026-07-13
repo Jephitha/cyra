@@ -11,7 +11,7 @@ import 'package:cyra/core/constants/cycle_constants.dart';
 Color _phaseColor(CyclePhase phase) {
   switch (phase) {
     case CyclePhase.menstrual:
-      return const Color(0xFFE86B6B);
+      return AppColors.period;
     case CyclePhase.follicular:
       return AppColors.sage;
     case CyclePhase.ovulation:
@@ -300,7 +300,7 @@ class _CycleEducationScreenState extends State<CycleEducationScreen> {
       children: [
         _buildSectionTitle(context, 'Hormone Levels', Icons.show_chart_outlined, isDark),
         const SizedBox(height: AppSpacing.md),
-        _HormoneBar(label: 'Estrogen', level: _estrogenLevel(phase), color: const Color(0xFFE86B6B), isDark: isDark),
+        _HormoneBar(label: 'Estrogen', level: _estrogenLevel(phase), color: AppColors.period, isDark: isDark),
         const SizedBox(height: AppSpacing.sm),
         _HormoneBar(label: 'Progesterone', level: _progesteroneLevel(phase), color: AppColors.forestGreen, isDark: isDark),
         const SizedBox(height: AppSpacing.sm),
@@ -359,7 +359,7 @@ class _CycleEducationScreenState extends State<CycleEducationScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _HormoneLegend(label: 'Estrogen', color: const Color(0xFFE86B6B)),
+            _HormoneLegend(label: 'Estrogen', color: AppColors.period),
             _HormoneLegend(label: 'Progesterone', color: AppColors.forestGreen),
             _HormoneLegend(label: 'LH', color: AppColors.softGold),
             _HormoneLegend(label: 'FSH', color: AppColors.sage),
@@ -730,13 +730,13 @@ class _HormoneChartPainter extends CustomPainter {
     };
 
     final hormoneColors = {
-      'Estrogen': const Color(0xFFE86B6B),
+      'Estrogen': AppColors.period,
       'Progesterone': AppColors.forestGreen,
       'LH': AppColors.softGold,
       'FSH': AppColors.sage,
     };
 
-    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final bgColor = isDark ? AppColors.surfaceDark : AppColors.onBrand;
     final gridColor = (isDark ? AppColors.borderDark : AppColors.borderLight).withValues(alpha: 0.3);
     final textColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 

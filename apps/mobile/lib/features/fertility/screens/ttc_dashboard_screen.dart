@@ -378,7 +378,7 @@ class TTCDashboardScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.favorite_outlined, size: 20, color: const Color(0xFFE86B6B)),
+              Icon(Icons.favorite_outlined, size: 20, color: AppColors.period),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Intercourse Log',
@@ -675,7 +675,7 @@ class _CycleTimelinePainter extends CustomPainter {
           dayColor = AppColors.forestGreenLight.withValues(alpha: 0.4);
         }
       } else if (day <= 5) {
-        dayColor = const Color(0xFFE86B6B).withValues(alpha: 0.3);
+        dayColor = AppColors.period.withValues(alpha: 0.3);
       } else {
         dayColor = isDark
             ? AppColors.charcoal.withValues(alpha: 0.3)
@@ -692,7 +692,7 @@ class _CycleTimelinePainter extends CustomPainter {
     for (final day in intercourseDays) {
       if (day < 1 || day > days) continue;
       final x = (day - 1) * cellWidth + cellWidth / 2;
-      final paint = Paint()..color = const Color(0xFFE86B6B);
+      final paint = Paint()..color = AppColors.period;
       canvas.drawCircle(Offset(x, size.height / 2), 4, paint);
     }
 

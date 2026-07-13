@@ -75,12 +75,12 @@ class CommunityHubScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: AppColors.onBrand.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Icon(
               Icons.favorite_outline_rounded,
-              color: Colors.white,
+              color: AppColors.onBrand,
               size: 24,
             ),
           ),
@@ -88,7 +88,7 @@ class CommunityHubScreen extends ConsumerWidget {
           Text(
             'Cyra Community',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.onBrand,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -96,7 +96,7 @@ class CommunityHubScreen extends ConsumerWidget {
           Text(
             'Connect anonymously with others on similar journeys',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: AppColors.onBrand.withValues(alpha: 0.9),
             ),
           ),
         ],
@@ -291,7 +291,7 @@ class CommunityHubScreen extends ConsumerWidget {
                   isJoined ? 'Joined' : 'Join',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isJoined ? Colors.white : AppColors.forestGreen,
+                    color: isJoined ? AppColors.onBrand : AppColors.forestGreen,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -565,9 +565,9 @@ class CommunityHubScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.1),
+                      color: AppColors.warning.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
                     ),
                     child: const Text(
                       'To report a specific post or reply, please navigate to that content and use the report option there.',

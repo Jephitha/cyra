@@ -221,7 +221,7 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
                   _sectionLabel(section),
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: isSelected
-                        ? (isDark ? Colors.white : AppColors.forestGreen)
+                        ? (isDark ? AppColors.onBrand : AppColors.forestGreen)
                         : (isDark
                               ? AppColors.textSecondaryDark
                               : AppColors.slate),
@@ -319,7 +319,7 @@ class _LogVitalsScreenState extends ConsumerState<LogVitalsScreen> {
               Icon(
                 Icons.favorite_rounded,
                 size: 20,
-                color: const Color(0xFFE86B6B),
+                color: AppColors.period,
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
