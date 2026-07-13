@@ -103,7 +103,7 @@ token files to match `DESIGN_SYSTEM.md`. Sweep existing screens for hardcoded co
 the design tokens (common in early-stage codebases) and replace them with token references so a
 future palette change doesn't require another manual sweep.
 
-### T-BRAND-5. Splash screen / launch screen
+### [x] T-BRAND-5. Splash screen / launch screen
 Update the native splash screen (Android `launch_background`, iOS `LaunchScreen.storyboard` or
 equivalent) to use the new mark, not the default Flutter splash. Verify it looks correct under
 both system light and dark mode (see T-THEME-1) — native splash screens are easy to leave
