@@ -108,13 +108,11 @@ class DataExportService {
   }
 
   Future<File> exportAllDataAsJson() async {
-    await _requireReVerification('Export all data');
-
-    if (getAllDataCallback == null) {
-      throw DataExportException('Data retrieval callback not configured');
-    }
-
     try {
+      await _requireReVerification('Export all data');
+      if (getAllDataCallback == null) {
+        throw DataExportException('Data retrieval callback not configured');
+      }
       final data = await getAllDataCallback!();
       final exportData = _buildExportJson(data);
       final file = await _writeJsonToFile(exportData, 'cyra_export_all');
@@ -143,13 +141,11 @@ class DataExportService {
   }
 
   Future<File> exportDateRange(DateTime start, DateTime end) async {
-    await _requireReVerification('Export data by date range');
-
-    if (getDataByDateRangeCallback == null) {
-      throw DataExportException('Date range data retrieval not configured');
-    }
-
     try {
+      await _requireReVerification('Export data by date range');
+      if (getDataByDateRangeCallback == null) {
+        throw DataExportException('Date range data retrieval not configured');
+      }
       final data = await getDataByDateRangeCallback!(start, end);
       final exportData = _buildExportJson(data);
       final file = await _writeJsonToFile(
@@ -188,13 +184,11 @@ class DataExportService {
   }
 
   Future<void> deleteSingleRecord(String table, String id) async {
-    await _requireReVerification('Delete record');
-
-    if (deleteRecordCallback == null) {
-      throw DataExportException('Delete record callback not configured');
-    }
-
     try {
+      await _requireReVerification('Delete record');
+      if (deleteRecordCallback == null) {
+        throw DataExportException('Delete record callback not configured');
+      }
       await deleteRecordCallback!(table, id);
 
       AuditRecordType recordType;
@@ -238,13 +232,11 @@ class DataExportService {
   }
 
   Future<void> deleteDateRange(DateTime start, DateTime end) async {
-    await _requireReVerification('Delete data by date range');
-
-    if (deleteDateRangeCallback == null) {
-      throw DataExportException('Delete date range callback not configured');
-    }
-
     try {
+      await _requireReVerification('Delete data by date range');
+      if (deleteDateRangeCallback == null) {
+        throw DataExportException('Delete date range callback not configured');
+      }
       await deleteDateRangeCallback!(start, end);
 
       await _auditService.log(
@@ -274,13 +266,11 @@ class DataExportService {
   }
 
   Future<void> deleteAllData() async {
-    await _requireReVerification('Delete all data');
-
-    if (deleteAllDataCallback == null) {
-      throw DataExportException('Delete all data callback not configured');
-    }
-
     try {
+      await _requireReVerification('Delete all data');
+      if (deleteAllDataCallback == null) {
+        throw DataExportException('Delete all data callback not configured');
+      }
       await deleteAllDataCallback!();
 
       await _auditService.log(
@@ -423,7 +413,78 @@ DataExportService dataExportService(DataExportServiceRef ref) {
     getAllDataCallback: () => _collectExportData(database, encryption),
     getDataByDateRangeCallback: (start, end) =>
         _collectExportData(database, encryption, start: start, end: end),
+    deleteRecordCallback: (table, id) =>
+        _deleteExportRecord(database, table, id),
+    deleteDateRangeCallback: (start, end) =>
+        _deleteExportDateRange(database, start, end),
+    deleteAllDataCallback: () => _deleteAllHealthData(database),
   );
+}
+
+Future<void> _deleteExportRecord(
+  AppDatabase database,
+  String table,
+  String id,
+) async {
+  switch (table) {
+    case 'cycles':
+      await (database.delete(
+        database.cycles,
+      )..where((row) => row.id.equals(id))).go();
+    case 'cycle_days':
+      await (database.delete(
+        database.cycleDays,
+      )..where((row) => row.id.equals(id))).go();
+    case 'symptom_logs':
+      await (database.delete(
+        database.symptomLogs,
+      )..where((row) => row.id.equals(id))).go();
+    case 'journal_entries':
+      await (database.delete(
+        database.journalEntries,
+      )..where((row) => row.id.equals(id))).go();
+    default:
+      throw DataExportException('Unsupported record type: $table');
+  }
+}
+
+Future<void> _deleteExportDateRange(
+  AppDatabase database,
+  DateTime start,
+  DateTime end,
+) async {
+  await database.transaction(() async {
+    await (database.delete(
+      database.journalEntries,
+    )..where((row) => row.date.isBetween(Variable(start), Variable(end)))).go();
+    await (database.delete(
+      database.symptomLogs,
+    )..where((row) => row.date.isBetween(Variable(start), Variable(end)))).go();
+    await (database.delete(
+      database.cycleDays,
+    )..where((row) => row.date.isBetween(Variable(start), Variable(end)))).go();
+    await (database.delete(database.cycles)..where(
+          (row) => row.startDate.isBetween(Variable(start), Variable(end)),
+        ))
+        .go();
+  });
+}
+
+Future<void> _deleteAllHealthData(AppDatabase database) async {
+  await database.transaction(() async {
+    await database.delete(database.healthReports).go();
+    await database.delete(database.fetalMeasurements).go();
+    await database.delete(database.pregnancies).go();
+    await database.delete(database.ovulationTests).go();
+    await database.delete(database.cervicalMucusObservations).go();
+    await database.delete(database.bbtRecords).go();
+    await database.delete(database.journalEntries).go();
+    await database.delete(database.symptomLogs).go();
+    await database.delete(database.cycleDays).go();
+    await database.delete(database.cycles).go();
+    await database.delete(database.userConditions).go();
+    await database.delete(database.wearableSources).go();
+  });
 }
 
 Future<List<Map<String, dynamic>>> _collectExportData(

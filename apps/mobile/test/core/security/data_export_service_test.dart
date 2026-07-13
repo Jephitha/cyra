@@ -153,4 +153,32 @@ void main() {
       expect(audit.entries.single.success, isFalse);
     },
   );
+
+  test(
+    'delete callback runs only after fresh auth and records the event',
+    () async {
+      final authentication = _Authentication(true);
+      final audit = _AuditLog();
+      DateTime? deletedStart;
+      DateTime? deletedEnd;
+      final service = DataExportService(
+        authService: authentication,
+        auditService: audit,
+        deleteDateRangeCallback: (start, end) async {
+          deletedStart = start;
+          deletedEnd = end;
+        },
+      );
+      final start = DateTime(2026, 1, 1);
+      final end = DateTime(2026, 2, 1);
+
+      await service.deleteDateRange(start, end);
+
+      expect(deletedStart, start);
+      expect(deletedEnd, end);
+      expect(authentication.attempts, 1);
+      expect(audit.entries.single.action, AuditAction.delete);
+      expect(audit.entries.single.success, isTrue);
+    },
+  );
 }

@@ -5,6 +5,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
+import 'package:cyra/core/providers/security_providers.dart';
 import 'package:cyra/features/auth/providers/auth_providers.dart';
 
 class EmergencyLockScreen extends ConsumerStatefulWidget {
@@ -72,18 +73,53 @@ class _EmergencyLockScreenState extends ConsumerState<EmergencyLockScreen>
   }
 
   Future<void> _unlock() async {
+    final audit = ref.read(auditServiceProvider);
+    var authenticationCompleted = false;
     try {
       final authenticated = await _localAuth.authenticate(
         localizedReason: 'Unlock Cyra',
         options: const AuthenticationOptions(stickyAuth: true),
       );
+      authenticationCompleted = true;
+      await audit.logSafely(
+        action: AuditAction.login,
+        recordType: AuditRecordType.auth,
+        success: authenticated,
+        details: const {'method': 'deviceAuth', 'context': 'emergencyUnlock'},
+      );
 
       if (authenticated && mounted) {
+        try {
+          await ref.read(privacyServiceProvider).deactivateEmergencyLock();
+          await audit.logSafely(
+            action: AuditAction.emergencyLock,
+            recordType: AuditRecordType.auth,
+            success: true,
+            details: const {'state': 'deactivated'},
+          );
+        } catch (_) {
+          await audit.logSafely(
+            action: AuditAction.emergencyLock,
+            recordType: AuditRecordType.auth,
+            success: false,
+            details: const {'state': 'deactivationFailed'},
+          );
+          return;
+        }
         ref.read(isEmergencyLockedProvider.notifier).deactivate();
         ref.read(authStateNotifierProvider.notifier).authenticate();
         if (mounted) context.go('/dashboard');
       }
-    } catch (_) {}
+    } catch (_) {
+      if (!authenticationCompleted) {
+        await audit.logSafely(
+          action: AuditAction.login,
+          recordType: AuditRecordType.auth,
+          success: false,
+          details: const {'method': 'deviceAuth', 'context': 'emergencyUnlock'},
+        );
+      }
+    }
   }
 
   void _onCalculatorDigit(String digit) {

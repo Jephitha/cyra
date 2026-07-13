@@ -444,20 +444,6 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      final authService = ref.read(biometricAuthServiceProvider);
-      final authenticated = await authService.authenticateWithBiometricsOrPin(
-        reason: 'Authenticate to delete data',
-      );
-      if (!authenticated) {
-        if (context.mounted) {
-          context.showSnackBar(
-            'Authentication required to delete data',
-            isError: true,
-          );
-        }
-        return;
-      }
-
       final exportService = ref.read(dataExportServiceProvider);
       await exportService.deleteDateRange(range.start, range.end);
 
@@ -494,20 +480,6 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
     if (secondConfirm != true || !context.mounted) return;
 
     try {
-      final authService = ref.read(biometricAuthServiceProvider);
-      final authenticated = await authService.authenticateWithBiometricsOrPin(
-        reason: 'Authenticate to delete all data',
-      );
-      if (!authenticated) {
-        if (context.mounted) {
-          context.showSnackBar(
-            'Authentication required to delete all data',
-            isError: true,
-          );
-        }
-        return;
-      }
-
       final exportService = ref.read(dataExportServiceProvider);
       await exportService.deleteAllData();
 

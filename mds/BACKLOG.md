@@ -214,7 +214,7 @@ the thing a user receives when they tap "Export."
   authentication (`BiometricAuthService`) immediately before generating the file, and the action
   should be recorded via `AuditService`.
 
-### T11. Confirm `AuditService` is actually logging real events
+### [x] T11. Confirm `AuditService` is actually logging real events
 Verify call-sites exist for security-relevant events (unlock attempts, emergency lock
 activation, data export/delete). If not called anywhere yet, wire it in — an audit log that's
 never written to is a false promise.

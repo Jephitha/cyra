@@ -6,7 +6,6 @@ import 'package:cyra/core/design/widgets/privacy_lock.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/providers/security_providers.dart';
-import 'package:cyra/core/security/privacy_service.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
@@ -15,7 +14,8 @@ class MainShell extends ConsumerStatefulWidget {
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserver {
+class _MainShellState extends ConsumerState<MainShell>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
   bool _isPrivateMode = false;
   bool _isEmergencyLockEnabled = false;
@@ -130,9 +130,16 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
   }
 
   Future<void> _activateEmergencyLock() async {
+    final audit = ref.read(auditServiceProvider);
     try {
       final privacyService = ref.read(privacyServiceProvider);
       await privacyService.activateEmergencyLock();
+      await audit.logSafely(
+        action: AuditAction.emergencyLock,
+        recordType: AuditRecordType.auth,
+        success: true,
+        details: const {'state': 'activated', 'trigger': 'tripleTap'},
+      );
       if (!mounted) return;
       setState(() {
         _isEmergencyLockEnabled = true;
@@ -158,6 +165,12 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
         );
       }
     } catch (e) {
+      await audit.logSafely(
+        action: AuditAction.emergencyLock,
+        recordType: AuditRecordType.auth,
+        success: false,
+        details: const {'state': 'activationFailed', 'trigger': 'tripleTap'},
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to activate emergency lock: $e')),
@@ -207,7 +220,8 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
     final bgColor = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
 
     return Semantics(
-      label: 'Triple tap to activate emergency lock. Current tab: ${_tabLabels[_currentIndex]}',
+      label:
+          'Triple tap to activate emergency lock. Current tab: ${_tabLabels[_currentIndex]}',
       child: GestureDetector(
         onTap: _handleAppBarTripleTap,
         child: Container(
@@ -281,9 +295,13 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
 
   Widget _buildEmergencyLockButton() {
     return Semantics(
-      label: _isEmergencyLockEnabled ? 'Emergency lock active' : 'Activate emergency lock',
+      label: _isEmergencyLockEnabled
+          ? 'Emergency lock active'
+          : 'Activate emergency lock',
       child: Tooltip(
-        message: _isEmergencyLockEnabled ? 'Emergency Lock Active' : 'Emergency Lock',
+        message: _isEmergencyLockEnabled
+            ? 'Emergency Lock Active'
+            : 'Emergency Lock',
         child: GestureDetector(
           onLongPress: _isEmergencyLockEnabled ? null : _activateEmergencyLock,
           child: Container(
@@ -362,8 +380,9 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
                             _tabLabels[index],
                             style: TextStyle(
                               fontSize: 11,
-                              fontWeight:
-                                  isActive ? FontWeight.w600 : FontWeight.w500,
+                              fontWeight: isActive
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
                               color: isActive
                                   ? AppColors.forestGreen
                                   : AppColors.slate,
@@ -472,14 +491,27 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
                 TextButton(
                   onPressed: () async {
                     final privacyService = ref.read(privacyServiceProvider);
+                    final audit = ref.read(auditServiceProvider);
                     try {
                       await privacyService.deactivateEmergencyLock();
+                      await audit.logSafely(
+                        action: AuditAction.emergencyLock,
+                        recordType: AuditRecordType.auth,
+                        success: true,
+                        details: const {'state': 'deactivated'},
+                      );
                       if (!mounted) return;
                       setState(() {
                         _isPrivateMode = false;
                         _isEmergencyLockEnabled = false;
                       });
                     } catch (e) {
+                      await audit.logSafely(
+                        action: AuditAction.emergencyLock,
+                        recordType: AuditRecordType.auth,
+                        success: false,
+                        details: const {'state': 'deactivationFailed'},
+                      );
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Failed to unlock: $e')),

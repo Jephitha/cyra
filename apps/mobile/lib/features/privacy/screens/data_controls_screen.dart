@@ -30,11 +30,8 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Data Management'),
-      ),
+      appBar: AppBar(title: const Text('Data Management')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
@@ -95,7 +92,10 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
 
   Widget _buildCalendar() {
     final daysInMonth = _daysInMonth(_calendarMonth.year, _calendarMonth.month);
-    final offset = _firstWeekdayOffset(_calendarMonth.year, _calendarMonth.month);
+    final offset = _firstWeekdayOffset(
+      _calendarMonth.year,
+      _calendarMonth.month,
+    );
     final monthName = DateFormat('MMMM yyyy').format(_calendarMonth);
 
     return AppCard.standard(
@@ -154,81 +154,81 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
                   }).toList(),
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                ...List.generate(
-                  ((offset + daysInMonth) / 7).ceil(),
-                  (rowIndex) {
-                    return Row(
-                      children: List.generate(7, (colIndex) {
-                        final cellIndex = rowIndex * 7 + colIndex;
-                        final day = cellIndex - offset + 1;
-                        if (day < 1 || day > daysInMonth) {
-                          return Expanded(child: Container());
-                        }
-                        final date = DateTime(
-                          _calendarMonth.year,
-                          _calendarMonth.month,
-                          day,
-                        );
-                        final isSelected = _selectedDay != null &&
-                            _selectedDay!.isSameDay(date);
-                        final isToday = _isToday(date);
-                        final hasData = _hasDataForDate(date);
+                ...List.generate(((offset + daysInMonth) / 7).ceil(), (
+                  rowIndex,
+                ) {
+                  return Row(
+                    children: List.generate(7, (colIndex) {
+                      final cellIndex = rowIndex * 7 + colIndex;
+                      final day = cellIndex - offset + 1;
+                      if (day < 1 || day > daysInMonth) {
+                        return Expanded(child: Container());
+                      }
+                      final date = DateTime(
+                        _calendarMonth.year,
+                        _calendarMonth.month,
+                        day,
+                      );
+                      final isSelected =
+                          _selectedDay != null && _selectedDay!.isSameDay(date);
+                      final isToday = _isToday(date);
+                      final hasData = _hasDataForDate(date);
 
-                        return Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() => _selectedDay = date),
-                            child: Container(
-                              margin: const EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.forestGreen
-                                    : hasData
-                                        ? AppColors.forestGreen
-                                            .withValues(alpha: 0.12)
-                                        : null,
-                                shape: BoxShape.circle,
-                              ),
-                              child: AspectRatio(
-                                aspectRatio: 1,
-                                child: Center(
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      Text(
-                                        '$day',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                          color: isSelected
-                                              ? AppColors.onBrand
-                                              : null,
-                                        ),
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedDay = date),
+                          child: Container(
+                            margin: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppColors.forestGreen
+                                  : hasData
+                                  ? AppColors.forestGreen.withValues(
+                                      alpha: 0.12,
+                                    )
+                                  : null,
+                              shape: BoxShape.circle,
+                            ),
+                            child: AspectRatio(
+                              aspectRatio: 1,
+                              child: Center(
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Text(
+                                      '$day',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                        color: isSelected
+                                            ? AppColors.onBrand
+                                            : null,
                                       ),
-                                      if (isToday && !isSelected)
-                                        Positioned(
-                                          bottom: 2,
-                                          child: Container(
-                                            width: 4,
-                                            height: 4,
-                                            decoration: const BoxDecoration(
-                                              color: AppColors.forestGreen,
-                                              shape: BoxShape.circle,
-                                            ),
+                                    ),
+                                    if (isToday && !isSelected)
+                                      Positioned(
+                                        bottom: 2,
+                                        child: Container(
+                                          width: 4,
+                                          height: 4,
+                                          decoration: const BoxDecoration(
+                                            color: AppColors.forestGreen,
+                                            shape: BoxShape.circle,
                                           ),
                                         ),
-                                    ],
-                                  ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ),
                           ),
-                        );
-                      }),
-                    );
-                  },
-                ),
+                        ),
+                      );
+                    }),
+                  );
+                }),
               ],
             ),
           ),
@@ -288,12 +288,7 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
         children: [
           Icon(icon, size: 18, color: AppColors.forestGreen),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              label,
-              style: AppTypography.light.bodyMedium,
-            ),
-          ),
+          Expanded(child: Text(label, style: AppTypography.light.bodyMedium)),
           Text(
             value,
             style: AppTypography.light.bodyMedium?.copyWith(
@@ -467,7 +462,8 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
                   child: AppButton.primary(
                     'Clear All Data',
                     icon: Icons.delete_forever,
-                    onPressed: () => setState(() => _showClearConfirmation = true),
+                    onPressed: () =>
+                        setState(() => _showClearConfirmation = true),
                   ),
                 ),
               ] else ...[
@@ -512,7 +508,9 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
                           Expanded(
                             child: AppButton.primary(
                               'Delete Everything',
-                              onPressed: _understandController.text.trim() == 'I understand'
+                              onPressed:
+                                  _understandController.text.trim() ==
+                                      'I understand'
                                   ? () => _handleClearAll()
                                   : null,
                             ),
@@ -559,7 +557,9 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Delete All $type?'),
-        content: Text('This will permanently delete all $type records. This cannot be undone.'),
+        content: Text(
+          'This will permanently delete all $type records. This cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -580,19 +580,12 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
 
   Future<void> _handleExport(String format) async {
     try {
-      final authService = ref.read(biometricAuthServiceProvider);
-      final authenticated = await authService.authenticateWithBiometricsOrPin(
-        reason: 'Authenticate to export your data',
-      );
-      if (!authenticated) {
-        if (mounted) context.showSnackBar('Authentication required', isError: true);
-        return;
-      }
-
       final exportService = ref.read(dataExportServiceProvider);
       final file = await exportService.exportAllDataAsJson();
       if (mounted) {
-        context.showSnackBar('Data exported as $format: ${file.path.split('/').last}');
+        context.showSnackBar(
+          'Data exported as $format: ${file.path.split('/').last}',
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -609,9 +602,9 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppColors.forestGreen,
-            ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.forestGreen),
           ),
           child: child!,
         );
@@ -620,15 +613,6 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
     if (range == null || !mounted) return;
 
     try {
-      final authService = ref.read(biometricAuthServiceProvider);
-      final authenticated = await authService.authenticateWithBiometricsOrPin(
-        reason: 'Authenticate to export your data',
-      );
-      if (!authenticated) {
-        if (mounted) context.showSnackBar('Authentication required', isError: true);
-        return;
-      }
-
       final exportService = ref.read(dataExportServiceProvider);
       final file = await exportService.exportDateRange(range.start, range.end);
       if (mounted) {
@@ -643,15 +627,6 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
 
   Future<void> _handleClearAll() async {
     try {
-      final authService = ref.read(biometricAuthServiceProvider);
-      final authenticated = await authService.authenticateWithBiometricsOrPin(
-        reason: 'Authenticate to clear all data',
-      );
-      if (!authenticated) {
-        if (mounted) context.showSnackBar('Authentication required', isError: true);
-        return;
-      }
-
       final exportService = ref.read(dataExportServiceProvider);
       await exportService.deleteAllData();
 
@@ -664,7 +639,10 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        context.showSnackBar('Failed to clear data: ${e.toString()}', isError: true);
+        context.showSnackBar(
+          'Failed to clear data: ${e.toString()}',
+          isError: true,
+        );
       }
     }
   }
@@ -780,7 +758,11 @@ class _DataTypeCard extends StatelessWidget {
             ),
             TextButton.icon(
               onPressed: onDeleteAll,
-              icon: Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+              icon: Icon(
+                Icons.delete_outline,
+                size: 18,
+                color: AppColors.error,
+              ),
               label: Text(
                 'Delete All',
                 style: TextStyle(color: AppColors.error, fontSize: 13),

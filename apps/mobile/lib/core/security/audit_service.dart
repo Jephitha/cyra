@@ -57,24 +57,24 @@ class AuditEntry {
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'timestamp': timestamp.toIso8601String(),
-        'action': action.name,
-        'recordType': recordType.name,
-        'success': success,
-        if (details != null) 'details': details,
-      };
+    'id': id,
+    'timestamp': timestamp.toIso8601String(),
+    'action': action.name,
+    'recordType': recordType.name,
+    'success': success,
+    if (details != null) 'details': details,
+  };
 
   factory AuditEntry.fromJson(Map<String, dynamic> json) => AuditEntry(
-        id: json['id'] as String,
-        timestamp: DateTime.parse(json['timestamp'] as String),
-        action: AuditAction.values.byName(json['action'] as String),
-        recordType: AuditRecordType.values.byName(json['recordType'] as String),
-        success: json['success'] as bool,
-        details: json['details'] != null
-            ? Map<String, String>.from(json['details'] as Map)
-            : null,
-      );
+    id: json['id'] as String,
+    timestamp: DateTime.parse(json['timestamp'] as String),
+    action: AuditAction.values.byName(json['action'] as String),
+    recordType: AuditRecordType.values.byName(json['recordType'] as String),
+    success: json['success'] as bool,
+    details: json['details'] != null
+        ? Map<String, String>.from(json['details'] as Map)
+        : null,
+  );
 }
 
 class AuditService {
@@ -129,9 +129,7 @@ class AuditService {
 
       await _secureStorage.write(
         key: '$_auditLogPrefix${entry.id}',
-        value: base64.encode(
-          utf8.encode(json.encode(entry.toJson())),
-        ),
+        value: base64.encode(utf8.encode(json.encode(entry.toJson()))),
       );
       await _secureStorage.write(
         key: _auditIndexKey,
@@ -141,6 +139,26 @@ class AuditService {
       await _pruneExpiredEntries();
     } catch (e) {
       throw AuditException('Failed to log audit entry', e);
+    }
+  }
+
+  /// Records a security event without allowing audit-storage failure to block
+  /// the security action itself.
+  Future<void> logSafely({
+    required AuditAction action,
+    required AuditRecordType recordType,
+    required bool success,
+    Map<String, String>? details,
+  }) async {
+    try {
+      await log(
+        action: action,
+        recordType: recordType,
+        success: success,
+        details: details,
+      );
+    } catch (_) {
+      // Security actions must still complete if the audit store is unavailable.
     }
   }
 
@@ -223,15 +241,21 @@ class AuditService {
   Future<List<int>> getAuditLogStats() async {
     final entries = await _getAllEntries();
     final now = DateTime.now();
-    final last24h = entries.where(
-      (e) => e.timestamp.isAfter(now.subtract(const Duration(hours: 24))),
-    ).length;
-    final last7d = entries.where(
-      (e) => e.timestamp.isAfter(now.subtract(const Duration(days: 7))),
-    ).length;
-    final last30d = entries.where(
-      (e) => e.timestamp.isAfter(now.subtract(const Duration(days: 30))),
-    ).length;
+    final last24h = entries
+        .where(
+          (e) => e.timestamp.isAfter(now.subtract(const Duration(hours: 24))),
+        )
+        .length;
+    final last7d = entries
+        .where(
+          (e) => e.timestamp.isAfter(now.subtract(const Duration(days: 7))),
+        )
+        .length;
+    final last30d = entries
+        .where(
+          (e) => e.timestamp.isAfter(now.subtract(const Duration(days: 30))),
+        )
+        .length;
     return [last24h, last7d, last30d, entries.length];
   }
 
@@ -282,9 +306,7 @@ class AuditService {
       if (value != null) {
         try {
           final decoded = json.decode(utf8.decode(base64.decode(value)));
-          final entry = AuditEntry.fromJson(
-            decoded as Map<String, dynamic>,
-          );
+          final entry = AuditEntry.fromJson(decoded as Map<String, dynamic>);
           if (entry.timestamp.isBefore(cutoff)) {
             toRemove.add(id);
           } else {
@@ -334,19 +356,16 @@ class AuditService {
       }
     }
 
-    final totalLength = details.values.fold<int>(
-      0,
-      (sum, v) => sum + v.length,
-    );
+    final totalLength = details.values.fold<int>(0, (sum, v) => sum + v.length);
     if (totalLength > 512) {
-      throw AuditException('Audit log details exceed maximum length (512 chars)');
+      throw AuditException(
+        'Audit log details exceed maximum length (512 chars)',
+      );
     }
   }
 }
 
 @Riverpod(keepAlive: true)
 AuditService auditService(AuditServiceRef ref) {
-  return AuditService(
-    secureStorage: const FlutterSecureStorage(),
-  );
+  return AuditService(secureStorage: const FlutterSecureStorage());
 }

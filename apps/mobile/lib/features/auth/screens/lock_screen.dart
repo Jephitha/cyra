@@ -97,6 +97,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
   Future<void> _authenticateWithBiometrics() async {
     if (_isAuthenticating) return;
     setState(() => _isAuthenticating = true);
+    final audit = ref.read(auditServiceProvider);
 
     try {
       final authenticated = await _localAuth.authenticate(
@@ -105,6 +106,13 @@ class _LockScreenState extends ConsumerState<LockScreen>
           stickyAuth: true,
           biometricOnly: true,
         ),
+      );
+
+      await audit.logSafely(
+        action: AuditAction.login,
+        recordType: AuditRecordType.auth,
+        success: authenticated,
+        details: const {'method': 'biometric', 'context': 'appUnlock'},
       );
 
       if (mounted) {
@@ -117,6 +125,12 @@ class _LockScreenState extends ConsumerState<LockScreen>
         }
       }
     } catch (_) {
+      await audit.logSafely(
+        action: AuditAction.login,
+        recordType: AuditRecordType.auth,
+        success: false,
+        details: const {'method': 'biometric', 'context': 'appUnlock'},
+      );
       if (mounted) {
         setState(() => _isAuthenticating = false);
       }
@@ -148,6 +162,19 @@ class _LockScreenState extends ConsumerState<LockScreen>
   Future<void> _verifyPin() async {
     final pinAuth = ref.read(pinAuthServiceProvider);
     final isValid = await pinAuth.verifyPin(_enteredPin);
+    final attempts = ref.read(failedPinAttemptsProvider);
+    await ref
+        .read(auditServiceProvider)
+        .logSafely(
+          action: AuditAction.login,
+          recordType: AuditRecordType.auth,
+          success: isValid,
+          details: {
+            'method': 'pin',
+            'context': 'appUnlock',
+            'failedAttempts': isValid ? '0' : '${attempts + 1}',
+          },
+        );
 
     if (isValid) {
       ref.read(authStateNotifierProvider.notifier).authenticate();
@@ -155,7 +182,6 @@ class _LockScreenState extends ConsumerState<LockScreen>
       ref.read(failedPinAttemptsProvider.notifier).reset();
       context.go('/dashboard');
     } else {
-      final attempts = ref.read(failedPinAttemptsProvider);
       ref.read(failedPinAttemptsProvider.notifier).increment();
       final newAttempts = attempts + 1;
 
