@@ -19,6 +19,9 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings =
+        ref.watch(appSettingsNotifierProvider).value ??
+        const <String, String>{};
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
@@ -26,7 +29,7 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           _buildSectionHeader('Account'),
           const SizedBox(height: AppSpacing.sm),
-          _buildAccountSection(context),
+          _buildAccountSection(context, ref, settings),
           const SizedBox(height: AppSpacing.xxl),
           _buildSectionHeader('Subscription'),
           const SizedBox(height: AppSpacing.sm),
@@ -54,7 +57,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xxl),
           _buildSectionHeader('Units'),
           const SizedBox(height: AppSpacing.sm),
-          _buildUnitsSection(context),
+          _buildUnitsSection(context, ref, settings),
           const SizedBox(height: AppSpacing.xxl),
           _buildSectionHeader('Language'),
           const SizedBox(height: AppSpacing.sm),
@@ -102,7 +105,12 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAccountSection(BuildContext context) {
+  Widget _buildAccountSection(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, String> settings,
+  ) {
+    final profileName = settings['profile_name']?.trim();
     return AppCard.standard(
       child: Column(
         children: [
@@ -111,10 +119,12 @@ class SettingsScreen extends ConsumerWidget {
             label: 'Profile',
             subtitle: 'Name, email, date of birth',
             trailing: Text(
-              'Jotham',
+              profileName == null || profileName.isEmpty
+                  ? 'Not set'
+                  : profileName,
               style: TextStyle(color: AppColors.slate, fontSize: 14),
             ),
-            onTap: () => _showProfileEditDialog(context),
+            onTap: () => _showProfileEditDialog(context, ref, settings),
           ),
           const Divider(height: 1),
           _SettingsRow(
@@ -225,7 +235,7 @@ class SettingsScreen extends ConsumerWidget {
             label: 'Export Data',
             subtitle: 'Export all or selected data',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () {},
+            onTap: () => _openPrivacyControls(context),
           ),
           const Divider(height: 1),
           _SettingsRow(
@@ -233,7 +243,7 @@ class SettingsScreen extends ConsumerWidget {
             label: 'Manage Data',
             subtitle: 'Delete individual or all records',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () {},
+            onTap: () => _openPrivacyControls(context),
           ),
         ],
       ),
@@ -293,7 +303,17 @@ class SettingsScreen extends ConsumerWidget {
     ).push(MaterialPageRoute<void>(builder: (_) => const PaywallScreen()));
   }
 
-  Widget _buildUnitsSection(BuildContext context) {
+  Widget _buildUnitsSection(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, String> settings,
+  ) {
+    final units = settings['units_system'] == 'imperial'
+        ? 'Imperial'
+        : 'Metric';
+    final temperature = settings['temperature_unit'] == 'fahrenheit'
+        ? 'Fahrenheit'
+        : 'Celsius';
     return AppCard.standard(
       child: Column(
         children: [
@@ -302,10 +322,10 @@ class SettingsScreen extends ConsumerWidget {
             label: 'Units System',
             subtitle: 'Metric or Imperial',
             trailing: Text(
-              'Metric',
+              units,
               style: TextStyle(color: AppColors.slate, fontSize: 14),
             ),
-            onTap: () => _showUnitsPicker(context),
+            onTap: () => _showUnitsPicker(context, ref, units),
           ),
           const Divider(height: 1),
           _SettingsRow(
@@ -313,10 +333,10 @@ class SettingsScreen extends ConsumerWidget {
             label: 'Temperature',
             subtitle: 'Celsius or Fahrenheit',
             trailing: Text(
-              'Celsius',
+              temperature,
               style: TextStyle(color: AppColors.slate, fontSize: 14),
             ),
-            onTap: () => _showTemperaturePicker(context),
+            onTap: () => _showTemperaturePicker(context, ref, temperature),
           ),
         ],
       ),
@@ -366,14 +386,22 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.privacy_tip_outlined,
             label: 'Privacy Policy',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () {},
+            onTap: () => _showInfoDialog(
+              context,
+              'Privacy Policy',
+              'Cyra stores health information locally by default. Cloud and community data are sent only when you choose those features. You can export or delete your data from Privacy & Security.',
+            ),
           ),
           const Divider(height: 1),
           _SettingsRow(
             icon: Icons.article_outlined,
             label: 'Terms of Service',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () {},
+            onTap: () => _showInfoDialog(
+              context,
+              'Terms of Service',
+              'Use Cyra for personal tracking and education. Keep your device secure, provide accurate information, and do not use the app for emergencies or as a replacement for professional care.',
+            ),
           ),
           const Divider(height: 1),
           _SettingsRow(
@@ -381,7 +409,11 @@ class SettingsScreen extends ConsumerWidget {
             label: 'Medical Disclaimer',
             subtitle: 'This app is not a medical device',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () {},
+            onTap: () => _showInfoDialog(
+              context,
+              'Medical Disclaimer',
+              'Cyra is not a medical device and does not diagnose, treat, or prevent any condition. Predictions and insights are estimates. Seek qualified medical care for health concerns and emergency services for urgent symptoms.',
+            ),
           ),
         ],
       ),
@@ -396,28 +428,40 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.mail_outline,
             label: 'Contact Us',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () {},
+            onTap: () => _showInfoDialog(
+              context,
+              'Contact Us',
+              'Email support@getmycyra.com and include the app version, device model, and steps that reproduce the issue. Do not include sensitive health data unless it is necessary.',
+            ),
           ),
           const Divider(height: 1),
           _SettingsRow(
             icon: Icons.help_outline,
             label: 'FAQ',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () {},
+            onTap: () => _showInfoDialog(
+              context,
+              'Frequently Asked Questions',
+              'Where is my data? Health records are stored locally by default.\n\nHow do I export or delete data? Open Settings → Privacy & Security.\n\nAre predictions medical advice? No. They are estimates based on your entries.',
+            ),
           ),
           const Divider(height: 1),
           _SettingsRow(
             icon: Icons.feedback_outlined,
             label: 'Send Feedback',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () {},
+            onTap: () => _showInfoDialog(
+              context,
+              'Send Feedback',
+              'Send feedback to feedback@getmycyra.com. Include what you expected, what happened, and screenshots when possible.',
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showUnitsPicker(BuildContext context) {
+  void _showUnitsPicker(BuildContext context, WidgetRef ref, String selected) {
     showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -435,14 +479,29 @@ class SettingsScreen extends ConsumerWidget {
               leading: Icon(Icons.straighten, color: AppColors.forestGreen),
               title: const Text('Metric'),
               subtitle: const Text('cm, kg'),
-              trailing: Icon(Icons.check, color: AppColors.forestGreen),
-              onTap: () => Navigator.of(ctx).pop(),
+              trailing: selected == 'Metric'
+                  ? Icon(Icons.check, color: AppColors.forestGreen)
+                  : null,
+              onTap: () async {
+                await ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setValue('units_system', 'metric');
+                if (ctx.mounted) Navigator.of(ctx).pop();
+              },
             ),
             ListTile(
               leading: Icon(Icons.straighten, color: AppColors.slate),
               title: const Text('Imperial'),
               subtitle: const Text('in, lb'),
-              onTap: () => Navigator.of(ctx).pop(),
+              trailing: selected == 'Imperial'
+                  ? Icon(Icons.check, color: AppColors.forestGreen)
+                  : null,
+              onTap: () async {
+                await ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setValue('units_system', 'imperial');
+                if (ctx.mounted) Navigator.of(ctx).pop();
+              },
             ),
             const SizedBox(height: AppSpacing.lg),
           ],
@@ -451,7 +510,11 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showTemperaturePicker(BuildContext context) {
+  void _showTemperaturePicker(
+    BuildContext context,
+    WidgetRef ref,
+    String selected,
+  ) {
     showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -468,13 +531,28 @@ class SettingsScreen extends ConsumerWidget {
             ListTile(
               leading: Icon(Icons.thermostat, color: AppColors.forestGreen),
               title: const Text('Celsius (°C)'),
-              trailing: Icon(Icons.check, color: AppColors.forestGreen),
-              onTap: () => Navigator.of(ctx).pop(),
+              trailing: selected == 'Celsius'
+                  ? Icon(Icons.check, color: AppColors.forestGreen)
+                  : null,
+              onTap: () async {
+                await ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setValue('temperature_unit', 'celsius');
+                if (ctx.mounted) Navigator.of(ctx).pop();
+              },
             ),
             ListTile(
               leading: Icon(Icons.thermostat, color: AppColors.slate),
               title: const Text('Fahrenheit (°F)'),
-              onTap: () => Navigator.of(ctx).pop(),
+              trailing: selected == 'Fahrenheit'
+                  ? Icon(Icons.check, color: AppColors.forestGreen)
+                  : null,
+              onTap: () async {
+                await ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setValue('temperature_unit', 'fahrenheit');
+                if (ctx.mounted) Navigator.of(ctx).pop();
+              },
             ),
             const SizedBox(height: AppSpacing.lg),
           ],
@@ -569,8 +647,21 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showProfileEditDialog(BuildContext context) {
-    showDialog<void>(
+  Future<void> _showProfileEditDialog(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, String> settings,
+  ) async {
+    final nameController = TextEditingController(
+      text: settings['profile_name'] ?? '',
+    );
+    final emailController = TextEditingController(
+      text: settings['profile_email'] ?? '',
+    );
+    final dateController = TextEditingController(
+      text: settings['profile_date_of_birth'] ?? '',
+    );
+    await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
@@ -588,7 +679,7 @@ class SettingsScreen extends ConsumerWidget {
                   labelText: 'Name',
                   prefixIcon: Icon(Icons.person_outline),
                 ),
-                initialValue: 'Jotham',
+                controller: nameController,
               ),
               const SizedBox(height: AppSpacing.md),
               TextFormField(
@@ -597,6 +688,7 @@ class SettingsScreen extends ConsumerWidget {
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
                 keyboardType: TextInputType.emailAddress,
+                controller: emailController,
               ),
               const SizedBox(height: AppSpacing.md),
               TextFormField(
@@ -605,6 +697,7 @@ class SettingsScreen extends ConsumerWidget {
                   prefixIcon: Icon(Icons.calendar_today_outlined),
                 ),
                 keyboardType: TextInputType.datetime,
+                controller: dateController,
               ),
             ],
           ),
@@ -615,8 +708,48 @@ class SettingsScreen extends ConsumerWidget {
             child: Text('Cancel', style: TextStyle(color: AppColors.slate)),
           ),
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () async {
+              final notifier = ref.read(appSettingsNotifierProvider.notifier);
+              await notifier.setValue(
+                'profile_name',
+                nameController.text.trim(),
+              );
+              await notifier.setValue(
+                'profile_email',
+                emailController.text.trim(),
+              );
+              await notifier.setValue(
+                'profile_date_of_birth',
+                dateController.text.trim(),
+              );
+              if (ctx.mounted) Navigator.of(ctx).pop();
+            },
             child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    nameController.dispose();
+    emailController.dispose();
+    dateController.dispose();
+  }
+
+  void _openPrivacyControls(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const PrivacyControlsScreen()),
+    );
+  }
+
+  void _showInfoDialog(BuildContext context, String title, String message) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: SingleChildScrollView(child: Text(message)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
           ),
         ],
       ),

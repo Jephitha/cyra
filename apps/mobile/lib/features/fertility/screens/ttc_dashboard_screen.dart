@@ -10,9 +10,9 @@ import 'package:cyra/core/design/widgets/health_stat_card.dart';
 import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart';
 import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/features/fertility/screens/log_intercourse_screen.dart';
+import 'package:cyra/features/education/screens/education_hub_screen.dart';
 
-final _ttcDashboardProvider =
-    ChangeNotifierProvider<_TTCDashboardState>((ref) {
+final _ttcDashboardProvider = ChangeNotifierProvider<_TTCDashboardState>((ref) {
   return _TTCDashboardState();
 });
 
@@ -103,9 +103,7 @@ class TTCDashboardScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (state.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -133,7 +131,11 @@ class TTCDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, _TTCDashboardState state, bool isDark) {
+  Widget _buildHeader(
+    BuildContext context,
+    _TTCDashboardState state,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,7 +182,9 @@ class TTCDashboardScreen extends ConsumerWidget {
                     ? Icons.celebration_outlined
                     : Icons.calendar_month_outlined,
                 size: 20,
-                color: state.isFertileToday ? AppColors.forestGreen : AppColors.slate,
+                color: state.isFertileToday
+                    ? AppColors.forestGreen
+                    : AppColors.slate,
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
@@ -188,7 +192,9 @@ class TTCDashboardScreen extends ConsumerWidget {
                     ? 'Day ${state.currentCycleDay} — Fertile Day'
                     : 'Day ${state.currentCycleDay} — Not Fertile',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -204,8 +210,8 @@ class TTCDashboardScreen extends ConsumerWidget {
                 state.conceptionProbability >= 0.3
                     ? AppColors.forestGreen
                     : state.conceptionProbability >= 0.1
-                        ? AppColors.softGold
-                        : AppColors.slate,
+                    ? AppColors.softGold
+                    : AppColors.slate,
               ),
               const SizedBox(width: AppSpacing.sm),
               _statusChip(
@@ -221,8 +227,11 @@ class TTCDashboardScreen extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: (state.isFertileToday ? AppColors.forestGreen : AppColors.slate)
-                  .withValues(alpha: isDark ? 0.15 : 0.06),
+              color:
+                  (state.isFertileToday
+                          ? AppColors.forestGreen
+                          : AppColors.slate)
+                      .withValues(alpha: isDark ? 0.15 : 0.06),
               borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Row(
@@ -230,14 +239,18 @@ class TTCDashboardScreen extends ConsumerWidget {
                 Icon(
                   Icons.info_outline_rounded,
                   size: 16,
-                  color: state.isFertileToday ? AppColors.forestGreen : AppColors.slate,
+                  color: state.isFertileToday
+                      ? AppColors.forestGreen
+                      : AppColors.slate,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     actionRecommendation,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: state.isFertileToday ? AppColors.forestGreen : AppColors.slate,
+                      color: state.isFertileToday
+                          ? AppColors.forestGreen
+                          : AppColors.slate,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -250,7 +263,12 @@ class TTCDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _statusChip(BuildContext context, String label, String value, Color color) {
+  Widget _statusChip(
+    BuildContext context,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -293,12 +311,18 @@ class TTCDashboardScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.timeline_rounded, size: 20, color: AppColors.forestGreen),
+              Icon(
+                Icons.timeline_rounded,
+                size: 20,
+                color: AppColors.forestGreen,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'This Cycle Timeline',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -313,7 +337,11 @@ class TTCDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCycleBar(BuildContext context, _TTCDashboardState state, bool isDark) {
+  Widget _buildCycleBar(
+    BuildContext context,
+    _TTCDashboardState state,
+    bool isDark,
+  ) {
     final days = state.cycleLength.clamp(28, 35);
     final fertileStart = 8;
     final fertileEnd = 19;
@@ -343,7 +371,11 @@ class TTCDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCycleStats(BuildContext context, _TTCDashboardState state, bool isDark) {
+  Widget _buildCycleStats(
+    BuildContext context,
+    _TTCDashboardState state,
+    bool isDark,
+  ) {
     return Row(
       children: [
         Expanded(
@@ -383,7 +415,9 @@ class TTCDashboardScreen extends ConsumerWidget {
               Text(
                 'Intercourse Log',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -392,9 +426,9 @@ class TTCDashboardScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(
             '${state.totalIntercourseCount} times this cycle, ${state.fertileWindowIntercourseCount} during fertile window',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.slate,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
           ),
           const SizedBox(height: AppSpacing.md),
           if (state.intercourseEntries.isNotEmpty)
@@ -407,10 +441,11 @@ class TTCDashboardScreen extends ConsumerWidget {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: (entry.isDuringFertileWindow
-                                ? AppColors.forestGreen
-                                : AppColors.slate)
-                            .withValues(alpha: isDark ? 0.2 : 0.1),
+                        color:
+                            (entry.isDuringFertileWindow
+                                    ? AppColors.forestGreen
+                                    : AppColors.slate)
+                                .withValues(alpha: isDark ? 0.2 : 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -428,34 +463,46 @@ class TTCDashboardScreen extends ConsumerWidget {
                         children: [
                           Text(
                             DateFormat('MMM d, yyyy').format(entry.date),
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.charcoal,
+                                  fontWeight: FontWeight.w500,
+                                ),
                           ),
                           Row(
                             children: [
                               Text(
                                 '${entry.timeOfDay} · ${entry.unprotected ? "Unprotected" : "Protected"}',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.slate,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppColors.slate),
                               ),
                               if (entry.isDuringFertileWindow) ...[
                                 const SizedBox(width: AppSpacing.sm),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 1),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.sm,
+                                    vertical: 1,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.forestGreen.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(AppRadius.xl),
+                                    color: AppColors.forestGreen.withValues(
+                                      alpha: 0.15,
+                                    ),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.xl,
+                                    ),
                                   ),
                                   child: Text(
                                     'Fertile',
-                                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                      color: AppColors.forestGreen,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 10,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: AppColors.forestGreen,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 10,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -500,12 +547,18 @@ class TTCDashboardScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb_outline_rounded, size: 20, color: AppColors.softGold),
+              Icon(
+                Icons.lightbulb_outline_rounded,
+                size: 20,
+                color: AppColors.softGold,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Tips for TTC',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -547,7 +600,11 @@ class TTCDashboardScreen extends ConsumerWidget {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const EducationHubScreen(),
+                ),
+              ),
               child: Text(
                 'View all articles',
                 style: TextStyle(
@@ -589,16 +646,18 @@ class TTCDashboardScreen extends ConsumerWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: AppSpacing.xxs),
               Text(
                 description,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.slate,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
               ),
             ],
           ),
@@ -613,18 +672,12 @@ class TTCDashboardScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.softGold.withValues(alpha: isDark ? 0.15 : 0.08),
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: AppColors.softGold.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.softGold.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline_rounded,
-            size: 16,
-            color: AppColors.softGold,
-          ),
+          Icon(Icons.info_outline_rounded, size: 16, color: AppColors.softGold),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -702,7 +755,11 @@ class _CycleTimelinePainter extends CustomPainter {
         ..color = AppColors.charcoal
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
-      canvas.drawCircle(Offset(x, size.height / 2), size.height / 2 - 2, markerPaint);
+      canvas.drawCircle(
+        Offset(x, size.height / 2),
+        size.height / 2 - 2,
+        markerPaint,
+      );
     }
   }
 

@@ -1,17 +1,43 @@
-# cyra
+# Cyra mobile
 
-A new Flutter project.
+Flutter client for Cyra. Health records are local-first; Supabase powers authentication and community features.
 
-## Getting Started
+## Development
 
-This project is a starting point for a Flutter application.
+Fetch dependencies and run the automated checks:
 
-A few resources to get you started if this is your first Flutter project:
+```sh
+flutter pub get
+flutter analyze
+flutter test
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Runtime environment values are provided as Dart defines. Copy `.env.example` to an ignored local file and build with:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```sh
+flutter build apk --debug --dart-define-from-file=.env.device
+```
+
+For a physical device, `SUPABASE_URL` must use the development computer's LAN address rather than `127.0.0.1`. The phone and computer must be on the same network, and the local Supabase stack must be running.
+
+## Android release signing
+
+Release builds reject local/insecure Supabase URLs and refuse to use the debug signing key. Supply a public HTTPS staging or production environment plus all four signing variables:
+
+```sh
+export CYRA_KEYSTORE_PATH=/absolute/path/to/cyra-upload.jks
+export CYRA_KEYSTORE_PASSWORD=...
+export CYRA_KEY_ALIAS=...
+export CYRA_KEY_PASSWORD=...
+
+flutter build appbundle --release \
+  --dart-define=APP_ENV=production \
+  --dart-define=SUPABASE_URL=https://PROJECT.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=...
+```
+
+Keep the keystore, passwords, and environment files outside version control.
+
+## Manual acceptance
+
+Use [`mds/MANUAL_TEST_WALKTHROUGH.md`](../../mds/MANUAL_TEST_WALKTHROUGH.md) for real-device acceptance and issue handoff.

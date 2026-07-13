@@ -5,9 +5,11 @@ import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/health_stat_card.dart';
+import 'package:cyra/features/education/screens/education_hub_screen.dart';
 
-final _avoidPregnancyProvider =
-    ChangeNotifierProvider<_AvoidPregnancyState>((ref) {
+final _avoidPregnancyProvider = ChangeNotifierProvider<_AvoidPregnancyState>((
+  ref,
+) {
   return _AvoidPregnancyState();
 });
 
@@ -31,10 +33,26 @@ class _AvoidPregnancyState extends ChangeNotifier {
   int trackedCycles = 2;
 
   List<_TrackingStatus> trackingStatuses = [
-    const _TrackingStatus(name: 'BBT', icon: Icons.device_thermostat_rounded, isTracking: true),
-    const _TrackingStatus(name: 'Cervical Mucus', icon: Icons.blur_circular_rounded, isTracking: true),
-    const _TrackingStatus(name: 'Cervical Position', icon: Icons.radio_button_checked_rounded, isTracking: false),
-    const _TrackingStatus(name: 'OPK', icon: Icons.science_outlined, isTracking: false),
+    const _TrackingStatus(
+      name: 'BBT',
+      icon: Icons.device_thermostat_rounded,
+      isTracking: true,
+    ),
+    const _TrackingStatus(
+      name: 'Cervical Mucus',
+      icon: Icons.blur_circular_rounded,
+      isTracking: true,
+    ),
+    const _TrackingStatus(
+      name: 'Cervical Position',
+      icon: Icons.radio_button_checked_rounded,
+      isTracking: false,
+    ),
+    const _TrackingStatus(
+      name: 'OPK',
+      icon: Icons.science_outlined,
+      isTracking: false,
+    ),
   ];
 }
 
@@ -69,7 +87,11 @@ class AvoidPregnancyScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, _AvoidPregnancyState state, bool isDark) {
+  Widget _buildHeader(
+    BuildContext context,
+    _AvoidPregnancyState state,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -83,9 +105,9 @@ class AvoidPregnancyScreen extends ConsumerWidget {
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Understand your cycle for natural family planning',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.slate,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.slate),
         ),
       ],
     );
@@ -105,11 +127,7 @@ class AvoidPregnancyScreen extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.warning_amber_rounded,
-            size: 24,
-            color: AppColors.warning,
-          ),
+          Icon(Icons.warning_amber_rounded, size: 24, color: AppColors.warning),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -130,7 +148,9 @@ class AvoidPregnancyScreen extends ConsumerWidget {
                   'consistent tracking to be effective. '
                   'Consult a healthcare provider for contraception options.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.charcoal,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.charcoal,
                   ),
                 ),
               ],
@@ -157,7 +177,9 @@ class AvoidPregnancyScreen extends ConsumerWidget {
                     ? Icons.warning_amber_rounded
                     : Icons.check_circle_outline_rounded,
                 size: 20,
-                color: state.isFertileToday ? AppColors.warning : AppColors.success,
+                color: state.isFertileToday
+                    ? AppColors.warning
+                    : AppColors.success,
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
@@ -165,7 +187,9 @@ class AvoidPregnancyScreen extends ConsumerWidget {
                     ? 'Day ${state.currentCycleDay} — Fertile'
                     : 'Day ${state.currentCycleDay} — Not Fertile',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -181,8 +205,8 @@ class AvoidPregnancyScreen extends ConsumerWidget {
                 state.fertilityProbability >= 0.3
                     ? AppColors.warning
                     : state.fertilityProbability >= 0.1
-                        ? AppColors.softGold
-                        : AppColors.success,
+                    ? AppColors.softGold
+                    : AppColors.success,
                 isDark,
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -201,7 +225,9 @@ class AvoidPregnancyScreen extends ConsumerWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: isDark ? 0.15 : 0.06),
+                color: AppColors.warning.withValues(
+                  alpha: isDark ? 0.15 : 0.06,
+                ),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 border: Border.all(
                   color: AppColors.warning.withValues(alpha: 0.3),
@@ -282,12 +308,18 @@ class AvoidPregnancyScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.menu_book_rounded, size: 20, color: AppColors.forestGreen),
+              Icon(
+                Icons.menu_book_rounded,
+                size: 20,
+                color: AppColors.forestGreen,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Fertility Awareness Education',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -299,8 +331,8 @@ class AvoidPregnancyScreen extends ConsumerWidget {
             Icons.device_thermostat_rounded,
             'Basal Body Temperature (BBT)',
             'Track your resting temperature each morning before getting out of bed. '
-            'A sustained temperature rise of 0.2-0.5°C indicates ovulation has occurred. '
-            'After 3 consecutive days of elevated temps, the fertile window has closed.',
+                'A sustained temperature rise of 0.2-0.5°C indicates ovulation has occurred. '
+                'After 3 consecutive days of elevated temps, the fertile window has closed.',
             isDark,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -309,8 +341,8 @@ class AvoidPregnancyScreen extends ConsumerWidget {
             Icons.blur_circular_rounded,
             'Cervical Mucus',
             'Observe and record your cervical mucus daily. '
-            'The fertile window is characterized by clear, stretchy, egg-white mucus. '
-            'After ovulation, mucus becomes thick, sticky, or disappears.',
+                'The fertile window is characterized by clear, stretchy, egg-white mucus. '
+                'After ovulation, mucus becomes thick, sticky, or disappears.',
             isDark,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -319,15 +351,19 @@ class AvoidPregnancyScreen extends ConsumerWidget {
             Icons.radio_button_checked_rounded,
             'Cervical Position',
             'During the fertile window, the cervix becomes higher, softer, and more open. '
-            'After ovulation, it returns to a lower, firmer, closed position. '
-            'This is an advanced sign used in combination with other methods.',
+                'After ovulation, it returns to a lower, firmer, closed position. '
+                'This is an advanced sign used in combination with other methods.',
             isDark,
           ),
           const SizedBox(height: AppSpacing.lg),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const EducationHubScreen(),
+                ),
+              ),
               child: Text(
                 'View education articles',
                 style: TextStyle(
@@ -352,7 +388,9 @@ class AvoidPregnancyScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.warmIvory.withValues(alpha: 0.4),
+        color: isDark
+            ? AppColors.charcoal.withValues(alpha: 0.2)
+            : AppColors.warmIvory.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Row(
@@ -375,16 +413,18 @@ class AvoidPregnancyScreen extends ConsumerWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
                   description,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                 ),
               ],
             ),
@@ -399,7 +439,9 @@ class AvoidPregnancyScreen extends ConsumerWidget {
     _AvoidPregnancyState state,
     bool isDark,
   ) {
-    final trackingCount = state.trackingStatuses.where((t) => t.isTracking).length;
+    final trackingCount = state.trackingStatuses
+        .where((t) => t.isTracking)
+        .length;
 
     return AppCard.standard(
       child: Column(
@@ -407,12 +449,18 @@ class AvoidPregnancyScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.track_changes_rounded, size: 20, color: AppColors.forestGreen),
+              Icon(
+                Icons.track_changes_rounded,
+                size: 20,
+                color: AppColors.forestGreen,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Tracking Status',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -435,7 +483,9 @@ class AvoidPregnancyScreen extends ConsumerWidget {
                   label: 'Methods Tracking',
                   value: '$trackingCount/4',
                   icon: Icons.track_changes_rounded,
-                  accentColor: trackingCount >= 2 ? AppColors.success : AppColors.softGold,
+                  accentColor: trackingCount >= 2
+                      ? AppColors.success
+                      : AppColors.softGold,
                 ),
               ),
             ],
@@ -450,14 +500,19 @@ class AvoidPregnancyScreen extends ConsumerWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: (status.isTracking ? AppColors.forestGreen : AppColors.slate)
-                          .withValues(alpha: isDark ? 0.2 : 0.1),
+                      color:
+                          (status.isTracking
+                                  ? AppColors.forestGreen
+                                  : AppColors.slate)
+                              .withValues(alpha: isDark ? 0.2 : 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       status.icon,
                       size: 16,
-                      color: status.isTracking ? AppColors.forestGreen : AppColors.slate,
+                      color: status.isTracking
+                          ? AppColors.forestGreen
+                          : AppColors.slate,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -465,22 +520,32 @@ class AvoidPregnancyScreen extends ConsumerWidget {
                     child: Text(
                       status.name,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.charcoal,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xxs,
+                    ),
                     decoration: BoxDecoration(
-                      color: (status.isTracking ? AppColors.forestGreen : AppColors.slate)
-                          .withValues(alpha: isDark ? 0.15 : 0.08),
+                      color:
+                          (status.isTracking
+                                  ? AppColors.forestGreen
+                                  : AppColors.slate)
+                              .withValues(alpha: isDark ? 0.15 : 0.08),
                       borderRadius: BorderRadius.circular(AppRadius.xl),
                     ),
                     child: Text(
                       status.isTracking ? 'Active' : 'Not set',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: status.isTracking ? AppColors.forestGreen : AppColors.slate,
+                        color: status.isTracking
+                            ? AppColors.forestGreen
+                            : AppColors.slate,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -494,7 +559,9 @@ class AvoidPregnancyScreen extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.forestGreen.withValues(alpha: isDark ? 0.1 : 0.06),
+              color: AppColors.forestGreen.withValues(
+                alpha: isDark ? 0.1 : 0.06,
+              ),
               borderRadius: BorderRadius.circular(AppRadius.sm),
               border: Border.all(
                 color: AppColors.forestGreen.withValues(alpha: 0.2),

@@ -39,12 +39,34 @@ fun validateReleaseSupabaseConfig() {
     }
 }
 
+fun releaseSigningValue(name: String): String =
+    System.getenv(name)?.trim().orEmpty()
+
+fun validateReleaseSigningConfig() {
+    val required = listOf(
+        "CYRA_KEYSTORE_PATH",
+        "CYRA_KEYSTORE_PASSWORD",
+        "CYRA_KEY_ALIAS",
+        "CYRA_KEY_PASSWORD",
+    )
+    val missing = required.filter { releaseSigningValue(it).isEmpty() }
+    require(missing.isEmpty()) {
+        "Release signing is not configured. Set: ${missing.joinToString()}."
+    }
+    require(file(releaseSigningValue("CYRA_KEYSTORE_PATH")).isFile) {
+        "CYRA_KEYSTORE_PATH does not point to an existing keystore file."
+    }
+}
+
 gradle.taskGraph.whenReady {
     val releaseRequested = allTasks.any { task ->
         task.project == project &&
             task.name.contains("Release", ignoreCase = true)
     }
-    if (releaseRequested) validateReleaseSupabaseConfig()
+    if (releaseRequested) {
+        validateReleaseSupabaseConfig()
+        validateReleaseSigningConfig()
+    }
 }
 
 android {
@@ -59,7 +81,6 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.getmycyra.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -69,11 +90,20 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (releaseSigningValue("CYRA_KEYSTORE_PATH").isNotEmpty()) {
+            create("release") {
+                storeFile = file(releaseSigningValue("CYRA_KEYSTORE_PATH"))
+                storePassword = releaseSigningValue("CYRA_KEYSTORE_PASSWORD")
+                keyAlias = releaseSigningValue("CYRA_KEY_ALIAS")
+                keyPassword = releaseSigningValue("CYRA_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 }

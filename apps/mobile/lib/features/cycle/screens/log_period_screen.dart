@@ -90,25 +90,29 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
       final activeCycle = await cycleRepo.getActiveCycle();
       if (activeCycle != null) {
         final dayId = '${activeCycle.id}_${date.toIso8601String()}';
-        await cycleRepo.saveCycleDay(CycleDay(
-          id: dayId,
-          cycleId: activeCycle.id,
-          date: date,
-          flowIntensity: effectiveFlow ?? 0,
-          spotting: spotting,
-          symptomsJson: symptoms.isNotEmpty ? jsonEncode(symptoms) : null,
-          notes: notes.isNotEmpty ? notes : null,
-        ));
+        await cycleRepo.saveCycleDay(
+          CycleDay(
+            id: dayId,
+            cycleId: activeCycle.id,
+            date: date,
+            flowIntensity: effectiveFlow ?? 0,
+            spotting: spotting,
+            symptomsJson: symptoms.isNotEmpty ? jsonEncode(symptoms) : null,
+            notes: notes.isNotEmpty ? notes : null,
+          ),
+        );
       }
 
       for (final symptomId in symptoms) {
-        await symptomRepo.createSymptomEntry(SymptomEntry(
-          id: '${symptomId}_${DateTime.now().microsecondsSinceEpoch}',
-          date: date,
-          symptomId: symptomId,
-          symptomName: _symptomLabel(symptomId),
-          severity: 2,
-        ));
+        await symptomRepo.createSymptomEntry(
+          SymptomEntry(
+            id: '${symptomId}_${DateTime.now().microsecondsSinceEpoch}',
+            date: date,
+            symptomId: symptomId,
+            symptomName: _symptomLabel(symptomId),
+            severity: 2,
+          ),
+        );
       }
 
       ref.invalidate(activeCycleProvider);
@@ -194,7 +198,12 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
 
   Widget _buildProgressIndicator(bool isDark) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        0,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
       child: Row(
         children: List.generate(_totalSteps, (index) {
           final isCompleted = index < _currentStep;
@@ -206,7 +215,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
               decoration: BoxDecoration(
                 color: isCompleted || isCurrent
                     ? AppColors.forestGreen
-                    : (isDark ? AppColors.charcoal.withValues(alpha: 0.3) : AppColors.borderLight),
+                    : (isDark
+                          ? AppColors.charcoal.withValues(alpha: 0.3)
+                          : AppColors.borderLight),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -256,9 +267,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
         const SizedBox(height: AppSpacing.xxl),
         Text(
           'When did your period start?',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.xxl),
         SizedBox(
@@ -275,10 +286,7 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
                 horizontal: AppSpacing.xxl,
                 vertical: AppSpacing.lg,
               ),
-              side: BorderSide(
-                color: AppColors.forestGreen,
-                width: 1.5,
-              ),
+              side: BorderSide(color: AppColors.forestGreen, width: 1.5),
               foregroundColor: AppColors.forestGreen,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -324,9 +332,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppColors.forestGreen,
-            ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.forestGreen),
           ),
           child: child!,
         );
@@ -360,16 +368,16 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
         const SizedBox(height: AppSpacing.xxl),
         Text(
           'How heavy is your flow?',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Tap a level to describe your flow today',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.slate,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.slate),
         ),
         const SizedBox(height: AppSpacing.xxxl),
         FlowIntensityPicker(
@@ -412,7 +420,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.warmIvory.withValues(alpha: 0.5),
+        color: isDark
+            ? AppColors.charcoal.withValues(alpha: 0.2)
+            : AppColors.warmIvory.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Column(
@@ -443,10 +453,7 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
           Container(
             width: 16,
             height: 16,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: AppSpacing.sm),
           Text(
@@ -483,16 +490,16 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
         const SizedBox(height: AppSpacing.xxl),
         Text(
           'Any symptoms?',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Select all that apply',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.slate,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.slate),
         ),
         const SizedBox(height: AppSpacing.xxl),
         _buildQuickSymptomGrid(isDark),
@@ -510,7 +517,8 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
           SymptomSelector(
             symptoms: SymptomOption.defaultSymptoms(),
             selectedSymptomIds: _selectedSymptoms.toList(),
-            onSelectionChanged: (ids) => setState(() => _selectedSymptoms.addAll(ids)),
+            onSelectionChanged: (ids) =>
+                setState(() => _selectedSymptoms.addAll(ids)),
             searchable: true,
           ),
         ],
@@ -519,7 +527,14 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
   }
 
   Widget _buildQuickSymptomGrid(bool isDark) {
-    final quickSymptoms = ['cramps', 'headache', 'bloating', 'fatigue', 'back_pain', 'nausea'];
+    final quickSymptoms = [
+      'cramps',
+      'headache',
+      'bloating',
+      'fatigue',
+      'back_pain',
+      'nausea',
+    ];
 
     return Wrap(
       spacing: AppSpacing.sm,
@@ -544,7 +559,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
             decoration: BoxDecoration(
               color: isSelected
                   ? AppColors.forestGreen.withValues(alpha: 0.1)
-                  : (isDark ? AppColors.charcoal.withValues(alpha: 0.2) : AppColors.mistWhite),
+                  : (isDark
+                        ? AppColors.charcoal.withValues(alpha: 0.2)
+                        : AppColors.mistWhite),
               borderRadius: BorderRadius.circular(AppRadius.xl),
               border: Border.all(
                 color: isSelected
@@ -611,16 +628,16 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
         const SizedBox(height: AppSpacing.xxl),
         Text(
           'Add notes (optional)',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Any additional details you\'d like to remember',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.slate,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.slate),
         ),
         const SizedBox(height: AppSpacing.xxl),
         TextField(
@@ -639,14 +656,16 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: null,
                 icon: const Icon(Icons.photo_camera_outlined, size: 20),
-                label: const Text('Photo'),
+                label: const Text('Photo (journal only)'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                   foregroundColor: AppColors.slate,
                   side: BorderSide(
-                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    color: isDark
+                        ? AppColors.borderDark
+                        : AppColors.borderLight,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -657,14 +676,16 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: null,
                 icon: const Icon(Icons.mic_outlined, size: 20),
-                label: const Text('Voice Note'),
+                label: const Text('Voice Note (journal only)'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                   foregroundColor: AppColors.slate,
                   side: BorderSide(
-                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    color: isDark
+                        ? AppColors.borderDark
+                        : AppColors.borderLight,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -707,9 +728,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
         const SizedBox(height: AppSpacing.xxl),
         Text(
           'Review & Save',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.xxl),
         AppCard.standard(
@@ -742,7 +763,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
               _reviewRow(
                 Icons.healing_outlined,
                 'Symptoms',
-                hasSymptoms ? _selectedSymptoms.map((s) => _symptomLabel(s)).join(', ') : 'None',
+                hasSymptoms
+                    ? _selectedSymptoms.map((s) => _symptomLabel(s)).join(', ')
+                    : 'None',
                 '',
                 isDark,
               ),
@@ -793,7 +816,13 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
     );
   }
 
-  Widget _reviewRow(IconData icon, String label, String value, String suffix, bool isDark) {
+  Widget _reviewRow(
+    IconData icon,
+    String label,
+    String value,
+    String suffix,
+    bool isDark,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -804,9 +833,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
           children: [
             Text(
               label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.slate,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
             ),
             const SizedBox(height: AppSpacing.xxs),
             Text(

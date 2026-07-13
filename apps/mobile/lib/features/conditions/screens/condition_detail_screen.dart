@@ -7,37 +7,33 @@ import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
-import 'package:cyra/core/design/widgets/symptom_bar_chart.dart';
 import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/features/conditions/data/condition_data.dart';
 import 'package:cyra/features/conditions/models/condition_models.dart';
 import 'package:cyra/features/conditions/providers/condition_providers.dart';
 import 'package:cyra/features/conditions/screens/condition_tracking_screen.dart';
+
 class ConditionDetailScreen extends ConsumerStatefulWidget {
   final String conditionType;
 
-  const ConditionDetailScreen({
-    super.key,
-    required this.conditionType,
-  });
+  const ConditionDetailScreen({super.key, required this.conditionType});
 
   @override
   ConsumerState<ConditionDetailScreen> createState() =>
       _ConditionDetailScreenState();
 }
 
-class _ConditionDetailScreenState
-    extends ConsumerState<ConditionDetailScreen> {
+class _ConditionDetailScreenState extends ConsumerState<ConditionDetailScreen> {
   final Set<String> _selectedSymptoms = {};
 
-  ConditionInfo get _info =>
-      ConditionData.getCondition(widget.conditionType);
+  ConditionInfo get _info => ConditionData.getCondition(widget.conditionType);
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final patternsAsync = ref.watch(
-        conditionPatternsProvider(widget.conditionType));
+      conditionPatternsProvider(widget.conditionType),
+    );
     final userConditionsAsync = ref.watch(allConditionsProvider);
 
     return Scaffold(
@@ -51,8 +47,10 @@ class _ConditionDetailScreenState
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.track_changes_outlined,
-                color: AppColors.forestGreen),
+            icon: Icon(
+              Icons.track_changes_outlined,
+              color: AppColors.forestGreen,
+            ),
             tooltip: 'Track symptoms',
             onPressed: () => _openTracking(context),
           ),
@@ -123,11 +121,7 @@ class _ConditionDetailScreenState
             color: AppColors.forestGreen.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
-          child: Icon(
-            _conditionIcon(),
-            color: AppColors.forestGreen,
-            size: 28,
-          ),
+          child: Icon(_conditionIcon(), color: AppColors.forestGreen, size: 28),
         ),
         const SizedBox(width: AppSpacing.lg),
         Expanded(
@@ -139,7 +133,9 @@ class _ConditionDetailScreenState
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                 ),
               ),
               if (_info.prevalenceInfo != null) ...[
@@ -231,13 +227,14 @@ class _ConditionDetailScreenState
                       border: Border.all(
                         color: _selectedSymptoms.contains(symptom)
                             ? AppColors.forestGreen
-                            : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                            : (isDark
+                                  ? AppColors.borderDark
+                                  : AppColors.borderLight),
                         width: 1.5,
                       ),
                     ),
                     child: _selectedSymptoms.contains(symptom)
-                        ? Icon(Icons.check,
-                            size: 14, color: AppColors.onBrand)
+                        ? Icon(Icons.check, size: 14, color: AppColors.onBrand)
                         : null,
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -268,15 +265,20 @@ class _ConditionDetailScreenState
         children: [
           Row(
             children: [
-              Icon(Icons.track_changes_outlined,
-                  size: 18, color: AppColors.forestGreen),
+              Icon(
+                Icons.track_changes_outlined,
+                size: 18,
+                color: AppColors.forestGreen,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Tracking Recommendations',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                 ),
               ),
             ],
@@ -288,10 +290,13 @@ class _ConditionDetailScreenState
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('• ',
-                      style: TextStyle(
-                          color: AppColors.forestGreen,
-                          fontWeight: FontWeight.w600)),
+                  Text(
+                    '• ',
+                    style: TextStyle(
+                      color: AppColors.forestGreen,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   Expanded(
                     child: Text(
                       rec,
@@ -324,15 +329,20 @@ class _ConditionDetailScreenState
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb_outline,
-                  size: 18, color: AppColors.softGold),
+              Icon(
+                Icons.lightbulb_outline,
+                size: 18,
+                color: AppColors.softGold,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Management Tips',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                 ),
               ),
             ],
@@ -340,11 +350,7 @@ class _ConditionDetailScreenState
           const SizedBox(height: AppSpacing.md),
           Text(
             _info.managementTips,
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.slate,
-              height: 1.6,
-            ),
+            style: TextStyle(fontSize: 13, color: AppColors.slate, height: 1.6),
           ),
         ],
       ),
@@ -357,24 +363,27 @@ class _ConditionDetailScreenState
       decoration: BoxDecoration(
         color: AppColors.softGold.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: AppColors.softGold.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: AppColors.softGold.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.local_hospital_outlined,
-                  size: 18, color: AppColors.softGold),
+              Icon(
+                Icons.local_hospital_outlined,
+                size: 18,
+                color: AppColors.softGold,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'When to See a Doctor',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                 ),
               ),
             ],
@@ -382,19 +391,14 @@ class _ConditionDetailScreenState
           const SizedBox(height: AppSpacing.md),
           Text(
             _info.whenToSeeDoctor,
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.slate,
-              height: 1.6,
-            ),
+            style: TextStyle(fontSize: 13, color: AppColors.slate, height: 1.6),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPatternSection(
-      bool isDark, Map<String, dynamic> patterns) {
+  Widget _buildPatternSection(bool isDark, Map<String, dynamic> patterns) {
     final insights = patterns['insights'] as List<String>;
 
     return Column(
@@ -402,8 +406,7 @@ class _ConditionDetailScreenState
       children: [
         Row(
           children: [
-            Icon(Icons.auto_awesome,
-                size: 18, color: AppColors.success),
+            Icon(Icons.auto_awesome, size: 18, color: AppColors.success),
             const SizedBox(width: AppSpacing.sm),
             Text(
               'Pattern Recognition',
@@ -425,58 +428,35 @@ class _ConditionDetailScreenState
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        ...insights.map((insight) => Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.tips_and_updates,
-                  size: 16, color: AppColors.success),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  insight,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.charcoal,
-                    height: 1.4,
+        ...insights.map(
+          (insight) => Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.tips_and_updates,
+                  size: 16,
+                  color: AppColors.success,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    insight,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.charcoal,
+                      height: 1.4,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        )),
-        const SizedBox(height: AppSpacing.lg),
-        _buildSymptomFrequencyChart(isDark),
+        ),
       ],
-    );
-  }
-
-  Widget _buildSymptomFrequencyChart(bool isDark) {
-    final conditionSymptoms = _info.commonSymptoms;
-    final shortList = conditionSymptoms.take(6).toList();
-
-    final mockValues = <double>[];
-    for (int i = 0; i < shortList.length; i++) {
-      mockValues.add((shortList.length - i) * 1.5 + 1);
-    }
-
-    final barData = List.generate(shortList.length, (i) {
-      return SymptomBarData(
-        label: shortList[i].length > 12
-            ? '${shortList[i].substring(0, 10)}...'
-            : shortList[i],
-        value: mockValues[i],
-        color: AppColors.forestGreen.withValues(
-            alpha: 0.4 + (0.6 * (1 - i / shortList.length))),
-      );
-    });
-
-    return SymptomBarChart(
-      symptoms: barData,
-      maxBars: 6,
     );
   }
 
@@ -491,8 +471,11 @@ class _ConditionDetailScreenState
       ),
       child: Column(
         children: [
-          Icon(Icons.auto_graph_outlined,
-              size: 40, color: AppColors.slate.withValues(alpha: 0.5)),
+          Icon(
+            Icons.auto_graph_outlined,
+            size: 40,
+            color: AppColors.slate.withValues(alpha: 0.5),
+          ),
           const SizedBox(height: AppSpacing.md),
           Text(
             'No patterns yet',
@@ -506,11 +489,7 @@ class _ConditionDetailScreenState
           Text(
             'Start tracking your symptoms regularly and we\'ll identify patterns to help you understand your condition better.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.slate,
-              height: 1.4,
-            ),
+            style: TextStyle(fontSize: 13, color: AppColors.slate, height: 1.4),
           ),
           const SizedBox(height: AppSpacing.lg),
           AppButton.secondary(
@@ -551,8 +530,11 @@ class _ConditionDetailScreenState
               color: AppColors.sage.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: Icon(Icons.menu_book_outlined,
-                color: AppColors.sage, size: 22),
+            child: Icon(
+              Icons.menu_book_outlined,
+              color: AppColors.sage,
+              size: 22,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -572,16 +554,12 @@ class _ConditionDetailScreenState
                 const SizedBox(height: 2),
                 Text(
                   'Learn more about ${_info.name}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.slate,
-                  ),
+                  style: TextStyle(fontSize: 12, color: AppColors.slate),
                 ),
               ],
             ),
           ),
-          Icon(Icons.chevron_right,
-              color: AppColors.slate),
+          Icon(Icons.chevron_right, color: AppColors.slate),
         ],
       ),
     );
@@ -593,15 +571,12 @@ class _ConditionDetailScreenState
       decoration: BoxDecoration(
         color: AppColors.softGold.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: AppColors.softGold.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: AppColors.softGold.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline,
-              size: 16, color: AppColors.softGold),
+          Icon(Icons.info_outline, size: 16, color: AppColors.softGold),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -620,31 +595,33 @@ class _ConditionDetailScreenState
   }
 
   void _activateCondition(List<UserCondition> existingConditions) {
-    final existing = existingConditions.where(
-      (c) => c.conditionType == widget.conditionType,
-    ).firstOrNull;
+    final existing = existingConditions
+        .where((c) => c.conditionType == widget.conditionType)
+        .firstOrNull;
 
     if (existing != null) {
-      ref.read(conditionManagerProvider.notifier)
+      ref
+          .read(conditionManagerProvider.notifier)
           .toggleCondition(existing.id, true);
     } else {
-      ref.read(conditionManagerProvider.notifier).addCondition(
-        UserCondition(
-          id: 'cond_${DateTime.now().millisecondsSinceEpoch}',
-          conditionType: widget.conditionType,
-          isActive: true,
-          trackedSymptoms: _info.commonSymptoms,
-        ),
-      );
+      ref
+          .read(conditionManagerProvider.notifier)
+          .addCondition(
+            UserCondition(
+              id: 'cond_${DateTime.now().millisecondsSinceEpoch}',
+              conditionType: widget.conditionType,
+              isActive: true,
+              trackedSymptoms: _info.commonSymptoms,
+            ),
+          );
     }
   }
 
   void _openTracking(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => ConditionTrackingScreen(
-          conditionType: widget.conditionType,
-        ),
+        builder: (_) =>
+            ConditionTrackingScreen(conditionType: widget.conditionType),
       ),
     );
   }
