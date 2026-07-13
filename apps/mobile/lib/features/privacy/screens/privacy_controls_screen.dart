@@ -13,6 +13,7 @@ import 'package:cyra/core/security/data_export_service.dart';
 import 'package:cyra/core/security/privacy_service.dart';
 import 'package:cyra/features/auth/providers/auth_providers.dart';
 import 'package:cyra/features/privacy/screens/emergency_setup_screen.dart';
+import 'package:cyra/features/privacy/widgets/health_data_export_sheet.dart';
 
 class PrivacyControlsScreen extends ConsumerStatefulWidget {
   const PrivacyControlsScreen({super.key});
@@ -313,16 +314,26 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
               AppSpacing.sm,
             ),
             child: Text(
-              'Manage your personal data. Exports are encrypted and saved locally.',
+              'Create a readable health summary or manage your stored data.',
               style: AppTypography.light.bodySmall?.copyWith(
                 color: AppColors.slate,
               ),
             ),
           ),
           const Divider(height: 1),
-          _buildExportAllButton(),
+          _ActionRow(
+            icon: Icons.picture_as_pdf_outlined,
+            label: 'Export my data',
+            subtitle: 'Create a readable PDF for you or your care team',
+            onTap: _showPdfExportSheet,
+          ),
           const Divider(height: 1),
-          _buildExportDateRangeButton(),
+          ExpansionTile(
+            leading: const Icon(Icons.code_outlined),
+            title: const Text('Advanced exports'),
+            subtitle: const Text('Raw JSON for developers and data migration'),
+            children: [_buildExportAllButton(), _buildExportDateRangeButton()],
+          ),
           const Divider(height: 1),
           _buildDeleteDateRangeButton(context),
           const Divider(height: 1),
@@ -335,8 +346,8 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
   Widget _buildExportAllButton() {
     return _ActionRow(
       icon: Icons.file_download_outlined,
-      label: 'Export All Data',
-      subtitle: 'Download a complete JSON archive of your data',
+      label: 'Export all data as JSON',
+      subtitle: 'Complete raw archive in developer format',
       onTap: () => _handleExportAll(),
     );
   }
@@ -344,9 +355,18 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
   Widget _buildExportDateRangeButton() {
     return _ActionRow(
       icon: Icons.date_range_outlined,
-      label: 'Export Date Range',
-      subtitle: 'Export data for a specific date range',
+      label: 'Export date range as JSON',
+      subtitle: 'Raw records from a selected date range',
       onTap: () => _handleExportDateRange(),
+    );
+  }
+
+  void _showPdfExportSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => const HealthDataExportSheet(),
     );
   }
 
@@ -372,20 +392,6 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
 
   Future<void> _handleExportAll() async {
     try {
-      final authService = ref.read(biometricAuthServiceProvider);
-      final authenticated = await authService.authenticateWithBiometricsOrPin(
-        reason: 'Authenticate to export your data',
-      );
-      if (!authenticated) {
-        if (mounted) {
-          context.showSnackBar(
-            'Authentication required to export data',
-            isError: true,
-          );
-        }
-        return;
-      }
-
       final exportService = ref.read(dataExportServiceProvider);
       final file = await exportService.exportAllDataAsJson();
 
@@ -406,20 +412,6 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
     if (range == null || !mounted) return;
 
     try {
-      final authService = ref.read(biometricAuthServiceProvider);
-      final authenticated = await authService.authenticateWithBiometricsOrPin(
-        reason: 'Authenticate to export your data',
-      );
-      if (!authenticated) {
-        if (mounted) {
-          context.showSnackBar(
-            'Authentication required to export data',
-            isError: true,
-          );
-        }
-        return;
-      }
-
       final exportService = ref.read(dataExportServiceProvider);
       final file = await exportService.exportDateRange(range.start, range.end);
 

@@ -183,7 +183,7 @@ decoy/fake weather screen behind it; see `DESIGN_SYSTEM.md` §9 for the full sco
 - Update the "Hide App Icon" description copy in `privacy_setup_screen.dart` /
   `privacy_controls_screen.dart` if the final neutral icon's theme changes what's being promised.
 
-### T10. Wire `DataExportService` into Settings — PDF output, not JSON
+### [x] T10. Wire `DataExportService` into Settings — PDF output, not JSON
 Add a visible "Export my data" flow in `settings_screen.dart` or `privacy_controls_screen.dart`
 using the existing callback-based `DataExportService`. **Output format: PDF, not raw JSON.**
 JSON is a developer format — the target user is not technical, and a PDF is also what most
@@ -191,7 +191,7 @@ people actually want (something readable, printable, and shareable with a doctor
 and full spec in T10a below; treat this as a rename/refinement of the original task, not an
 additional one.
 
-### T10a. PDF export — detailed spec
+### [x] T10a. PDF export — detailed spec
 **Problem:** `DataExportService`'s existing callback contract returns raw
 `List<Map<String, dynamic>>` data, which is fine as an internal representation but must not be
 the thing a user receives when they tap "Export."
