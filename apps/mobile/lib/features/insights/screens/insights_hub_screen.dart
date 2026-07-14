@@ -254,7 +254,7 @@ class InsightsHubScreen extends ConsumerWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.auto_awesome,
+                Icons.lightbulb_outline_rounded,
                 size: 40,
                 color: AppColors.forestGreen,
               ),
@@ -492,7 +492,11 @@ class InsightsHubScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.auto_awesome, size: 20, color: AppColors.forestGreen),
+              Icon(
+                Icons.lightbulb_outline_rounded,
+                size: 20,
+                color: AppColors.forestGreen,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Smart Predictions',
@@ -508,7 +512,7 @@ class InsightsHubScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
           if (prediction.predictedDate != DateTime.now()) ...[
             _PredictionRow(
-              icon: Icons.water_drop_rounded,
+              icon: Icons.sync_rounded,
               label: 'Next Period',
               value:
                   'In ${DateTime.now().daysUntil(prediction.predictedDate)} days',

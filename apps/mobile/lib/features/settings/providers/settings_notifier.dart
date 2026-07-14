@@ -9,6 +9,12 @@ enum AppAccentColor {
   forest,
   sage,
   gold,
+  rose,
+  mauve,
+  violet,
+  plum,
+  orchid,
+  coral,
   slate;
 
   Color get color {
@@ -19,6 +25,18 @@ enum AppAccentColor {
         return AppColors.sage;
       case AppAccentColor.gold:
         return AppColors.softGold;
+      case AppAccentColor.rose:
+        return AppColors.accentRose;
+      case AppAccentColor.mauve:
+        return AppColors.accentMauve;
+      case AppAccentColor.violet:
+        return AppColors.accentViolet;
+      case AppAccentColor.plum:
+        return AppColors.accentPlum;
+      case AppAccentColor.orchid:
+        return AppColors.accentOrchid;
+      case AppAccentColor.coral:
+        return AppColors.accentCoral;
       case AppAccentColor.slate:
         return AppColors.slate;
     }
@@ -32,6 +50,18 @@ enum AppAccentColor {
         return 'Sage';
       case AppAccentColor.gold:
         return 'Gold';
+      case AppAccentColor.rose:
+        return 'Rose';
+      case AppAccentColor.mauve:
+        return 'Mauve';
+      case AppAccentColor.violet:
+        return 'Violet';
+      case AppAccentColor.plum:
+        return 'Plum';
+      case AppAccentColor.orchid:
+        return 'Orchid';
+      case AppAccentColor.coral:
+        return 'Coral';
       case AppAccentColor.slate:
         return 'Slate';
     }

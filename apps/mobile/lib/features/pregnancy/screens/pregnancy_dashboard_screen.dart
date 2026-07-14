@@ -45,8 +45,8 @@ class PregnancyDashboardScreen extends ConsumerWidget {
     final milestone = PregnancyData.getMilestone(pregnancy.currentWeek);
     final measurementAsync = ref.watch(latestMeasurementProvider);
     final measurement = measurementAsync.valueOrNull;
-    final weeksRemaining =
-        pregnancy.dueDate.difference(DateTime.now()).inDays ~/ 7;
+    final daysUntilDue = pregnancy.dueDate.difference(DateTime.now()).inDays;
+    final weeksRemaining = (daysUntilDue / 7).floor();
 
     return Scaffold(
       body: ListView(
@@ -246,7 +246,9 @@ class PregnancyDashboardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
-                  '$weeksRemaining weeks until your due date',
+                  weeksRemaining >= 0
+                      ? '$weeksRemaining weeks until your due date'
+                      : '${weeksRemaining.abs()} weeks past your due date',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.forestGreen,
                     fontWeight: FontWeight.w500,
@@ -424,11 +426,7 @@ class PregnancyDashboardScreen extends ConsumerWidget {
               color: AppColors.period.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.timer_rounded,
-              size: 24,
-              color: AppColors.period,
-            ),
+            child: Icon(Icons.timer_rounded, size: 24, color: AppColors.period),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

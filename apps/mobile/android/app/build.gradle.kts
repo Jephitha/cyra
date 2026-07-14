@@ -82,6 +82,8 @@ android {
 
     defaultConfig {
         applicationId = "com.getmycyra.app"
+        manifestPlaceholders["appLabel"] = "Cyra"
+        manifestPlaceholders["launcherIcon"] = "@mipmap/ic_launcher"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = maxOf(flutter.minSdkVersion, 26)
@@ -102,6 +104,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            manifestPlaceholders["appLabel"] = "Cyra Dev"
+            manifestPlaceholders["launcherIcon"] = "@mipmap/ic_launcher_dev"
+        }
         release {
             signingConfig = signingConfigs.findByName("release")
         }

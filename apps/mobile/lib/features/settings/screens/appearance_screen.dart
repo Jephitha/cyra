@@ -84,7 +84,7 @@ class AppearanceScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: const Icon(
-                    Icons.water_drop,
+                    Icons.sync_rounded,
                     color: AppColors.onBrand,
                     size: 22,
                   ),
@@ -160,8 +160,10 @@ class AppearanceScreen extends ConsumerWidget {
     return AppCard.standard(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+        child: Wrap(
+          spacing: AppSpacing.lg,
+          runSpacing: AppSpacing.md,
+          alignment: WrapAlignment.center,
           children: AppAccentColor.values.map((color) {
             final isSelected = color == current;
             return GestureDetector(

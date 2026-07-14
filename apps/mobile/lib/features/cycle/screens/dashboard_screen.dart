@@ -14,7 +14,10 @@ import 'package:cyra/core/design/widgets/health_stat_card.dart';
 import 'package:cyra/core/design/widgets/flow_intensity_picker.dart';
 import 'package:cyra/core/design/widgets/privacy_lock.dart';
 import 'package:cyra/core/design/widgets/fertility_widget.dart';
+import 'package:cyra/core/providers/settings_providers.dart';
+import 'package:cyra/core/providers/security_providers.dart';
 import 'package:cyra/core/utils/extensions.dart';
+import 'package:cyra/features/auth/providers/auth_providers.dart';
 import 'package:cyra/features/cycle/models/cycle.dart' as models;
 import 'package:cyra/features/cycle/providers/cycle_providers.dart';
 import 'package:cyra/features/cycle/screens/prediction_detail_screen.dart';
@@ -51,11 +54,16 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPopulatedDashboard(BuildContext context, WidgetRef ref, bool isDark) {
+  Widget _buildPopulatedDashboard(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDark,
+  ) {
     final activeCycleAsync = ref.watch(activeCycleProvider);
     final summaryAsync = ref.watch(cycleSummaryProvider);
     final predictionAsync = ref.watch(nextPeriodPredictionProvider);
     final insightsAsync = ref.watch(dashboardInsightsProvider);
+    final settings = ref.watch(appSettingsNotifierProvider).valueOrNull ?? {};
 
     final activeCycle = activeCycleAsync.valueOrNull;
     final summary = summaryAsync.valueOrNull;
@@ -76,6 +84,14 @@ class DashboardScreen extends ConsumerWidget {
     final phase = insights?.currentPhase ?? models.CyclePhase.follicular;
 
     final dateFormat = DateFormat('MMM d');
+    final bbtEnabled = _featureEnabled(settings, 'feature_bbt');
+    final mucusEnabled = _featureEnabled(settings, 'feature_mucus');
+    final opkEnabled = _featureEnabled(settings, 'feature_opk');
+    final pregnancyEnabled = _featureEnabled(
+      settings,
+      'feature_pregnancy',
+      defaultValue: false,
+    );
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -87,37 +103,78 @@ class DashboardScreen extends ConsumerWidget {
       },
       color: AppColors.forestGreen,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xxxxl, AppSpacing.lg, AppSpacing.xxxl),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.xxxxl,
+          AppSpacing.lg,
+          AppSpacing.xxxl,
+        ),
         children: [
-          _buildTopSection(context, cycleDay, phase, isDark),
+          _buildTopSection(context, ref, cycleDay, phase, isDark),
+          const SizedBox(height: AppSpacing.lg),
+          _buildCycleStatsGrid(
+            context,
+            cycleDay,
+            cycleLength,
+            periodLength,
+            variability,
+            isDark,
+          ),
           const SizedBox(height: AppSpacing.lg),
           if (prediction != null)
             _buildPredictionCard(context, prediction, isDark, dateFormat),
           const SizedBox(height: AppSpacing.lg),
           _buildTodayLogCard(context, isDark, ref),
           const SizedBox(height: AppSpacing.lg),
-          _buildOvulationTrackingCard(context, isDark),
-          const SizedBox(height: AppSpacing.lg),
-          _buildPregnancyCard(context, ref, isDark),
-          const SizedBox(height: AppSpacing.lg),
-          _buildCycleStatsGrid(context, cycleDay, cycleLength, periodLength, variability, isDark),
-          const SizedBox(height: AppSpacing.lg),
+          if (bbtEnabled || mucusEnabled || opkEnabled) ...[
+            _buildOvulationTrackingCard(
+              context,
+              isDark,
+              bbtEnabled: bbtEnabled,
+              mucusEnabled: mucusEnabled,
+              opkEnabled: opkEnabled,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+          if (pregnancyEnabled) ...[
+            _buildPregnancyCard(context, ref, isDark),
+            const SizedBox(height: AppSpacing.lg),
+          ],
           if (activeCycle != null)
             _RecentActivitySection(cycleId: activeCycle.id),
           if (activeCycle != null &&
               insights?.fertileWindow != null &&
               insights!.fertileWindow!.isInWindow) ...[
             const SizedBox(height: AppSpacing.lg),
-            _buildFertilityCard(context, activeCycle.startDate, cycleLength, cycleDay),
+            _buildFertilityCard(
+              context,
+              activeCycle.startDate,
+              cycleLength,
+              cycleDay,
+            ),
           ],
         ],
       ),
     );
   }
 
+  bool _featureEnabled(
+    Map<String, String> settings,
+    String key, {
+    bool defaultValue = true,
+  }) {
+    final value = settings[key];
+    if (value == null) return defaultValue;
+    return value == 'true';
+  }
+
   Widget _buildLoadingState(BuildContext context, bool isDark) {
-    final baseColor = isDark ? AppColors.charcoal.withValues(alpha: 0.3) : AppColors.borderLight;
-    final highlightColor = isDark ? AppColors.charcoal.withValues(alpha: 0.5) : AppColors.mistWhite;
+    final baseColor = isDark
+        ? AppColors.charcoal.withValues(alpha: 0.3)
+        : AppColors.borderLight;
+    final highlightColor = isDark
+        ? AppColors.charcoal.withValues(alpha: 0.5)
+        : AppColors.mistWhite;
 
     return Shimmer.fromColors(
       baseColor: baseColor,
@@ -167,7 +224,13 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTopSection(BuildContext context, int cycleDay, models.CyclePhase phase, bool isDark) {
+  Widget _buildTopSection(
+    BuildContext context,
+    WidgetRef ref,
+    int cycleDay,
+    models.CyclePhase phase,
+    bool isDark,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -177,15 +240,17 @@ class DashboardScreen extends ConsumerWidget {
             children: [
               Text(
                 _greeting(),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.slate,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(color: AppColors.slate),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 'Day $cycleDay of your cycle',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -197,9 +262,38 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
         ),
-        const PrivacyLockIcon(isLocked: true),
+        PrivacyLockIcon(
+          isLocked: true,
+          lockedTooltip: 'Double tap for emergency lock',
+          onDoubleTap: () => _activateEmergencyLock(context, ref),
+        ),
       ],
     );
+  }
+
+  Future<void> _activateEmergencyLock(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    try {
+      await ref.read(privacyServiceProvider).activateEmergencyLock();
+      ref.read(privacySettingsProvider.notifier).updateEmergencyLock(true);
+      ref.read(isEmergencyLockedProvider.notifier).activate();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Emergency lock activated')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Emergency lock could not activate: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   CyclePhase _mapPhase(models.CyclePhase phase) {
@@ -218,14 +312,21 @@ class DashboardScreen extends ConsumerWidget {
     return 'Good evening';
   }
 
-  Widget _buildPredictionCard(BuildContext context, models.PredictionResult prediction, bool isDark, DateFormat dateFormat) {
+  Widget _buildPredictionCard(
+    BuildContext context,
+    models.PredictionResult prediction,
+    bool isDark,
+    DateFormat dateFormat,
+  ) {
     final daysUntil = DateTime.now().daysUntil(prediction.predictedDate);
+    final isReliable = prediction.confidenceScore > 0;
+    final title = isReliable
+        ? 'Next period predicted in $daysUntil days'
+        : 'Building your period prediction';
 
     return AppCard.interactive(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const PredictionDetailScreen(),
-        ),
+        MaterialPageRoute<void>(builder: (_) => const PredictionDetailScreen()),
       ),
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -233,16 +334,14 @@ class DashboardScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.water_drop_rounded,
-                size: 20,
-                color: AppColors.forestGreen,
-              ),
+              Icon(Icons.sync_rounded, size: 20, color: AppColors.forestGreen),
               const SizedBox(width: AppSpacing.sm),
               Text(
-                'Next period predicted in $daysUntil days',
+                title,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -250,7 +349,9 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '${dateFormat.format(prediction.predictionRangeStart)} – ${dateFormat.format(prediction.predictionRangeEnd)}',
+            isReliable
+                ? '${dateFormat.format(prediction.predictionRangeStart)} – ${dateFormat.format(prediction.predictionRangeEnd)}'
+                : 'Log 3 completed cycles for a reliable estimate',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppColors.forestGreen,
               fontWeight: FontWeight.w500,
@@ -264,19 +365,15 @@ class DashboardScreen extends ConsumerWidget {
                 size: ConfidenceBadgeSize.medium,
               ),
               const Spacer(),
-              Icon(
-                Icons.chevron_right,
-                size: 20,
-                color: AppColors.slate,
-              ),
+              Icon(Icons.chevron_right, size: 20, color: AppColors.slate),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
             prediction.explanation,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.slate,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
           ),
         ],
       ),
@@ -300,7 +397,9 @@ class DashboardScreen extends ConsumerWidget {
               Text(
                 'Log today',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -308,10 +407,10 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(
-            'How is your flow?',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.slate,
-            ),
+            'Would you like to note anything from today?',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
           ),
           const SizedBox(height: AppSpacing.sm),
           FlowIntensityPicker(
@@ -334,12 +433,14 @@ class DashboardScreen extends ConsumerWidget {
                       builder: (_) => const LogPeriodScreen(),
                     ),
                   ),
-                  icon: const Icon(Icons.water_drop_rounded, size: 18),
+                  icon: const Icon(Icons.sync_rounded, size: 18),
                   label: const Text('Log Period'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.forestGreen,
                     side: const BorderSide(color: AppColors.forestGreen),
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.sm,
+                    ),
                   ),
                 ),
               ),
@@ -351,12 +452,14 @@ class DashboardScreen extends ConsumerWidget {
                       builder: (_) => const LogSymptomScreen(),
                     ),
                   ),
-                  icon: const Icon(Icons.healing_rounded, size: 18),
-                  label: const Text('Log Symptoms'),
+                  icon: const Icon(Icons.spa_outlined, size: 18),
+                  label: const Text('Check-In'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.sage,
                     side: const BorderSide(color: AppColors.sage),
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.sm,
+                    ),
                   ),
                 ),
               ),
@@ -367,7 +470,61 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildOvulationTrackingCard(BuildContext context, bool isDark) {
+  Widget _buildOvulationTrackingCard(
+    BuildContext context,
+    bool isDark, {
+    required bool bbtEnabled,
+    required bool mucusEnabled,
+    required bool opkEnabled,
+  }) {
+    final buttons = <Widget>[
+      if (bbtEnabled)
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const LogBBTScreen()),
+            ),
+            icon: const Icon(Icons.device_thermostat_rounded, size: 16),
+            label: const Text('BBT', style: TextStyle(fontSize: 12)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.forestGreen,
+              side: const BorderSide(color: AppColors.forestGreen),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            ),
+          ),
+        ),
+      if (mucusEnabled)
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const LogMucusScreen()),
+            ),
+            icon: const Icon(Icons.opacity_rounded, size: 16),
+            label: const Text('Mucus', style: TextStyle(fontSize: 12)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.softGold,
+              side: const BorderSide(color: AppColors.softGold),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            ),
+          ),
+        ),
+      if (opkEnabled)
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const LogOPKScreen()),
+            ),
+            icon: const Icon(Icons.science_rounded, size: 16),
+            label: const Text('OPK', style: TextStyle(fontSize: 12)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.sage,
+              side: const BorderSide(color: AppColors.sage),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            ),
+          ),
+        ),
+    ];
+
     return AppCard.standard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -375,12 +532,18 @@ class DashboardScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.auto_awesome_rounded, size: 20, color: AppColors.softGold),
+              Icon(
+                Icons.auto_awesome_rounded,
+                size: 20,
+                color: AppColors.softGold,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Ovulation Tracking',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -389,50 +552,10 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const LogBBTScreen()),
-                  ),
-                  icon: const Icon(Icons.device_thermostat_rounded, size: 16),
-                  label: const Text('BBT', style: TextStyle(fontSize: 12)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.forestGreen,
-                    side: const BorderSide(color: AppColors.forestGreen),
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const LogMucusScreen()),
-                  ),
-                  icon: const Icon(Icons.opacity_rounded, size: 16),
-                  label: const Text('Mucus', style: TextStyle(fontSize: 12)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.softGold,
-                    side: const BorderSide(color: AppColors.softGold),
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const LogOPKScreen()),
-                  ),
-                  icon: const Icon(Icons.science_rounded, size: 16),
-                  label: const Text('OPK', style: TextStyle(fontSize: 12)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.sage,
-                    side: const BorderSide(color: AppColors.sage),
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                  ),
-                ),
-              ),
+              for (var i = 0; i < buttons.length; i++) ...[
+                if (i > 0) const SizedBox(width: AppSpacing.sm),
+                buttons[i],
+              ],
             ],
           ),
         ],
@@ -442,7 +565,7 @@ class DashboardScreen extends ConsumerWidget {
 
   Widget _buildPregnancyCard(BuildContext context, WidgetRef ref, bool isDark) {
     final pregnancyAsync = ref.watch(currentPregnancyProvider);
-    
+
     return pregnancyAsync.when(
       loading: () => _buildPregnancyCardLoading(context, isDark),
       error: (_, __) => _buildPregnancyCardEmpty(context, isDark),
@@ -461,24 +584,38 @@ class DashboardScreen extends ConsumerWidget {
       child: Row(
         children: [
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: AppColors.period.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.child_care_rounded, size: 24, color: AppColors.period),
+            child: const Icon(
+              Icons.child_care_rounded,
+              size: 24,
+              color: AppColors.period,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Pregnancy Mode', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-                )),
+                Text(
+                  'Pregnancy Mode',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xxs),
-                Text('Loading...',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                Text(
+                  'Loading...',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                 ),
               ],
             ),
@@ -494,31 +631,47 @@ class DashboardScreen extends ConsumerWidget {
       child: Row(
         children: [
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: AppColors.period.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.child_care_rounded, size: 24, color: AppColors.period),
+            child: const Icon(
+              Icons.child_care_rounded,
+              size: 24,
+              color: AppColors.period,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Pregnancy Mode', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-                )),
+                Text(
+                  'Pregnancy Mode',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xxs),
-                Text('Track your pregnancy journey',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                Text(
+                  'Track your pregnancy journey',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                 ),
               ],
             ),
           ),
           OutlinedButton(
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const PregnancyDashboardScreen()),
+              MaterialPageRoute<void>(
+                builder: (_) => const PregnancyDashboardScreen(),
+              ),
             ),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.period,
@@ -531,40 +684,60 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPregnancyCardActive(BuildContext context, bool isDark, Pregnancy pregnancy) {
+  Widget _buildPregnancyCardActive(
+    BuildContext context,
+    bool isDark,
+    Pregnancy pregnancy,
+  ) {
     final weeks = pregnancy.currentWeek;
     final trimester = pregnancy.trimesterName;
-    
+
     return AppCard.standard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: AppColors.period.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.child_care_rounded, size: 24, color: AppColors.period),
+            child: const Icon(
+              Icons.child_care_rounded,
+              size: 24,
+              color: AppColors.period,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Pregnancy Mode', style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal, fontWeight: FontWeight.w600,
-                )),
+                Text(
+                  'Pregnancy Mode',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xxs),
-                Text('Week $weeks • $trimester',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                Text(
+                  'Week $weeks • $trimester',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
                 ),
               ],
             ),
           ),
           OutlinedButton(
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const PregnancyDashboardScreen()),
+              MaterialPageRoute<void>(
+                builder: (_) => const PregnancyDashboardScreen(),
+              ),
             ),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.period,
@@ -577,7 +750,14 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCycleStatsGrid(BuildContext context, int cycleDay, int cycleLength, int periodLength, double variability, bool isDark) {
+  Widget _buildCycleStatsGrid(
+    BuildContext context,
+    int cycleDay,
+    int cycleLength,
+    int periodLength,
+    double variability,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -619,7 +799,7 @@ class DashboardScreen extends ConsumerWidget {
               child: HealthStatCard(
                 label: 'Period Length',
                 value: '$periodLength days',
-                icon: Icons.water_drop_rounded,
+                icon: Icons.sync_rounded,
                 accentColor: AppColors.period,
               ),
             ),
@@ -630,12 +810,12 @@ class DashboardScreen extends ConsumerWidget {
                 value: variability <= 0.07
                     ? 'Low'
                     : (variability <= 0.15 ? 'Moderate' : 'High'),
-                icon: Icons.trending_flat_rounded,
+                icon: Icons.show_chart_rounded,
                 accentColor: variability <= 0.07
                     ? AppColors.success
                     : (variability <= 0.15
-                        ? AppColors.softGold
-                        : AppColors.error),
+                          ? AppColors.softGold
+                          : AppColors.error),
               ),
             ),
           ],
@@ -644,7 +824,12 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFertilityCard(BuildContext context, DateTime lastPeriodStart, int cycleLength, int cycleDay) {
+  Widget _buildFertilityCard(
+    BuildContext context,
+    DateTime lastPeriodStart,
+    int cycleLength,
+    int cycleDay,
+  ) {
     return AppCard.standard(
       padding: EdgeInsets.zero,
       child: FertilityWidget(
@@ -678,7 +863,7 @@ class DashboardScreen extends ConsumerWidget {
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.water_drop_rounded,
+                    Icons.sync_rounded,
                     size: 40,
                     color: AppColors.forestGreen,
                   ),
@@ -692,15 +877,15 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Text(
-                  'Start by logging your first period.',
+                  'When was your last period? Logging it helps Cyra start from your real cycle, whether your last period was today or weeks ago.',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.slate,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: AppColors.slate),
                 ),
                 const SizedBox(height: AppSpacing.xxxl),
                 AppButton.primary(
-                  'Log Your Period',
+                  'Log Period',
                   icon: Icons.add_rounded,
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
@@ -758,17 +943,16 @@ class _RecentActivitySection extends ConsumerWidget {
                   Text(
                     'Recent Activity',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.charcoal,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              HealthTimeline(
-                entries: entries,
-                dotRadius: 6,
-              ),
+              HealthTimeline(entries: entries, dotRadius: 6),
               const SizedBox(height: AppSpacing.sm),
               Align(
                 alignment: Alignment.centerRight,
@@ -804,36 +988,44 @@ class _RecentActivitySection extends ConsumerWidget {
 
     for (final day in sorted.take(8)) {
       if (day.flowIntensity > 0) {
-        entries.add(TimelineEntry(
-          date: day.date,
-          title: 'Period logged',
-          description: _flowLabel(day.flowIntensity),
-          type: TimelineEntryType.period,
-        ));
+        entries.add(
+          TimelineEntry(
+            date: day.date,
+            title: 'Period logged',
+            description: _flowLabel(day.flowIntensity),
+            type: TimelineEntryType.period,
+          ),
+        );
       }
       if (day.spotting) {
-        entries.add(TimelineEntry(
-          date: day.date,
-          title: 'Spotting',
-          description: 'Light spotting noticed',
-          type: TimelineEntryType.period,
-        ));
+        entries.add(
+          TimelineEntry(
+            date: day.date,
+            title: 'Spotting',
+            description: 'Light spotting noticed',
+            type: TimelineEntryType.period,
+          ),
+        );
       }
       if (day.temperature != null) {
-        entries.add(TimelineEntry(
-          date: day.date,
-          title: 'Temperature logged',
-          description: '${day.temperature!.toStringAsFixed(1)}°C',
-          type: TimelineEntryType.journal,
-        ));
+        entries.add(
+          TimelineEntry(
+            date: day.date,
+            title: 'Temperature logged',
+            description: '${day.temperature!.toStringAsFixed(1)}°C',
+            type: TimelineEntryType.journal,
+          ),
+        );
       }
       if (day.notes != null && day.notes!.isNotEmpty) {
-        entries.add(TimelineEntry(
-          date: day.date,
-          title: 'Note',
-          description: day.notes!,
-          type: TimelineEntryType.symptom,
-        ));
+        entries.add(
+          TimelineEntry(
+            date: day.date,
+            title: 'Note',
+            description: day.notes!,
+            type: TimelineEntryType.symptom,
+          ),
+        );
       }
     }
 

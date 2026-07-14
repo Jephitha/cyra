@@ -58,7 +58,11 @@ class FertilityWidget extends StatelessWidget {
           if (!compact) ...[
             Row(
               children: [
-                Icon(Icons.water_drop_rounded, size: 20, color: AppColors.forestGreen),
+                Icon(
+                  Icons.eco_outlined,
+                  size: 20,
+                  color: AppColors.forestGreen,
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   'Fertile Window',
@@ -138,7 +142,9 @@ class FertilityWidget extends StatelessWidget {
   ) {
     final barHeight = compact ? 28.0 : 36.0;
     final isTablet = context.isTablet;
-    final baseWidth = isTablet ? 600.0 : MediaQuery.of(context).size.width - (compact ? 48 : 64);
+    final baseWidth = isTablet
+        ? 600.0
+        : MediaQuery.of(context).size.width - (compact ? 48 : 64);
     final cellWidth = (baseWidth - 4) / daysToShow;
     final showLabels = daysToShow <= 35 && !compact;
 
@@ -164,7 +170,11 @@ class FertilityWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildProbabilityIndicator(BuildContext context, bool isDark, double probability) {
+  Widget _buildProbabilityIndicator(
+    BuildContext context,
+    bool isDark,
+    double probability,
+  ) {
     final probPercent = (probability * 100).round();
     Color probColor;
     if (probability >= 0.7) {
@@ -213,21 +223,25 @@ class FertilityWidget extends StatelessWidget {
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: AppSpacing.xs),
         Text(
           label,
-          style: AppTypography.light.labelSmall?.copyWith(color: AppColors.slate),
+          style: AppTypography.light.labelSmall?.copyWith(
+            color: AppColors.slate,
+          ),
         ),
       ],
     );
   }
 
-  double _calculateProbability(int day, int ovulationDay, int fertileStart, int fertileEnd) {
+  double _calculateProbability(
+    int day,
+    int ovulationDay,
+    int fertileStart,
+    int fertileEnd,
+  ) {
     if (day < fertileStart) {
       return 0.1;
     }
@@ -330,7 +344,6 @@ class _FertilityBarPainter extends CustomPainter {
               fontSize: 9,
             ),
           ),
-
         )..layout();
         labelPaint.paint(
           canvas,

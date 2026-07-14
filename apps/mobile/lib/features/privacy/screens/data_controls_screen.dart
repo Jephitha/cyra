@@ -268,7 +268,7 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
             ),
           ),
           const Divider(height: 1),
-          _buildRecordRow('Period', 'Day 3', Icons.water_drop),
+          _buildRecordRow('Period', 'Day 3', Icons.sync_rounded),
           const Divider(height: 1),
           _buildRecordRow('Symptoms', 'Headache, Fatigue', Icons.healing),
           const Divider(height: 1),
@@ -317,7 +317,7 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
     return Column(
       children: [
         _DataTypeCard(
-          icon: Icons.water_drop,
+          icon: Icons.sync_rounded,
           label: 'Cycle Data',
           count: '12 cycles',
           color: AppColors.forestGreen,
@@ -355,12 +355,6 @@ class _DataControlsScreenState extends ConsumerState<DataControlsScreen> {
     return AppCard.standard(
       child: Column(
         children: [
-          _buildExportRow(
-            icon: Icons.file_download_outlined,
-            label: 'Export as JSON',
-            onTap: () => _handleExport('json'),
-          ),
-          const Divider(height: 1),
           _buildExportRow(
             icon: Icons.file_download_outlined,
             label: 'Export as CSV',

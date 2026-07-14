@@ -4,7 +4,14 @@ import 'package:cyra/core/design/app_colors.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/tokens/app_spacing.dart';
 
-enum TimelineEntryType { period, ovulation, symptom, pregnancy, journal, fertility }
+enum TimelineEntryType {
+  period,
+  ovulation,
+  symptom,
+  pregnancy,
+  journal,
+  fertility,
+}
 
 class TimelineEntry {
   final DateTime date;
@@ -58,7 +65,7 @@ class HealthTimeline extends StatelessWidget {
   IconData _defaultIconForType(TimelineEntryType type) {
     switch (type) {
       case TimelineEntryType.period:
-        return Icons.water_drop;
+        return Icons.sync_rounded;
       case TimelineEntryType.ovulation:
         return Icons.circle_outlined;
       case TimelineEntryType.symptom:
@@ -84,13 +91,17 @@ class HealthTimeline extends StatelessWidget {
               Icon(
                 Icons.timeline_outlined,
                 size: 48,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.3),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'No entries yet',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
             ],
@@ -225,17 +236,18 @@ class _VerticalTimelineItem extends StatelessWidget {
                           const SizedBox(height: AppSpacing.xxs),
                           Text(
                             entry.title,
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: textColor,
-                            ),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleSmall?.copyWith(color: textColor),
                           ),
                           if (entry.description != null) ...[
                             const SizedBox(height: AppSpacing.xxs),
                             Text(
                               entry.description!,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: textColor.withValues(alpha: 0.7),
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: textColor.withValues(alpha: 0.7),
+                                  ),
                             ),
                           ],
                         ],
@@ -368,11 +380,7 @@ class _TimelineDot extends StatelessWidget {
               ],
             ),
             child: Center(
-              child: Icon(
-                icon,
-                size: radius * 1.2,
-                color: AppColors.onBrand,
-              ),
+              child: Icon(icon, size: radius * 1.2, color: AppColors.onBrand),
             ),
           ),
         ),

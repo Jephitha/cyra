@@ -164,16 +164,15 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                 ),
               ),
               const SizedBox(height: AppSpacing.xxs),
               Text(
                 'Takes less than 30 seconds',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.slate,
-                ),
+                style: TextStyle(fontSize: 13, color: AppColors.slate),
               ),
               const SizedBox(height: AppSpacing.xxl),
               _buildFlowSection(isDark),
@@ -227,9 +226,7 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
           ],
         ),
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: AppColors.forestGreen.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: AppColors.forestGreen.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -254,10 +251,7 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
               ),
               Text(
                 'Keep it going',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.slate,
-                ),
+                style: TextStyle(fontSize: 12, color: AppColors.slate),
               ),
             ],
           ),
@@ -288,15 +282,15 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
                     color: isSelected
                         ? AppColors.error.withValues(alpha: 0.15)
                         : (isDark
-                            ? AppColors.charcoal.withValues(alpha: 0.2)
-                            : AppColors.mistWhite),
+                              ? AppColors.charcoal.withValues(alpha: 0.2)
+                              : AppColors.mistWhite),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                     border: Border.all(
                       color: isSelected
                           ? AppColors.error.withValues(alpha: 0.4)
                           : (isDark
-                              ? AppColors.borderDark
-                              : AppColors.borderLight),
+                                ? AppColors.borderDark
+                                : AppColors.borderLight),
                     ),
                   ),
                   child: Column(
@@ -304,20 +298,17 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
                       Icon(
                         Icons.water_drop_rounded,
                         size: 20,
-                        color: isSelected
-                            ? AppColors.error
-                            : AppColors.slate,
+                        color: isSelected ? AppColors.error : AppColors.slate,
                       ),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
                         _flowLabel(level),
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w400,
-                          color: isSelected
-                              ? AppColors.error
-                              : AppColors.slate,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          color: isSelected ? AppColors.error : AppColors.slate,
                         ),
                       ),
                     ],
@@ -354,7 +345,7 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionLabel('Symptoms', Icons.healing_outlined, isDark),
+        _sectionLabel('Body notes', Icons.spa_outlined, isDark),
         const SizedBox(height: AppSpacing.sm),
         if (topSymptoms.isEmpty)
           _buildEmptySymptoms(isDark)
@@ -379,15 +370,15 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
                     color: isSelected
                         ? color.withValues(alpha: 0.15)
                         : (isDark
-                            ? AppColors.charcoal.withValues(alpha: 0.2)
-                            : AppColors.mistWhite),
+                              ? AppColors.charcoal.withValues(alpha: 0.2)
+                              : AppColors.mistWhite),
                     borderRadius: BorderRadius.circular(AppRadius.xl),
                     border: Border.all(
                       color: isSelected
                           ? color.withValues(alpha: 0.4)
                           : (isDark
-                              ? AppColors.borderDark
-                              : AppColors.borderLight),
+                                ? AppColors.borderDark
+                                : AppColors.borderLight),
                     ),
                   ),
                   child: Row(
@@ -397,13 +388,14 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
                         p.symptomName,
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                           color: isSelected
                               ? color
                               : (isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.slate),
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.slate),
                         ),
                       ),
                       if (isSelected) ...[
@@ -434,18 +426,11 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.info_outline_rounded,
-            size: 16,
-            color: AppColors.slate,
-          ),
+          Icon(Icons.info_outline_rounded, size: 16, color: AppColors.slate),
           const SizedBox(width: AppSpacing.sm),
           Text(
             'Symptoms will appear here after you log a few',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.slate,
-            ),
+            style: TextStyle(fontSize: 12, color: AppColors.slate),
           ),
         ],
       ),
@@ -529,8 +514,7 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
                 max: 12,
                 divisions: 9,
                 activeColor: AppColors.forestGreen,
-                inactiveColor:
-                    AppColors.forestGreen.withValues(alpha: 0.2),
+                inactiveColor: AppColors.forestGreen.withValues(alpha: 0.2),
                 label: '${_sleepHours.toStringAsFixed(0)} hours',
                 onChanged: (val) => setState(() => _sleepHours = val),
               ),
@@ -602,27 +586,31 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
 
     // Save flow as a symptom entry
     if (_flowIntensity != null) {
-      await repo.createSymptomEntry(SymptomEntry(
-        id: 'flow_${now.microsecondsSinceEpoch}',
-        date: now,
-        symptomId: 'flow',
-        symptomName: 'Flow',
-        severity: _flowIntensity!,
-        category: 'physical',
-      ));
+      await repo.createSymptomEntry(
+        SymptomEntry(
+          id: 'flow_${now.microsecondsSinceEpoch}',
+          date: now,
+          symptomId: 'flow',
+          symptomName: 'Flow',
+          severity: _flowIntensity!,
+          category: 'physical',
+        ),
+      );
     }
 
     // Save selected symptoms
     for (final id in _selectedSymptoms) {
       final name = _symptomName(id);
-      await repo.createSymptomEntry(SymptomEntry(
-        id: '${id}_${now.microsecondsSinceEpoch}',
-        date: now,
-        symptomId: id,
-        symptomName: name,
-        severity: _symptomSeverities[id] ?? 1,
-        category: _symptomCategory(id),
-      ));
+      await repo.createSymptomEntry(
+        SymptomEntry(
+          id: '${id}_${now.microsecondsSinceEpoch}',
+          date: now,
+          symptomId: id,
+          symptomName: name,
+          severity: _symptomSeverities[id] ?? 1,
+          category: _symptomCategory(id),
+        ),
+      );
     }
 
     // Save mood
@@ -640,14 +628,16 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
     }
 
     // Save sleep as a symptom entry
-    await repo.createSymptomEntry(SymptomEntry(
-      id: 'sleep_${now.microsecondsSinceEpoch}',
-      date: now,
-      symptomId: 'sleep_hours',
-      symptomName: 'Sleep',
-      severity: _sleepHours.round(),
-      category: 'lifestyle',
-    ));
+    await repo.createSymptomEntry(
+      SymptomEntry(
+        id: 'sleep_${now.microsecondsSinceEpoch}',
+        date: now,
+        symptomId: 'sleep_hours',
+        symptomName: 'Sleep',
+        severity: _sleepHours.round(),
+        category: 'lifestyle',
+      ),
+    );
 
     ref.invalidate(symptomStreakProvider);
     ref.invalidate(todaySymptomsProvider);

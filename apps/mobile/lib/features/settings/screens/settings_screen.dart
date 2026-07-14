@@ -30,43 +30,43 @@ class SettingsScreen extends ConsumerWidget {
           _buildSectionHeader('Account'),
           const SizedBox(height: AppSpacing.sm),
           _buildAccountSection(context, ref, settings),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
           _buildSectionHeader('Subscription'),
           const SizedBox(height: AppSpacing.sm),
           _buildSubscriptionSection(context, ref),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
           _buildSectionHeader('Privacy & Security'),
           const SizedBox(height: AppSpacing.sm),
           _buildPrivacySection(context),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
           _buildSectionHeader('Appearance'),
           const SizedBox(height: AppSpacing.sm),
           _buildAppearanceSection(context),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
+          _buildSectionHeader('Tracking Features'),
+          const SizedBox(height: AppSpacing.sm),
+          _buildTrackingFeaturesSection(context, ref, settings),
+          const SizedBox(height: AppSpacing.lg),
           _buildSectionHeader('Notifications'),
           const SizedBox(height: AppSpacing.sm),
           _buildNotificationsSection(context, ref),
-          const SizedBox(height: AppSpacing.xxl),
-          _buildSectionHeader('Data'),
-          const SizedBox(height: AppSpacing.sm),
-          _buildDataSection(context),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
           _buildSectionHeader('Wearables'),
           const SizedBox(height: AppSpacing.sm),
           _buildWearablesSection(context, ref),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
           _buildSectionHeader('Units'),
           const SizedBox(height: AppSpacing.sm),
           _buildUnitsSection(context, ref, settings),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
           _buildSectionHeader('Language'),
           const SizedBox(height: AppSpacing.sm),
           _buildLanguageSection(context),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
           _buildSectionHeader('About'),
           const SizedBox(height: AppSpacing.sm),
           _buildAboutSection(context),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
           _buildSectionHeader('Support'),
           const SizedBox(height: AppSpacing.sm),
           _buildSupportSection(context),
@@ -174,7 +174,7 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsRow(
             icon: Icons.palette_outlined,
             label: 'Theme & Display',
-            subtitle: 'Light, dark, system, text size, colors',
+            subtitle: 'System theme, text size, accent colors',
             trailing: Icon(Icons.chevron_right, color: AppColors.slate),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const AppearanceScreen()),
@@ -226,24 +226,58 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDataSection(BuildContext context) {
+  Widget _buildTrackingFeaturesSection(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, String> settings,
+  ) {
+    bool enabled(String key, {bool defaultValue = true}) {
+      final value = settings[key];
+      if (value == null) return defaultValue;
+      return value == 'true';
+    }
+
+    Future<void> setFeature(String key, bool value) {
+      return ref
+          .read(appSettingsNotifierProvider.notifier)
+          .setValue(key, value.toString());
+    }
+
+    Future<void> setOvulationTracking(bool value) async {
+      final notifier = ref.read(appSettingsNotifierProvider.notifier);
+      await notifier.setValue('feature_bbt', value.toString());
+      await notifier.setValue('feature_mucus', value.toString());
+      await notifier.setValue('feature_opk', value.toString());
+    }
+
+    final ovulationTrackingEnabled =
+        enabled('feature_bbt') ||
+        enabled('feature_mucus') ||
+        enabled('feature_opk');
+
     return AppCard.standard(
       child: Column(
         children: [
           _SettingsRow(
-            icon: Icons.file_download_outlined,
-            label: 'Export Data',
-            subtitle: 'Export all or selected data',
-            trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () => _openPrivacyControls(context),
+            icon: Icons.auto_awesome_outlined,
+            label: 'Ovulation Tracking',
+            subtitle: 'Show BBT, mucus, and OPK logging together',
+            trailing: Switch.adaptive(
+              value: ovulationTrackingEnabled,
+              activeTrackColor: AppColors.forestGreen,
+              onChanged: setOvulationTracking,
+            ),
           ),
           const Divider(height: 1),
           _SettingsRow(
-            icon: Icons.delete_outline,
-            label: 'Manage Data',
-            subtitle: 'Delete individual or all records',
-            trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () => _openPrivacyControls(context),
+            icon: Icons.child_care_outlined,
+            label: 'Pregnancy Mode',
+            subtitle: 'Show pregnancy dashboard and tools',
+            trailing: Switch.adaptive(
+              value: enabled('feature_pregnancy', defaultValue: false),
+              activeTrackColor: AppColors.forestGreen,
+              onChanged: (value) => setFeature('feature_pregnancy', value),
+            ),
           ),
         ],
       ),
@@ -734,12 +768,6 @@ class SettingsScreen extends ConsumerWidget {
     dateController.dispose();
   }
 
-  void _openPrivacyControls(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const PrivacyControlsScreen()),
-    );
-  }
-
   void _showInfoDialog(BuildContext context, String title, String message) {
     showDialog<void>(
       context: context,
@@ -781,7 +809,7 @@ class _SettingsRow extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
+            vertical: AppSpacing.sm,
           ),
           child: Row(
             children: [

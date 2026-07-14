@@ -38,27 +38,22 @@ class _FakeCycleRepo implements CycleRepository {
 
   @override
   Future<PredictionResult> predictNextPeriod() async => PredictionResult(
-        predictedDate: DateTime.now().add(const Duration(days: 15)),
-        confidenceScore: 0.85,
-        variabilityScore: 0.05,
-        predictionRangeStart: DateTime.now().add(const Duration(days: 13)),
-        predictionRangeEnd: DateTime.now().add(const Duration(days: 17)),
-        explanation: 'Based on your last 3 cycles.',
-      );
+    predictedDate: DateTime.now().add(const Duration(days: 15)),
+    confidenceScore: 0.85,
+    variabilityScore: 0.05,
+    predictionRangeStart: DateTime.now().add(const Duration(days: 13)),
+    predictionRangeEnd: DateTime.now().add(const Duration(days: 17)),
+    explanation: 'Based on your last 3 cycles.',
+  );
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 Widget _createEmptyApp() {
   return ProviderScope(
-    overrides: [
-      activeCycleProvider.overrideWith((ref) async => null),
-    ],
-    child: const MaterialApp(
-      home: CalendarScreen(),
-    ),
+    overrides: [activeCycleProvider.overrideWith((ref) async => null)],
+    child: const MaterialApp(home: CalendarScreen()),
   );
 }
 
@@ -70,9 +65,7 @@ Widget _createPopulatedApp() {
       cycleSummaryProvider.overrideWith((ref) async => _fakeSummary),
       allCyclesProvider.overrideWith((ref) async => [_fakeCycle]),
     ],
-    child: const MaterialApp(
-      home: CalendarScreen(),
-    ),
+    child: const MaterialApp(home: CalendarScreen()),
   );
 }
 
@@ -86,8 +79,9 @@ void main() {
       expect(find.text('Log Your Period'), findsOneWidget);
     });
 
-    testWidgets('tapping Log Your Period navigates to LogPeriodScreen',
-        (tester) async {
+    testWidgets('tapping Log Your Period navigates to LogPeriodScreen', (
+      tester,
+    ) async {
       await tester.pumpWidget(_createEmptyApp());
       await tester.pumpAndSettle();
 
@@ -118,15 +112,15 @@ void main() {
       await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 
-      await tester.scrollUntilVisible(
-        find.text('Period'),
-        200,
-        scrollable: find.byType(Scrollable).first,
+      expect(find.text('Period', skipOffstage: false), findsAtLeastNWidgets(1));
+      expect(
+        find.text('Fertile', skipOffstage: false),
+        findsAtLeastNWidgets(1),
       );
-
-      expect(find.text('Period'), findsAtLeastNWidgets(1));
-      expect(find.text('Fertile'), findsAtLeastNWidgets(1));
-      expect(find.text('Ovulation'), findsAtLeastNWidgets(1));
+      expect(
+        find.text('Ovulation', skipOffstage: false),
+        findsAtLeastNWidgets(1),
+      );
     });
 
     testWidgets('shows selected day detail with cycle day', (tester) async {
@@ -142,40 +136,43 @@ void main() {
       expect(find.textContaining('Day'), findsWidgets);
     });
 
-    testWidgets('shows Log Period and Log Symptoms buttons in detail card',
-        (tester) async {
+    testWidgets('shows compact logging actions in detail card', (tester) async {
       await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 
+      final periodAction = find.widgetWithText(ActionChip, 'Period');
       await tester.scrollUntilVisible(
-        find.text('Log Period'),
+        periodAction,
         300,
         scrollable: find.byType(Scrollable).first,
       );
 
-      expect(find.text('Log Period'), findsOneWidget);
-      expect(find.text('Log Symptoms'), findsOneWidget);
+      expect(periodAction, findsOneWidget);
+      expect(find.widgetWithText(ActionChip, 'Check-in'), findsOneWidget);
     });
 
-    testWidgets('tapping Log Period navigates to LogPeriodScreen',
-        (tester) async {
+    testWidgets('tapping Log Period navigates to LogPeriodScreen', (
+      tester,
+    ) async {
       await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 
+      final periodAction = find.widgetWithText(ActionChip, 'Period');
       await tester.scrollUntilVisible(
-        find.text('Log Period'),
+        periodAction,
         500,
         scrollable: find.byType(Scrollable).first,
       );
 
-      await tester.tap(find.text('Log Period'));
+      await tester.tap(periodAction);
       await tester.pumpAndSettle();
 
       expect(find.byType(LogPeriodScreen), findsOneWidget);
     });
 
-    testWidgets('does not use PMS jargon in phase descriptions',
-        (tester) async {
+    testWidgets('does not use PMS jargon in phase descriptions', (
+      tester,
+    ) async {
       await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 

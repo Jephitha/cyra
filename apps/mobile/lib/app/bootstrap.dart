@@ -69,13 +69,18 @@ Future<void> bootstrapServices(ProviderContainer container) async {
     } catch (_) {}
   }
 
-  await SeedDataService(
-    container.read(cycleRepositoryProvider),
-    container.read(ovulationRepositoryProvider),
-    container.read(symptomRepositoryProvider),
-    container.read(journalRepositoryProvider),
-    container.read(symptomDaoProvider),
-  ).loadIfNeeded();
+  // Seed loaders are invoked only in debug builds. Their own guards remain as
+  // defense in depth, but this boundary also lets release tree-shaking remove
+  // the seed implementation and its sample records entirely.
+  if (kDebugMode) {
+    await SeedDataService(
+      container.read(cycleRepositoryProvider),
+      container.read(ovulationRepositoryProvider),
+      container.read(symptomRepositoryProvider),
+      container.read(journalRepositoryProvider),
+      container.read(symptomDaoProvider),
+    ).loadIfNeeded();
+  }
 
   try {
     await container.read(cycleReminderSchedulerProvider).reschedule();

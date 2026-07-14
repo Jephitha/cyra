@@ -11,6 +11,7 @@ import 'package:cyra/core/design/widgets/app_button.dart';
 import 'package:cyra/core/design/widgets/cycle_calendar.dart';
 import 'package:cyra/core/design/widgets/cycle_phase_indicator.dart';
 import 'package:cyra/core/constants/cycle_constants.dart';
+import 'package:cyra/core/providers/settings_providers.dart';
 import 'package:cyra/core/prediction/cycle_predictor.dart';
 import 'package:cyra/core/prediction/ovulation_detector.dart';
 import 'package:cyra/core/utils/extensions.dart';
@@ -75,9 +76,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     final ovulationDate = fertileEnd;
 
-    for (DateTime d = fertileStart;
-        !d.isAfter(fertileEnd);
-        d = d.add(const Duration(days: 1))) {
+    for (
+      DateTime d = fertileStart;
+      !d.isAfter(fertileEnd);
+      d = d.add(const Duration(days: 1))
+    ) {
       final key = DateTime(d.year, d.month, d.day);
       if (statuses[key] == null) {
         statuses[key] = CycleDayStatus.fertile;
@@ -93,12 +96,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       statuses[ovKey] = CycleDayStatus.ovulation;
     }
 
-    final nextStart = activeCycle.startDate
-        .add(Duration(days: cycleLength));
+    final nextStart = activeCycle.startDate.add(Duration(days: cycleLength));
     final nextEnd = nextStart.add(const Duration(days: 5));
-    for (DateTime d = nextStart;
-        !d.isAfter(nextEnd);
-        d = d.add(const Duration(days: 1))) {
+    for (
+      DateTime d = nextStart;
+      !d.isAfter(nextEnd);
+      d = d.add(const Duration(days: 1))
+    ) {
       final key = DateTime(d.year, d.month, d.day);
       if (statuses[key] == null) {
         statuses[key] = CycleDayStatus.predictedPeriod;
@@ -109,7 +113,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   int _cycleDayForDate(DateTime date, models.Cycle activeCycle) {
-    final diff = date.startOfDay.difference(activeCycle.startDate.startOfDay).inDays;
+    final diff = date.startOfDay
+        .difference(activeCycle.startDate.startOfDay)
+        .inDays;
     return diff < 0 ? 0 : diff + 1;
   }
 
@@ -301,7 +307,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     Text(
                       'Day $cycleDay — $dayOfWeek, ${DateFormat('MMM d').format(date)}',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.charcoal,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -361,7 +369,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           if (symptoms.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.lg),
             Text(
-              'Symptoms',
+              'Body notes',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
               ),
@@ -397,13 +405,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 Text(
                   'Temperature: ',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.slate,
                   ),
                 ),
                 Text(
                   '${temp.toStringAsFixed(1)}°C',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -426,14 +438,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   Icon(
                     Icons.notes_rounded,
                     size: 18,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.slate,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.slate,
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       notesText,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.charcoal,
                       ),
                     ),
                   ),
@@ -442,63 +458,91 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
           ],
           const SizedBox(height: AppSpacing.lg),
-          AppButton.secondary(
-            'Log Period',
-            icon: Icons.water_drop_rounded,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => LogPeriodScreen(initialDate: date),
-              ),
-            ),
-            width: double.infinity,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          AppButton.secondary(
-            'Log Symptoms',
-            icon: Icons.healing_rounded,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => LogSymptomScreen(initialDate: date),
-              ),
-            ),
-            width: double.infinity,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          AppButton.secondary(
-            'Log BBT',
-            icon: Icons.device_thermostat_rounded,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => LogBBTScreen(initialDate: date),
-              ),
-            ),
-            width: double.infinity,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          AppButton.secondary(
-            'Log Mucus',
-            icon: Icons.opacity_rounded,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => LogMucusScreen(initialDate: date),
-              ),
-            ),
-            width: double.infinity,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          AppButton.secondary(
-            'Log OPK',
-            icon: Icons.science_rounded,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => LogOPKScreen(initialDate: date),
-              ),
-            ),
-            width: double.infinity,
-          ),
+          _buildLoggerGrid(context, date, isDark),
         ],
       ),
     );
+  }
+
+  Widget _buildLoggerGrid(BuildContext context, DateTime date, bool isDark) {
+    final settings = ref.watch(appSettingsNotifierProvider).valueOrNull ?? {};
+    final bbtEnabled = _featureEnabled(settings, 'feature_bbt');
+    final mucusEnabled = _featureEnabled(settings, 'feature_mucus');
+    final opkEnabled = _featureEnabled(settings, 'feature_opk');
+    final actions = [
+      _LogAction(
+        label: 'Period',
+        icon: Icons.sync_rounded,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => LogPeriodScreen(initialDate: date),
+          ),
+        ),
+      ),
+      _LogAction(
+        label: 'Check-in',
+        icon: Icons.spa_outlined,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => LogSymptomScreen(initialDate: date),
+          ),
+        ),
+      ),
+      if (bbtEnabled)
+        _LogAction(
+          label: 'BBT',
+          icon: Icons.device_thermostat_rounded,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => LogBBTScreen(initialDate: date),
+            ),
+          ),
+        ),
+      if (mucusEnabled)
+        _LogAction(
+          label: 'Mucus',
+          icon: Icons.opacity_rounded,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => LogMucusScreen(initialDate: date),
+            ),
+          ),
+        ),
+      if (opkEnabled)
+        _LogAction(
+          label: 'OPK',
+          icon: Icons.science_rounded,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => LogOPKScreen(initialDate: date),
+            ),
+          ),
+        ),
+    ];
+
+    return Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: actions.map((action) {
+        return ActionChip(
+          avatar: Icon(action.icon, size: 18),
+          label: Text(action.label),
+          onPressed: action.onTap,
+          backgroundColor: isDark
+              ? AppColors.charcoal.withValues(alpha: 0.35)
+              : AppColors.mistWhite,
+          side: BorderSide(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  bool _featureEnabled(Map<String, String> settings, String key) {
+    final value = settings[key];
+    if (value == null) return true;
+    return value == 'true';
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -525,9 +569,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             const SizedBox(height: AppSpacing.xxl),
             Text(
               'No entries yet',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
@@ -552,4 +596,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ),
     );
   }
+}
+
+class _LogAction {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _LogAction({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
 }

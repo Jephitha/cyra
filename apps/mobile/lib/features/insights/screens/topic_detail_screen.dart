@@ -21,13 +21,41 @@ final Map<String, InsightTopic> _topicMap = {
 };
 
 final Map<String, _TopicMeta> _topicMeta = {
-  'prediction': _TopicMeta('Period Prediction', Icons.water_drop_rounded, AppColors.forestGreen),
-  'ovulation': _TopicMeta('Ovulation Insights', Icons.circle_outlined, AppColors.softGold),
-  'symptoms': _TopicMeta('Symptom Patterns', Icons.healing_outlined, AppColors.sage),
-  'cycle_regularity': _TopicMeta('Cycle Regularity', Icons.repeat_rounded, AppColors.forestGreenLight),
-  'fertility': _TopicMeta('Fertility Insights', Icons.schedule_rounded, AppColors.softGoldLight),
-  'conception': _TopicMeta('Conception Tips', Icons.favorite_outlined, AppColors.forestGreen),
-  'pregnancy': _TopicMeta('Pregnancy Milestones', Icons.child_care_outlined, AppColors.sage),
+  'prediction': _TopicMeta(
+    'Period Prediction',
+    Icons.sync_rounded,
+    AppColors.forestGreen,
+  ),
+  'ovulation': _TopicMeta(
+    'Ovulation Insights',
+    Icons.circle_outlined,
+    AppColors.softGold,
+  ),
+  'symptoms': _TopicMeta(
+    'Symptom Patterns',
+    Icons.healing_outlined,
+    AppColors.sage,
+  ),
+  'cycle_regularity': _TopicMeta(
+    'Cycle Regularity',
+    Icons.repeat_rounded,
+    AppColors.forestGreenLight,
+  ),
+  'fertility': _TopicMeta(
+    'Fertility Insights',
+    Icons.schedule_rounded,
+    AppColors.softGoldLight,
+  ),
+  'conception': _TopicMeta(
+    'Conception Tips',
+    Icons.favorite_outlined,
+    AppColors.forestGreen,
+  ),
+  'pregnancy': _TopicMeta(
+    'Pregnancy Milestones',
+    Icons.child_care_outlined,
+    AppColors.sage,
+  ),
 };
 
 class _TopicMeta {
@@ -70,9 +98,11 @@ class TopicDetailScreen extends ConsumerWidget {
         centerTitle: true,
       ),
       body: insightAsync.when(
-        data: (TopicInsight insight) => _buildInsightContent(context, insight, meta, isDark),
+        data: (TopicInsight insight) =>
+            _buildInsightContent(context, insight, meta, isDark),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object e, StackTrace? _) => Center(child: Text('Failed to load: $e')),
+        error: (Object e, StackTrace? _) =>
+            Center(child: Text('Failed to load: $e')),
       ),
     );
   }
@@ -84,7 +114,12 @@ class TopicDetailScreen extends ConsumerWidget {
     bool isDark,
   ) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxxl),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.xxxl,
+      ),
       children: [
         _buildTopicHeader(context, meta, isDark),
         const SizedBox(height: AppSpacing.lg),
@@ -125,14 +160,18 @@ class TopicDetailScreen extends ConsumerWidget {
               Text(
                 meta.title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: AppSpacing.xxs),
               Text(
                 'Based on your logged data',
-                style: AppTypography.light.bodySmall?.copyWith(color: AppColors.slate),
+                style: AppTypography.light.bodySmall?.copyWith(
+                  color: AppColors.slate,
+                ),
               ),
             ],
           ),
@@ -149,12 +188,18 @@ class TopicDetailScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.summarize_rounded, size: 20, color: AppColors.forestGreen),
+              Icon(
+                Icons.summarize_rounded,
+                size: 20,
+                color: AppColors.forestGreen,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Summary',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.charcoal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -173,7 +218,11 @@ class TopicDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildConfidenceCard(BuildContext context, double confidence, bool isDark) {
+  Widget _buildConfidenceCard(
+    BuildContext context,
+    double confidence,
+    bool isDark,
+  ) {
     return AppCard.standard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
@@ -189,7 +238,10 @@ class TopicDetailScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                ConfidenceBadge(confidence: confidence, size: ConfidenceBadgeSize.large),
+                ConfidenceBadge(
+                  confidence: confidence,
+                  size: ConfidenceBadgeSize.large,
+                ),
               ],
             ),
           ),
@@ -198,13 +250,21 @@ class TopicDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailedExplanation(BuildContext context, String explanation, bool isDark) {
+  Widget _buildDetailedExplanation(
+    BuildContext context,
+    String explanation,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(Icons.article_outlined, size: 20, color: AppColors.forestGreen),
+            Icon(
+              Icons.article_outlined,
+              size: 20,
+              color: AppColors.forestGreen,
+            ),
             const SizedBox(width: AppSpacing.sm),
             Text(
               'Detailed Explanation',
@@ -227,12 +287,18 @@ class TopicDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRelatedTopics(BuildContext context, List<String> related, bool isDark) {
+  Widget _buildRelatedTopics(
+    BuildContext context,
+    List<String> related,
+    bool isDark,
+  ) {
     final relatedMeta = related
-        .map((name) => _topicMap.entries.firstWhere(
-              (e) => e.value.name == name,
-              orElse: () => const MapEntry('', InsightTopic.periodPrediction),
-            ))
+        .map(
+          (name) => _topicMap.entries.firstWhere(
+            (e) => e.value.name == name,
+            orElse: () => const MapEntry('', InsightTopic.periodPrediction),
+          ),
+        )
         .where((e) => e.key.isNotEmpty)
         .toList();
 
@@ -269,9 +335,16 @@ class TopicDetailScreen extends ConsumerWidget {
                 ),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.md,
+                  ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+                    border: Border.all(
+                      color: isDark
+                          ? AppColors.borderDark
+                          : AppColors.borderLight,
+                    ),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Row(
@@ -281,11 +354,17 @@ class TopicDetailScreen extends ConsumerWidget {
                       Text(
                         meta.title,
                         style: AppTypography.light.bodyMedium?.copyWith(
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.charcoal,
                         ),
                       ),
                       const Spacer(),
-                      Icon(Icons.chevron_right, size: 18, color: AppColors.slate),
+                      Icon(
+                        Icons.chevron_right,
+                        size: 18,
+                        color: AppColors.slate,
+                      ),
                     ],
                   ),
                 ),
@@ -312,12 +391,21 @@ class TopicDetailScreen extends ConsumerWidget {
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: AppTypography.light.labelSmall?.copyWith(color: AppColors.slate, height: 1.4),
+                style: AppTypography.light.labelSmall?.copyWith(
+                  color: AppColors.slate,
+                  height: 1.4,
+                ),
                 children: [
-                  const TextSpan(text: 'Based on your logged data and medical guidelines from the '),
+                  const TextSpan(
+                    text:
+                        'Based on your logged data and medical guidelines from the ',
+                  ),
                   WidgetSpan(
                     child: GestureDetector(
-                      onTap: () => launchUrl(Uri.parse('https://www.acog.org'), mode: LaunchMode.externalApplication),
+                      onTap: () => launchUrl(
+                        Uri.parse('https://www.acog.org'),
+                        mode: LaunchMode.externalApplication,
+                      ),
                       child: Text(
                         'American College of Obstetricians and Gynecologists (ACOG)',
                         style: TextStyle(
@@ -331,7 +419,10 @@ class TopicDetailScreen extends ConsumerWidget {
                   const TextSpan(text: ' and the '),
                   WidgetSpan(
                     child: GestureDetector(
-                      onTap: () => launchUrl(Uri.parse('https://www.who.int'), mode: LaunchMode.externalApplication),
+                      onTap: () => launchUrl(
+                        Uri.parse('https://www.who.int'),
+                        mode: LaunchMode.externalApplication,
+                      ),
                       child: Text(
                         'World Health Organization (WHO)',
                         style: TextStyle(

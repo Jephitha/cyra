@@ -5,9 +5,14 @@ import 'tokens/app_radius.dart';
 import 'tokens/app_spacing.dart';
 
 abstract final class AppTheme {
-  static ThemeData get light => _buildTheme(
+  static ThemeData get light => lightWith();
+
+  static ThemeData get dark => darkWith();
+
+  static ThemeData lightWith({Color seed = AppColors.forestGreen}) =>
+      _buildTheme(
         brightness: Brightness.light,
-        seed: AppColors.forestGreen,
+        seed: seed,
         background: AppColors.backgroundLight,
         surface: AppColors.surfaceLight,
         onBackground: AppColors.textPrimaryLight,
@@ -16,9 +21,10 @@ abstract final class AppTheme {
         textTheme: AppTypography.light,
       );
 
-  static ThemeData get dark => _buildTheme(
+  static ThemeData darkWith({Color seed = AppColors.forestGreen}) =>
+      _buildTheme(
         brightness: Brightness.dark,
-        seed: AppColors.forestGreen,
+        seed: seed,
         background: AppColors.backgroundDark,
         surface: AppColors.surfaceDark,
         onBackground: AppColors.textPrimaryDark,
@@ -70,9 +76,7 @@ abstract final class AppTheme {
         scrolledUnderElevation: 1,
         centerTitle: false,
         titleSpacing: AppSpacing.lg,
-        shape: Border(
-          bottom: BorderSide(color: border, width: 0.5),
-        ),
+        shape: Border(bottom: BorderSide(color: border, width: 0.5)),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: surface,
@@ -89,7 +93,9 @@ abstract final class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
-          disabledBackgroundColor: colorScheme.onSurface.withValues(alpha: 0.12),
+          disabledBackgroundColor: colorScheme.onSurface.withValues(
+            alpha: 0.12,
+          ),
           disabledForegroundColor: onSurface.withValues(alpha: 0.38),
           elevation: 0,
           padding: const EdgeInsets.symmetric(
@@ -179,9 +185,7 @@ abstract final class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
         ),
-        titleTextStyle: textTheme.headlineSmall?.copyWith(
-          color: onBackground,
-        ),
+        titleTextStyle: textTheme.headlineSmall?.copyWith(color: onBackground),
         contentTextStyle: textTheme.bodyMedium?.copyWith(color: onSurface),
       ),
       bottomSheetTheme: BottomSheetThemeData(

@@ -34,7 +34,7 @@ class _MainShellState extends ConsumerState<MainShell>
   final _tabIcons = const [
     Icons.home_outlined,
     Icons.calendar_month_outlined,
-    Icons.insights_outlined,
+    Icons.lightbulb_outline_rounded,
     Icons.forum_outlined,
     Icons.settings_outlined,
   ];
@@ -42,7 +42,7 @@ class _MainShellState extends ConsumerState<MainShell>
   final _tabActiveIcons = const [
     Icons.home,
     Icons.calendar_month,
-    Icons.insights,
+    Icons.lightbulb_rounded,
     Icons.forum,
     Icons.settings,
   ];
@@ -252,7 +252,7 @@ class _MainShellState extends ConsumerState<MainShell>
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: const Icon(
-                        Icons.water_drop,
+                        Icons.sync_rounded,
                         color: AppColors.onBrand,
                         size: 20,
                       ),

@@ -136,7 +136,7 @@ class _CycleReminderCard extends ConsumerWidget {
       child: Column(
         children: [
           _ReminderRow(
-            icon: Icons.water_drop_outlined,
+            icon: Icons.sync_outlined,
             title: 'Period prediction',
             subtitle: _daysBeforeLabel(settings.periodDaysBefore),
             time: TimeOfDay(

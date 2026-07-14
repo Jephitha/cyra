@@ -128,6 +128,18 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   }
 
   Future<void> _goNext() async {
+    if (_currentStep == 0) {
+      final config = ref.read(privacySettingsProvider);
+      if (!_hasSelectedPrivacySetup(config)) {
+        final confirmed = await _confirmSkipPrivacySetup();
+        if (confirmed != true) return;
+        await _completePrivacySetup();
+        return;
+      }
+      _goToNextConfiguredStep();
+      return;
+    }
+
     if (_currentStep == 2) {
       if (_pin.length < 5) return;
       if (_pin != _confirmPin) {
@@ -153,25 +165,81 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
     }
 
     if (_currentStep < _steps.length - 1) {
-      setState(() {
-        _currentStep++;
-        _showPinError = false;
-      });
+      _goToNextConfiguredStep();
     } else {
-      ref.read(onboardingStateProvider.notifier).complete();
-      ref.read(authStateNotifierProvider.notifier).ensureAuthenticated();
-      ref
-          .read(secureStorageServiceProvider)
-          .storeString('privacy_setup_complete', 'true');
-      if (!mounted) return;
-      context.go('/dashboard');
+      await _completePrivacySetup();
     }
+  }
+
+  bool _hasSelectedPrivacySetup(PrivacyConfig config) {
+    return config.biometricEnabled ||
+        config.pinEnabled ||
+        config.privateModeEnabled ||
+        config.hiddenAppIconEnabled ||
+        config.emergencyLockEnabled;
+  }
+
+  Future<bool?> _confirmSkipPrivacySetup() {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Skip privacy setup?'),
+        content: const Text(
+          'You can continue without setting privacy features now. You can turn them on later in Settings > Privacy & Security.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Go back'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Skip setup'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _goToNextConfiguredStep() {
+    final config = ref.read(privacySettingsProvider);
+    var next = _currentStep + 1;
+    while (next < _steps.length - 1 && !_shouldShowStep(next, config)) {
+      next++;
+    }
+    setState(() {
+      _currentStep = next;
+      _showPinError = false;
+    });
+  }
+
+  bool _shouldShowStep(int step, PrivacyConfig config) {
+    return switch (step) {
+      1 => config.biometricEnabled && !_skipBiometricStep,
+      2 => config.pinEnabled,
+      _ => true,
+    };
+  }
+
+  Future<void> _completePrivacySetup() async {
+    ref.read(onboardingStateProvider.notifier).complete();
+    await ref.read(authStateNotifierProvider.notifier).ensureAuthenticated();
+    await ref
+        .read(secureStorageServiceProvider)
+        .storeString('privacy_setup_complete', 'true');
+    if (!mounted) return;
+    context.go('/dashboard');
   }
 
   void _goBack() {
     if (_currentStep > 0) {
+      final config = ref.read(privacySettingsProvider);
+      var previous = _currentStep - 1;
+      while (previous > 0 && !_shouldShowStep(previous, config)) {
+        previous--;
+      }
       setState(() {
-        _currentStep--;
+        _currentStep = previous;
         _showPinError = false;
       });
     } else {
@@ -182,10 +250,12 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
   Future<void> _togglePrivacyOption(String key, bool value) async {
     final notifier = ref.read(privacySettingsProvider.notifier);
     try {
-      switch (key) {
-        case 'biometric':
-          notifier.updateBiometric(value);
-        case 'privateMode':
+        switch (key) {
+          case 'biometric':
+            notifier.updateBiometric(value);
+          case 'pin':
+            notifier.updatePin(value);
+          case 'privateMode':
           final privacyService = ref.read(privacyServiceProvider);
           if (value) {
             await privacyService.enablePrivateMode();
@@ -435,6 +505,13 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             enabled: _skipBiometricStep ? false : config.biometricEnabled,
           ),
           _PrivacyOption(
+            key: 'pin',
+            icon: Icons.pin_outlined,
+            title: 'Passcode',
+            description: 'Create a 5 digit PIN as a private backup unlock.',
+            enabled: config.pinEnabled,
+          ),
+          _PrivacyOption(
             key: 'privateMode',
             icon: Icons.visibility_off_rounded,
             title: 'Private Mode',
@@ -455,7 +532,7 @@ class _PrivacySetupScreenState extends ConsumerState<PrivacySetupScreen> {
             icon: Icons.shield_outlined,
             title: 'Emergency Privacy Gesture',
             description:
-                'Quickly disguise Cyra as a calculator app with a secret gesture.',
+                'Quickly hide Cyra behind a safe screen with a private gesture.',
             enabled: config.emergencyLockEnabled,
           ),
         ];

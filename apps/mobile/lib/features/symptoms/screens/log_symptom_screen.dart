@@ -53,7 +53,9 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final todaySymptomsAsync = ref.watch(symptomsForDateProvider(_selectedDate));
+    final todaySymptomsAsync = ref.watch(
+      symptomsForDateProvider(_selectedDate),
+    );
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -71,7 +73,7 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
   PreferredSizeWidget _buildAppBar(BuildContext context, bool isDark) {
     return AppBar(
       title: Text(
-        'Log Symptoms',
+        'Body Check-In',
         style: TextStyle(
           color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
           fontWeight: FontWeight.w600,
@@ -123,8 +125,11 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.calendar_today_rounded,
-              size: 16, color: AppColors.forestGreen),
+          Icon(
+            Icons.calendar_today_rounded,
+            size: 16,
+            color: AppColors.forestGreen,
+          ),
           const SizedBox(width: AppSpacing.sm),
           GestureDetector(
             onTap: _pickDate,
@@ -172,8 +177,9 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme:
-                Theme.of(context).colorScheme.copyWith(primary: AppColors.forestGreen),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.forestGreen),
           ),
           child: child!,
         );
@@ -217,9 +223,7 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected
-                        ? AppColors.forestGreen
-                        : AppColors.slate,
+                    color: isSelected ? AppColors.forestGreen : AppColors.slate,
                   ),
                 ),
               ),
@@ -267,7 +271,9 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
   List<SymptomOption> get _selectedSymptomsWithDetails {
     final category = _tabs[_selectedTabIndex].toLowerCase();
     return _allSymptoms
-        .where((s) => _selectedSymptomIds.contains(s.id) && s.category == category)
+        .where(
+          (s) => _selectedSymptomIds.contains(s.id) && s.category == category,
+        )
         .toList();
   }
 
@@ -286,9 +292,7 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
             ? AppColors.charcoal.withValues(alpha: 0.2)
             : AppColors.mistWhite,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: option.color.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: option.color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,13 +365,10 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
     );
   }
 
-  Widget _buildSeveritySlider(
-      String symptomId, int severity, Color color) {
+  Widget _buildSeveritySlider(String symptomId, int severity, Color color) {
     return Row(
       children: [
-        Text('Mild',
-            style: TextStyle(
-                fontSize: 11, color: AppColors.slate)),
+        Text('Mild', style: TextStyle(fontSize: 11, color: AppColors.slate)),
         Expanded(
           child: Slider(
             value: severity.toDouble(),
@@ -381,9 +382,7 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
             },
           ),
         ),
-        Text('Severe',
-            style: TextStyle(
-                fontSize: 11, color: AppColors.slate)),
+        Text('Severe', style: TextStyle(fontSize: 11, color: AppColors.slate)),
       ],
     );
   }
@@ -403,10 +402,7 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
             const SizedBox(height: AppSpacing.md),
             Text(
               'No symptoms logged yet',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.slate,
-              ),
+              style: TextStyle(fontSize: 16, color: AppColors.slate),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
@@ -435,7 +431,7 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
       ),
       child: SafeArea(
         child: AppButton.primary(
-          'Save Symptoms',
+          'Save Check-In',
           icon: Icons.check,
           onPressed: _selectedSymptomIds.isEmpty ? null : _save,
           width: double.infinity,
@@ -451,15 +447,17 @@ class _LogSymptomScreenState extends ConsumerState<LogSymptomScreen> {
     for (final id in _selectedSymptomIds) {
       final option = _allSymptoms.firstWhere((s) => s.id == id);
       final notes = _noteControllers[id]?.text;
-      entries.add(SymptomEntry(
-        id: '${_selectedDate.toIso8601String()}_${id}_${now.microsecondsSinceEpoch}',
-        date: _selectedDate,
-        symptomId: id,
-        symptomName: option.name,
-        severity: _severities[id] ?? 1,
-        notes: notes?.isNotEmpty == true ? notes : null,
-        category: option.category,
-      ));
+      entries.add(
+        SymptomEntry(
+          id: '${_selectedDate.toIso8601String()}_${id}_${now.microsecondsSinceEpoch}',
+          date: _selectedDate,
+          symptomId: id,
+          symptomName: option.name,
+          severity: _severities[id] ?? 1,
+          notes: notes?.isNotEmpty == true ? notes : null,
+          category: option.category,
+        ),
+      );
     }
 
     await ref.read(symptomLoggerProvider.notifier).saveSymptoms(entries);

@@ -13,11 +13,14 @@ import 'package:cyra/core/design/widgets/flow_intensity_picker.dart';
 import 'package:cyra/core/design/widgets/symptom_selector.dart';
 import 'package:cyra/core/constants/cycle_constants.dart';
 import 'package:cyra/core/notifications/cycle_reminder_scheduler.dart';
+import 'package:cyra/core/providers/settings_providers.dart';
 import 'package:cyra/core/utils/extensions.dart';
 import 'package:cyra/features/cycle/models/cycle.dart';
 import 'package:cyra/features/cycle/providers/cycle_providers.dart';
 import 'package:cyra/features/symptoms/models/symptom_models.dart';
 import 'package:cyra/features/symptoms/providers/symptom_providers.dart';
+
+enum _CyclePattern { predictable, varies, notSure }
 
 class LogPeriodScreen extends ConsumerStatefulWidget {
   final DateTime? initialDate;
@@ -33,7 +36,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
   final int _totalSteps = 5;
 
   DateTime _selectedDate = DateTime.now();
+  DateTime? _periodEndDate;
   bool _isSpotting = false;
+  _CyclePattern? _cyclePattern;
 
   int? _flowIntensity;
 
@@ -63,11 +68,63 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
     }
   }
 
-  void _goNext() {
+  Future<void> _goNext() async {
+    if (_currentStep == 0 && !await _confirmDateStepIfNeeded()) return;
     if (_currentStep < _totalSteps - 1) {
       setState(() => _currentStep++);
     }
   }
+
+  Future<bool> _confirmDateStepIfNeeded() async {
+    final periodLength = _loggedPeriodLength;
+    if (periodLength == null || periodLength <= 5) return true;
+
+    final longerThanBroadTypical = periodLength > 8;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Just checking your dates'),
+        content: Text(
+          longerThanBroadTypical
+              ? 'You logged this period as $periodLength days long. That can happen, but it is longer than many people expect. Does that feel right for this period?'
+              : 'You logged this period as $periodLength days long. Does that feel right for this period?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('No, edit dates'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Yes, continue'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && longerThanBroadTypical && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'If this is new for you, very heavy, or worrying, consider checking in with a clinician.',
+          ),
+        ),
+      );
+    }
+
+    return confirmed == true;
+  }
+
+  int? get _loggedPeriodLength {
+    if (_periodEndDate == null) return null;
+    return _periodEndDate!.startOfDay
+            .difference(_selectedDate.startOfDay)
+            .inDays +
+        1;
+  }
+
+  bool get _selectedDateIsToday =>
+      _selectedDate.startOfDay == DateTime.now().startOfDay;
 
   Future<void> _save() async {
     if (_isSaving) return;
@@ -89,6 +146,13 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
 
       final activeCycle = await cycleRepo.getActiveCycle();
       if (activeCycle != null) {
+        if (_periodEndDate != null) {
+          final periodLength =
+              _periodEndDate!.startOfDay.difference(date).inDays + 1;
+          await cycleRepo.updateCycle(
+            activeCycle.copyWith(periodLength: periodLength.clamp(1, 14)),
+          );
+        }
         final dayId = '${activeCycle.id}_${date.toIso8601String()}';
         await cycleRepo.saveCycleDay(
           CycleDay(
@@ -115,14 +179,27 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
         );
       }
 
+      if (_cyclePattern != null) {
+        await ref
+            .read(appSettingsNotifierProvider.notifier)
+            .setValue('cycle_pattern_self_report', _cyclePattern!.name);
+      }
+
       ref.invalidate(activeCycleProvider);
       ref.invalidate(allCyclesProvider);
       ref.invalidate(cycleSummaryProvider);
       ref.invalidate(nextPeriodPredictionProvider);
-      ref.invalidate(cycleDaysProvider(activeCycle!.id));
+      if (activeCycle != null) {
+        ref.invalidate(cycleDaysProvider(activeCycle.id));
+      }
 
-      final reminderScheduler = ref.read(cycleReminderSchedulerProvider);
-      unawaited(_refreshReminders(reminderScheduler));
+      try {
+        final reminderScheduler = ref.read(cycleReminderSchedulerProvider);
+        unawaited(_refreshReminders(reminderScheduler));
+      } catch (_) {
+        // Logging should not fail just because notification wiring is
+        // unavailable in tests or temporarily unavailable on device.
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -161,19 +238,26 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        appBar: _buildAppBar(context, isDark),
-        body: Column(
-          children: [
-            _buildProgressIndicator(isDark),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: _buildStepContent(isDark),
+      child: PopScope(
+        canPop: _currentStep == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop || _currentStep == 0) return;
+          _goBack();
+        },
+        child: Scaffold(
+          appBar: _buildAppBar(context, isDark),
+          body: Column(
+            children: [
+              _buildProgressIndicator(isDark),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: _buildStepContent(isDark),
+                ),
               ),
-            ),
-            _buildBottomBar(isDark),
-          ],
+              _buildBottomBar(isDark),
+            ],
+          ),
         ),
       ),
     );
@@ -245,6 +329,10 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
   }
 
   Widget _buildStepDate(bool isDark) {
+    final cycles = ref.watch(allCyclesProvider).valueOrNull ?? const <Cycle>[];
+    final isFirstCycle = cycles.isEmpty;
+    final loggedLength = _loggedPeriodLength;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -266,7 +354,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
         ),
         const SizedBox(height: AppSpacing.xxl),
         Text(
-          'When did your period start?',
+          _selectedDateIsToday
+              ? 'When did this period start?'
+              : 'When did your last period start?',
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -294,6 +384,94 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
             ),
           ),
         ),
+        const SizedBox(height: AppSpacing.md),
+        if (_selectedDateIsToday)
+          _buildGentleNote(
+            icon: Icons.today_rounded,
+            title: 'Today is day 1',
+            message:
+                'You can come back to add the last day when this period ends.',
+            isDark: isDark,
+          )
+        else ...[
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _pickEndDate,
+              icon: const Icon(Icons.event_available_rounded),
+              label: Text(
+                _periodEndDate == null
+                    ? 'Add end date (optional)'
+                    : 'Ended ${DateFormat('MMMM d, yyyy').format(_periodEndDate!)}',
+                style: const TextStyle(fontSize: 15),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xxl,
+                  vertical: AppSpacing.lg,
+                ),
+                side: BorderSide(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                ),
+                foregroundColor: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.charcoal,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+              ),
+            ),
+          ),
+          if (loggedLength != null && loggedLength > 5) ...[
+            const SizedBox(height: AppSpacing.md),
+            _buildGentleNote(
+              icon: Icons.info_outline_rounded,
+              title: '$loggedLength-day period',
+              message: loggedLength > 8
+                  ? 'Cyra will use this if it is right for you. If this is unusual, very heavy, or worrying, it may be worth checking in with a clinician.'
+                  : 'Periods can be longer or shorter from one cycle to another. Cyra will ask once more before using this length.',
+              isDark: isDark,
+            ),
+          ],
+        ],
+        if (isFirstCycle) ...[
+          const SizedBox(height: AppSpacing.xxl),
+          Text(
+            'Do your periods usually come around the same time?',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'This helps Cyra choose gentler reminders while it learns your pattern.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.slate),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              _buildPatternChip(
+                label: 'Usually predictable',
+                value: _CyclePattern.predictable,
+                isDark: isDark,
+              ),
+              _buildPatternChip(
+                label: 'Sometimes varies',
+                value: _CyclePattern.varies,
+                isDark: isDark,
+              ),
+              _buildPatternChip(
+                label: 'Not sure yet',
+                value: _CyclePattern.notSure,
+                isDark: isDark,
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: AppSpacing.xxl),
         Row(
           children: [
@@ -322,6 +500,79 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
     );
   }
 
+  Widget _buildGentleNote({
+    required IconData icon,
+    required String title,
+    required String message,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.forestGreen.withValues(alpha: isDark ? 0.18 : 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: AppColors.forestGreen.withValues(alpha: 0.18),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: AppColors.forestGreen),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  message,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.slate),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatternChip({
+    required String label,
+    required _CyclePattern value,
+    required bool isDark,
+  }) {
+    final isSelected = _cyclePattern == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      selectedColor: AppColors.forestGreen.withValues(alpha: 0.14),
+      labelStyle: TextStyle(
+        color: isSelected
+            ? AppColors.forestGreen
+            : (isDark ? AppColors.textSecondaryDark : AppColors.slate),
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+      ),
+      side: BorderSide(
+        color: isSelected
+            ? AppColors.forestGreen.withValues(alpha: 0.4)
+            : (isDark ? AppColors.borderDark : AppColors.borderLight),
+      ),
+      onSelected: (_) => setState(() => _cyclePattern = value),
+    );
+  }
+
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -341,7 +592,36 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
       },
     );
     if (picked != null) {
-      setState(() => _selectedDate = picked);
+      setState(() {
+        _selectedDate = picked;
+        if (_periodEndDate != null &&
+            _periodEndDate!.startOfDay.isBefore(picked.startOfDay)) {
+          _periodEndDate = null;
+        }
+      });
+    }
+  }
+
+  Future<void> _pickEndDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _periodEndDate ?? _selectedDate,
+      firstDate: _selectedDate,
+      lastDate: DateTime.now(),
+      helpText: 'Select period end date',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.forestGreen),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() => _periodEndDate = picked);
     }
   }
 
@@ -359,7 +639,7 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.water_drop_rounded,
+              Icons.sync_rounded,
               size: 36,
               color: AppColors.error.withValues(alpha: 0.8),
             ),
@@ -480,23 +760,19 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
               color: AppColors.sage.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.healing_outlined,
-              size: 36,
-              color: AppColors.sage,
-            ),
+            child: Icon(Icons.spa_outlined, size: 36, color: AppColors.sage),
           ),
         ),
         const SizedBox(height: AppSpacing.xxl),
         Text(
-          'Any symptoms?',
+          'How did your body feel?',
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Select all that apply',
+          'Select anything you noticed. This is a check-in, not a diagnosis.',
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(color: AppColors.slate),
@@ -507,7 +783,7 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
         if (!_showFullSymptoms)
           Center(
             child: AppButton.ghost(
-              'See all symptoms',
+              'See all body notes',
               icon: Icons.expand_more_rounded,
               onPressed: () => setState(() => _showFullSymptoms = true),
             ),
@@ -701,6 +977,9 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
 
   Widget _buildStepReview(bool isDark) {
     final dateStr = DateFormat('MMMM d, yyyy').format(_selectedDate);
+    final endDateStr = _periodEndDate == null
+        ? 'Not added'
+        : DateFormat('MMMM d, yyyy').format(_periodEndDate!);
     final flowLabel = _flowIntensity != null
         ? CycleConstants.flowLabels[_flowIntensity] ?? 'Not set'
         : 'Not logged';
@@ -749,8 +1028,21 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
                 padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
                 child: Divider(height: 1),
               ),
+              if (!_selectedDateIsToday) ...[
+                _reviewRow(
+                  Icons.event_available_rounded,
+                  'End Date',
+                  endDateStr,
+                  '',
+                  isDark,
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  child: Divider(height: 1),
+                ),
+              ],
               _reviewRow(
-                Icons.water_drop_rounded,
+                Icons.sync_rounded,
                 'Flow Intensity',
                 flowLabel,
                 '',
@@ -761,8 +1053,8 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
                 child: Divider(height: 1),
               ),
               _reviewRow(
-                Icons.healing_outlined,
-                'Symptoms',
+                Icons.spa_outlined,
+                'Body notes',
                 hasSymptoms
                     ? _selectedSymptoms.map((s) => _symptomLabel(s)).join(', ')
                     : 'None',
@@ -783,21 +1075,13 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.xxl),
-        AppButton.primary(
-          'Save',
-          icon: Icons.save_rounded,
-          onPressed: _save,
-          isLoading: _isSaving,
-          isDisabled: _isSaving,
-          width: double.infinity,
-        ),
         const SizedBox(height: AppSpacing.md),
         Center(
           child: TextButton(
             onPressed: () {
               setState(() => _currentStep = 0);
               _selectedDate = DateTime.now();
+              _periodEndDate = null;
               _flowIntensity = null;
               _selectedSymptoms.clear();
               _notesController.clear();
@@ -866,25 +1150,13 @@ class _LogPeriodScreenState extends ConsumerState<LogPeriodScreen> {
       child: SafeArea(
         child: Row(
           children: [
-            if (_currentStep > 0)
-              AppButton.ghost(
-                'Back',
-                icon: Icons.chevron_left,
-                onPressed: _isSaving ? null : _goBack,
-                isDisabled: _isSaving,
-              ),
-            if (_currentStep == 0)
-              AppButton.ghost(
-                'Back',
-                icon: Icons.chevron_left,
-                onPressed: _isSaving ? null : _goBack,
-                isDisabled: _isSaving,
-              ),
             const Spacer(),
-            AppButton.primary(
+            AppButton.secondary(
               isLastStep ? 'Save' : 'Next',
-              icon: isLastStep ? Icons.check : Icons.chevron_right,
-              onPressed: isLastStep ? _save : _goNext,
+              icon: isLastStep
+                  ? Icons.check_rounded
+                  : Icons.arrow_forward_rounded,
+              onPressed: isLastStep ? _save : () => unawaited(_goNext()),
               isLoading: _isSaving && isLastStep,
               isDisabled: _isSaving,
             ),

@@ -86,7 +86,7 @@ class _HistoryList extends StatelessWidget {
               child: HealthStatCard(
                 label: 'Avg Period',
                 value: '${avgPeriod.round()} days',
-                icon: Icons.water_drop_rounded,
+                icon: Icons.sync_rounded,
                 accentColor: AppColors.error,
               ),
             ),

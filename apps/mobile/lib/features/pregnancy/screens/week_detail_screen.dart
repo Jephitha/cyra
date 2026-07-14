@@ -401,8 +401,8 @@ class WeekDetailScreen extends StatelessWidget {
               },
             ),
           ),
-        if (week > 1 && week < 40) const SizedBox(width: AppSpacing.md),
-        if (week < 40)
+        if (week > 1 && week < 42) const SizedBox(width: AppSpacing.md),
+        if (week < 42)
           Expanded(
             child: AppButton.primary(
               'Week ${week + 1} →',

@@ -14,8 +14,7 @@ class _FakeSymptomRepo implements SymptomRepository {
   Future<SymptomEntry> createSymptomEntry(SymptomEntry entry) async => entry;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 Widget _createApp() {
@@ -23,9 +22,7 @@ Widget _createApp() {
     overrides: [
       symptomRepositoryProvider.overrideWithValue(_FakeSymptomRepo()),
     ],
-    child: const MaterialApp(
-      home: LogSymptomScreen(),
-    ),
+    child: const MaterialApp(home: LogSymptomScreen()),
   );
 }
 
@@ -40,12 +37,13 @@ void main() {
       expect(find.text('Lifestyle'), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('renders save button disabled when no symptoms selected',
-        (tester) async {
+    testWidgets('renders save button disabled when no symptoms selected', (
+      tester,
+    ) async {
       await tester.pumpWidget(_createApp());
       await tester.pumpAndSettle();
 
-      final saveButton = find.text('Save Symptoms');
+      final saveButton = find.text('Save Check-In');
       expect(saveButton, findsOneWidget);
     });
 
@@ -78,7 +76,9 @@ void main() {
       expect(find.text('Selected Symptoms'), findsNothing);
     });
 
-    testWidgets('can select symptoms from multiple tabs and save', (tester) async {
+    testWidgets('can select symptoms from multiple tabs and save', (
+      tester,
+    ) async {
       await tester.pumpWidget(_createApp());
       await tester.pumpAndSettle();
 
@@ -99,7 +99,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Save button should be enabled
-      expect(find.text('Save Symptoms'), findsOneWidget);
+      expect(find.text('Save Check-In'), findsOneWidget);
     });
   });
 }

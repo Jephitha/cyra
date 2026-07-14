@@ -44,14 +44,17 @@ class HealthStatCard extends StatelessWidget {
         ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildIconWithRing(context, isDark, cardAccent),
-              const Spacer(),
-              if (trend != null) _buildTrend(trend!, isDark),
+              if (trend != null) ...[
+                const SizedBox(width: AppSpacing.sm),
+                _buildTrend(trend!, isDark),
+              ],
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -63,6 +66,7 @@ class HealthStatCard extends StatelessWidget {
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.xxs),
           Text(
@@ -72,6 +76,7 @@ class HealthStatCard extends StatelessWidget {
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
           ),
         ],
       ),

@@ -16,11 +16,15 @@ class PrivacyLockIcon extends StatefulWidget {
   /// Optional custom tooltip message for unlocked state.
   final String? unlockedTooltip;
 
+  /// Optional double-tap action, used for emergency lock activation.
+  final VoidCallback? onDoubleTap;
+
   const PrivacyLockIcon({
     super.key,
     this.isLocked = true,
     this.lockedTooltip,
     this.unlockedTooltip,
+    this.onDoubleTap,
   });
 
   @override
@@ -42,10 +46,7 @@ class _PrivacyLockIconState extends State<PrivacyLockIcon>
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25), weight: 50),
       TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0), weight: 50),
-    ]).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     if (widget.isLocked) _controller.value = 1.0;
   }
 
@@ -76,25 +77,28 @@ class _PrivacyLockIconState extends State<PrivacyLockIcon>
       child: Tooltip(
         message: tooltip,
         preferBelow: false,
-        child: AnimatedBuilder(
-          animation: _scaleAnimation,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: _scaleAnimation.value,
-              child: child,
-            );
-          },
-          child: Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: isDark ? 0.15 : 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              widget.isLocked ? Icons.lock : Icons.lock_open,
-              size: 16,
-              color: iconColor,
+        child: GestureDetector(
+          onDoubleTap: widget.onDoubleTap,
+          child: AnimatedBuilder(
+            animation: _scaleAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _scaleAnimation.value,
+                child: child,
+              );
+            },
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: isDark ? 0.15 : 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                widget.isLocked ? Icons.lock : Icons.lock_open,
+                size: 16,
+                color: iconColor,
+              ),
             ),
           ),
         ),

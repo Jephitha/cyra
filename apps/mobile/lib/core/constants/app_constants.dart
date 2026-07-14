@@ -1,6 +1,6 @@
 abstract final class AppConstants {
   static const String appName = 'Cyra';
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.0.7+8';
   static const double maxFlowIntensity = 5.0;
   static const double minCycleLength = 21;
   static const double maxCycleLength = 45;

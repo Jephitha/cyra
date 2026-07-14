@@ -21,6 +21,15 @@ abstract final class AppColors {
   static const Color slate = Color(0xFF6B7280);
   static const Color mistWhite = Color(0xFFF9FAFB);
 
+  // User-selectable accent tokens. Keep these centralized so appearance
+  // choices feed the app theme instead of living as hardcoded swatches.
+  static const Color accentRose = Color(0xFFB85C7A);
+  static const Color accentMauve = Color(0xFF9B6B8F);
+  static const Color accentViolet = Color(0xFF7C5CBF);
+  static const Color accentPlum = Color(0xFF6F3D6A);
+  static const Color accentOrchid = Color(0xFFA75CA8);
+  static const Color accentCoral = Color(0xFFC76F61);
+
   // Semantic
   static const Color success = Color(0xFF2D6A4F);
   static const Color warning = Color(0xFFE6A817);

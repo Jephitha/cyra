@@ -148,11 +148,7 @@ class PredictionDetailScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(AppSpacing.xxl),
       child: Column(
         children: [
-          Icon(
-            Icons.water_drop_rounded,
-            size: 32,
-            color: AppColors.forestGreen,
-          ),
+          Icon(Icons.sync_rounded, size: 32, color: AppColors.forestGreen),
           const SizedBox(height: AppSpacing.md),
           Text(
             'Predicted Start',
@@ -287,7 +283,7 @@ class PredictionDetailScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
           _explanationRow(
             context,
-            Icons.water_drop_rounded,
+            Icons.sync_rounded,
             'Current phase: ${state.currentPhase}',
             isDark,
           ),

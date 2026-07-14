@@ -282,21 +282,37 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       icon: Icons.shield_outlined,
       label: 'Emergency Lock',
       subtitle: emergencyLock
-          ? 'Configure emergency lock gesture'
-          : 'Enable emergency lock gesture',
-      trailing: Switch.adaptive(
-        value: emergencyLock,
-        activeTrackColor: AppColors.forestGreen,
-        onChanged: (value) {
-          ref.read(privacySettingsProvider.notifier).updateEmergencyLock(value);
-          if (value) {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const EmergencySetupScreen(),
+          ? 'Double tap the Home lock icon to activate'
+          : 'Enable the Home lock icon emergency gesture',
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (emergencyLock)
+            TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const EmergencySetupScreen(),
+                ),
               ),
-            );
-          }
-        },
+              child: const Text('Configure'),
+            ),
+          Switch.adaptive(
+            value: emergencyLock,
+            activeTrackColor: AppColors.forestGreen,
+            onChanged: (value) {
+              ref
+                  .read(privacySettingsProvider.notifier)
+                  .updateEmergencyLock(value);
+              if (value) {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const EmergencySetupScreen(),
+                  ),
+                );
+              }
+            },
+          ),
+        ],
       ),
     );
   }
@@ -328,36 +344,11 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
             onTap: _showPdfExportSheet,
           ),
           const Divider(height: 1),
-          ExpansionTile(
-            leading: const Icon(Icons.code_outlined),
-            title: const Text('Advanced exports'),
-            subtitle: const Text('Raw JSON for developers and data migration'),
-            children: [_buildExportAllButton(), _buildExportDateRangeButton()],
-          ),
-          const Divider(height: 1),
           _buildDeleteDateRangeButton(context),
           const Divider(height: 1),
           _buildDeleteAllButton(context),
         ],
       ),
-    );
-  }
-
-  Widget _buildExportAllButton() {
-    return _ActionRow(
-      icon: Icons.file_download_outlined,
-      label: 'Export all data as JSON',
-      subtitle: 'Complete raw archive in developer format',
-      onTap: () => _handleExportAll(),
-    );
-  }
-
-  Widget _buildExportDateRangeButton() {
-    return _ActionRow(
-      icon: Icons.date_range_outlined,
-      label: 'Export date range as JSON',
-      subtitle: 'Raw records from a selected date range',
-      onTap: () => _handleExportDateRange(),
     );
   }
 
@@ -388,43 +379,6 @@ class _PrivacyControlsScreenState extends ConsumerState<PrivacyControlsScreen> {
       textColor: AppColors.error,
       onTap: () => _handleDeleteAll(context),
     );
-  }
-
-  Future<void> _handleExportAll() async {
-    try {
-      final exportService = ref.read(dataExportServiceProvider);
-      final file = await exportService.exportAllDataAsJson();
-
-      if (mounted) {
-        context.showSnackBar(
-          'Data exported successfully: ${file.path.split('/').last}',
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        context.showSnackBar('Export failed: ${e.toString()}', isError: true);
-      }
-    }
-  }
-
-  Future<void> _handleExportDateRange() async {
-    final range = await _showDateRangePicker(context);
-    if (range == null || !mounted) return;
-
-    try {
-      final exportService = ref.read(dataExportServiceProvider);
-      final file = await exportService.exportDateRange(range.start, range.end);
-
-      if (mounted) {
-        context.showSnackBar(
-          'Data exported successfully: ${file.path.split('/').last}',
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        context.showSnackBar('Export failed: ${e.toString()}', isError: true);
-      }
-    }
   }
 
   Future<void> _handleDeleteDateRange(BuildContext context) async {

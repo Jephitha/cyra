@@ -8,42 +8,37 @@ class FlowIntensityPicker extends StatelessWidget {
   final int? selectedValue;
   final ValueChanged<int>? onChanged;
 
-  const FlowIntensityPicker({
-    super.key,
-    this.selectedValue,
-    this.onChanged,
-  });
+  const FlowIntensityPicker({super.key, this.selectedValue, this.onChanged});
 
   static const _flowLabels = ['Light', 'Medium', 'Heavy', 'Very Heavy'];
   static const _flowIcons = [
-    Icons.water_drop_outlined,
-    Icons.water_drop_outlined,
-    Icons.water_drop,
-    Icons.water,
+    Icons.circle_outlined,
+    Icons.radio_button_checked,
+    Icons.adjust_rounded,
+    Icons.blur_circular_rounded,
   ];
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       label: 'Flow intensity picker',
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: List.generate(
-            4,
-            (index) {
-              final value = index + 1;
-              final isSelected = selectedValue == value;
-              return _PickerOption(
+      child: Row(
+        children: List.generate(4, (index) {
+          final value = index + 1;
+          final isSelected = selectedValue == value;
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(right: index == 3 ? 0 : AppSpacing.xs),
+              child: _FlowOption(
                 label: _flowLabels[index],
                 icon: _flowIcons[index],
                 isSelected: isSelected,
                 selectedColor: AppColors.error,
                 onTap: () => onChanged?.call(value),
-              );
-            },
-          ),
-        ),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -53,11 +48,7 @@ class SymptomSeverityPicker extends StatelessWidget {
   final int? selectedValue;
   final ValueChanged<int>? onChanged;
 
-  const SymptomSeverityPicker({
-    super.key,
-    this.selectedValue,
-    this.onChanged,
-  });
+  const SymptomSeverityPicker({super.key, this.selectedValue, this.onChanged});
 
   static const _severityLabels = ['Mild', 'Moderate', 'Severe'];
   static const _severityColors = [
@@ -78,22 +69,19 @@ class SymptomSeverityPicker extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: List.generate(
-            3,
-            (index) {
-              final value = index + 1;
-              final isSelected = selectedValue == value;
-              final color = _severityColors[index];
-              return _PickerOption(
-                label: _severityLabels[index],
-                icon: _severityIcons[index],
-                isSelected: isSelected,
-                selectedColor: color,
-                unselectedColor: color,
-                onTap: () => onChanged?.call(value),
-              );
-            },
-          ),
+          children: List.generate(3, (index) {
+            final value = index + 1;
+            final isSelected = selectedValue == value;
+            final color = _severityColors[index];
+            return _PickerOption(
+              label: _severityLabels[index],
+              icon: _severityIcons[index],
+              isSelected: isSelected,
+              selectedColor: color,
+              unselectedColor: color,
+              onTap: () => onChanged?.call(value),
+            );
+          }),
         ),
       ),
     );
@@ -184,7 +172,9 @@ class _DateRangePickerState extends State<DateRangePicker> {
             child: Icon(
               Icons.arrow_forward,
               size: 18,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.4),
             ),
           ),
           Expanded(
@@ -232,7 +222,9 @@ class _DateField extends StatelessWidget {
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.sm),
           border: Border.all(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.2),
           ),
         ),
         child: Column(
@@ -241,7 +233,9 @@ class _DateField extends StatelessWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: AppSpacing.xxs),
@@ -250,7 +244,9 @@ class _DateField extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: date != null
                     ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.4),
               ),
             ),
           ],
@@ -264,11 +260,7 @@ class TimePicker extends StatelessWidget {
   final TimeOfDay? selectedTime;
   final ValueChanged<TimeOfDay>? onChanged;
 
-  const TimePicker({
-    super.key,
-    this.selectedTime,
-    this.onChanged,
-  });
+  const TimePicker({super.key, this.selectedTime, this.onChanged});
 
   static const _times = [
     TimeOfDay(hour: 6, minute: 0),
@@ -302,19 +294,18 @@ class TimePicker extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: _times.map(
-            (time) {
-              final isSelected = selectedTime != null &&
-                  selectedTime!.hour == time.hour &&
-                  selectedTime!.minute == time.minute;
-              return _PickerOption(
-                label: _formatTimeOfDay(time),
-                isSelected: isSelected,
-                selectedColor: AppColors.forestGreen,
-                onTap: () => onChanged?.call(time),
-              );
-            },
-          ).toList(),
+          children: _times.map((time) {
+            final isSelected =
+                selectedTime != null &&
+                selectedTime!.hour == time.hour &&
+                selectedTime!.minute == time.minute;
+            return _PickerOption(
+              label: _formatTimeOfDay(time),
+              isSelected: isSelected,
+              selectedColor: AppColors.forestGreen,
+              onTap: () => onChanged?.call(time),
+            );
+          }).toList(),
         ),
       ),
     );
@@ -343,7 +334,8 @@ class _PickerOption extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isSelected
         ? selectedColor
-        : (unselectedColor ?? Theme.of(context).colorScheme.onSurface).withValues(alpha: 0.3);
+        : (unselectedColor ?? Theme.of(context).colorScheme.onSurface)
+              .withValues(alpha: 0.3);
     final bgColor = isSelected
         ? selectedColor.withValues(alpha: isDark ? 0.3 : 0.12)
         : Colors.transparent;
@@ -367,10 +359,7 @@ class _PickerOption extends StatelessWidget {
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(AppRadius.xl),
-              border: Border.all(
-                color: borderColor,
-                width: isSelected ? 2 : 1,
-              ),
+              border: Border.all(color: borderColor, width: isSelected ? 2 : 1),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -388,6 +377,77 @@ class _PickerOption extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FlowOption extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final Color selectedColor;
+  final VoidCallback onTap;
+
+  const _FlowOption({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.selectedColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isSelected
+        ? selectedColor
+        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25);
+    final bgColor = isSelected
+        ? selectedColor.withValues(alpha: isDark ? 0.3 : 0.12)
+        : Colors.transparent;
+    final textColor = isSelected
+        ? (isDark ? AppColors.onBrand : selectedColor)
+        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7);
+
+    return Semantics(
+      label: '$label${isSelected ? ', selected' : ''}',
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          constraints: const BoxConstraints(minHeight: 72),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xs,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: borderColor, width: isSelected ? 2 : 1),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20, color: textColor),
+              const SizedBox(height: AppSpacing.xxs),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: textColor,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

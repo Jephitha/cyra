@@ -6,13 +6,15 @@ import 'package:cyra/core/design/tokens/app_spacing.dart';
 import 'package:cyra/core/design/tokens/app_radius.dart';
 import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/design/widgets/app_button.dart';
+import 'package:cyra/core/providers/settings_providers.dart';
 import 'package:cyra/features/auth/providers/auth_providers.dart';
 
 class EmergencySetupScreen extends ConsumerStatefulWidget {
   const EmergencySetupScreen({super.key});
 
   @override
-  ConsumerState<EmergencySetupScreen> createState() => _EmergencySetupScreenState();
+  ConsumerState<EmergencySetupScreen> createState() =>
+      _EmergencySetupScreenState();
 }
 
 class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
@@ -25,10 +27,10 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
 
   final _triggerOptions = [
     {
-      'id': 'triple_tap',
-      'icon': Icons.touch_app_outlined,
-      'title': 'Triple Tap',
-      'subtitle': 'Triple tap on the app icon to activate',
+      'id': 'lock_icon_double_tap',
+      'icon': Icons.lock_outline_rounded,
+      'title': 'Emergency Lock Icon',
+      'subtitle': 'Double tap the lock icon on Home to activate',
     },
     {
       'id': 'shake',
@@ -36,34 +38,25 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
       'title': 'Shake Gesture',
       'subtitle': 'Shake your phone to activate emergency lock',
     },
-    {
-      'id': 'emergency_pin',
-      'icon': Icons.pin_outlined,
-      'title': 'Quick PIN Entry',
-      'subtitle': 'Enter a dedicated emergency PIN to lock',
-    },
-    {
-      'id': 'accessibility',
-      'icon': Icons.accessibility_new_outlined,
-      'title': 'Accessibility Shortcut',
-      'subtitle': 'Use accessibility shortcut to trigger lock',
-    },
   ];
 
   @override
   void initState() {
     super.initState();
     final config = ref.read(privacySettingsProvider);
-    _selectedTrigger = config.emergencyLockEnabled ? 'triple_tap' : null;
+    final settings = ref.read(appSettingsNotifierProvider).valueOrNull ?? {};
+    _selectedTrigger =
+        settings['emergency_lock_trigger'] ??
+        (config.emergencyLockEnabled ? 'lock_icon_double_tap' : null);
+    _decoyAppName = settings['emergency_decoy_app_name'] ?? _decoyAppName;
+    _lockScreenMessage =
+        settings['emergency_lock_screen_message'] ?? _lockScreenMessage;
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Emergency Lock Setup'),
-      ),
+      appBar: AppBar(title: const Text('Emergency Lock Setup')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
@@ -80,8 +73,6 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
           _buildSectionHeader('Test Emergency Lock'),
           const SizedBox(height: AppSpacing.sm),
           _buildTestSection(),
-          const SizedBox(height: AppSpacing.xxl),
-          _buildActionButtons(),
           const SizedBox(height: AppSpacing.huge),
         ],
       ),
@@ -153,14 +144,13 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
           final isSelected = _selectedTrigger == option['id'];
           return Column(
             children: [
-              if (_triggerOptions.indexOf(option) > 0)
-                const Divider(height: 1),
+              if (_triggerOptions.indexOf(option) > 0) const Divider(height: 1),
               Material(
                 color: isSelected
                     ? AppColors.forestGreen.withValues(alpha: 0.06)
                     : Colors.transparent,
                 child: InkWell(
-                  onTap: () => setState(() => _selectedTrigger = option['id'] as String),
+                  onTap: () => _selectTrigger(option['id'] as String),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.lg,
@@ -202,8 +192,9 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
                           groupValue: _selectedTrigger,
                           activeColor: AppColors.forestGreen,
                           // ignore: deprecated_member_use
-                          onChanged: (v) =>
-                              setState(() => _selectedTrigger = v),
+                          onChanged: (v) {
+                            if (v != null) _selectTrigger(v);
+                          },
                         ),
                       ],
                     ),
@@ -241,7 +232,10 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
                     hintText: 'Health Tracker',
                     prefixIcon: Icon(Icons.apps_outlined),
                   ),
-                  onChanged: (v) => _decoyAppName = v,
+                  onChanged: (v) {
+                    _decoyAppName = v;
+                    _autosaveSetting('emergency_decoy_app_name', v);
+                  },
                 ),
                 const SizedBox(height: AppSpacing.md),
                 TextFormField(
@@ -252,7 +246,10 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
                     prefixIcon: Icon(Icons.message_outlined),
                   ),
                   maxLines: 2,
-                  onChanged: (v) => _lockScreenMessage = v,
+                  onChanged: (v) {
+                    _lockScreenMessage = v;
+                    _autosaveSetting('emergency_lock_screen_message', v);
+                  },
                 ),
               ],
             ),
@@ -320,27 +317,6 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
     );
   }
 
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: AppButton.secondary(
-            'Cancel',
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: AppButton.primary(
-            'Save Settings',
-            icon: Icons.save_outlined,
-            onPressed: _handleSave,
-          ),
-        ),
-      ],
-    );
-  }
-
   Future<void> _handleTest() async {
     try {
       ref.read(isEmergencyLockedProvider.notifier).activate();
@@ -368,26 +344,32 @@ class _EmergencySetupScreenState extends ConsumerState<EmergencySetupScreen> {
       }
     } catch (e) {
       if (mounted) {
-        _showSnackBar(context, 'Failed to deactivate: ${e.toString()}', isError: true);
+        _showSnackBar(
+          context,
+          'Failed to deactivate: ${e.toString()}',
+          isError: true,
+        );
       }
     }
   }
 
-  void _handleSave() {
-    if (_selectedTrigger == null) {
-      _showSnackBar(context, 'Please select a trigger method', isError: true);
-      return;
-    }
-
-    // Persist via privacy settings provider
+  void _selectTrigger(String trigger) {
+    setState(() => _selectedTrigger = trigger);
     ref.read(privacySettingsProvider.notifier).updateEmergencyLock(true);
+    _autosaveSetting('emergency_lock_trigger', trigger);
+    _showSnackBar(context, 'Emergency lock trigger saved');
+  }
 
-    _showSnackBar(context, 'Emergency lock settings saved');
-    Navigator.of(context).pop();
+  void _autosaveSetting(String key, String value) {
+    ref.read(appSettingsNotifierProvider.notifier).setValue(key, value);
   }
 }
 
-void _showSnackBar(BuildContext context, String message, {bool isError = false}) {
+void _showSnackBar(
+  BuildContext context,
+  String message, {
+  bool isError = false,
+}) {
   ScaffoldMessenger.of(context)
     ..clearSnackBars()
     ..showSnackBar(

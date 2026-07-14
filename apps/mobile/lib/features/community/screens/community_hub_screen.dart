@@ -27,15 +27,18 @@ class CommunityHubScreen extends ConsumerWidget {
         color: AppColors.forestGreen,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg, AppSpacing.xxxxl, AppSpacing.lg, AppSpacing.xxxl,
+            AppSpacing.lg,
+            AppSpacing.xxxxl,
+            AppSpacing.lg,
+            AppSpacing.xxxl,
           ),
           children: [
             _buildWelcomeBanner(context, isDark),
             const SizedBox(height: AppSpacing.lg),
             _buildPrivacyNotice(context, isDark),
-            const SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.lg),
             _buildSectionHeader(context, 'Topic Groups', isDark),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
             topicsAsync.when(
               data: (topics) => topics.isEmpty
                   ? _buildEmptyState(context, isDark)
@@ -43,9 +46,9 @@ class CommunityHubScreen extends ConsumerWidget {
               loading: () => _buildTopicGridShimmer(isDark),
               error: (e, _) => _buildErrorState(context, e.toString(), isDark),
             ),
-            const SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.lg),
             _buildSectionHeader(context, 'My Activity', isDark),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
             _buildMyActivity(context, isDark),
             const SizedBox(height: AppSpacing.xxl),
             _buildLinks(context, ref, isDark),
@@ -57,46 +60,53 @@ class CommunityHubScreen extends ConsumerWidget {
 
   Widget _buildWelcomeBanner(BuildContext context, bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.forestGreen,
-            AppColors.forestGreenLight,
-          ],
+          colors: [AppColors.forestGreen, AppColors.forestGreenLight],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: AppColors.onBrand.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Icon(
-              Icons.favorite_outline_rounded,
-              color: AppColors.onBrand,
-              size: 24,
+          Padding(
+            padding: const EdgeInsets.only(right: 56),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Cyra Community',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: AppColors.onBrand,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Connect anonymously with others on similar journeys',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.onBrand.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'Cyra Community',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppColors.onBrand,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Connect anonymously with others on similar journeys',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.onBrand.withValues(alpha: 0.9),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.onBrand.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+              ),
+              child: Icon(
+                Icons.favorite_outline_rounded,
+                color: AppColors.onBrand,
+                size: 24,
+              ),
             ),
           ),
         ],
@@ -110,26 +120,22 @@ class CommunityHubScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.sage.withValues(alpha: isDark ? 0.15 : 0.1),
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(
-          color: AppColors.sage.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.sage.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.shield_outlined,
-                size: 20,
-                color: AppColors.sage,
-              ),
+              Icon(Icons.shield_outlined, size: 20, color: AppColors.sage),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
                   'Your identity is protected. No personal information is shared.',
                   style: AppTypography.light.bodySmall?.copyWith(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.charcoal,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.charcoal,
                   ),
                 ),
               ),
@@ -138,7 +144,11 @@ class CommunityHubScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.sm),
           TextButton.icon(
             onPressed: () => context.go('/sign-in'),
-            icon: Icon(Icons.login_rounded, size: 16, color: AppColors.forestGreen),
+            icon: Icon(
+              Icons.login_rounded,
+              size: 16,
+              color: AppColors.forestGreen,
+            ),
             label: Text(
               'Sign in to sync your activity',
               style: AppTypography.light.labelSmall?.copyWith(
@@ -173,7 +183,7 @@ class CommunityHubScreen extends ConsumerWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 1.4,
+        childAspectRatio: 1.25,
         crossAxisSpacing: AppSpacing.md,
         mainAxisSpacing: AppSpacing.md,
       ),
@@ -205,9 +215,7 @@ class CommunityHubScreen extends ConsumerWidget {
 
     return AppCard.interactive(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => TopicScreen(topic: topic),
-        ),
+        MaterialPageRoute<void>(builder: (_) => TopicScreen(topic: topic)),
       ),
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
@@ -269,19 +277,24 @@ class CommunityHubScreen extends ConsumerWidget {
                 if (isJoined) {
                   ref.read(joinedTopicsProvider.notifier).leave(topic.id);
                   ref.read(communityRepositoryProvider).leaveTopic(topic.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Left topic')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Left topic')));
                 } else {
                   ref.read(joinedTopicsProvider.notifier).join(topic.id);
                   ref.read(communityRepositoryProvider).joinTopic(topic.id);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Joined topic! You can now participate.')),
+                    const SnackBar(
+                      content: Text('Joined topic! You can now participate.'),
+                    ),
                   );
                 }
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isJoined ? AppColors.forestGreen : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
@@ -313,7 +326,7 @@ class CommunityHubScreen extends ConsumerWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 1.4,
+        childAspectRatio: 1.25,
         crossAxisSpacing: AppSpacing.md,
         mainAxisSpacing: AppSpacing.md,
       ),
@@ -327,21 +340,13 @@ class CommunityHubScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(
-    BuildContext context,
-    String message,
-    bool isDark,
-  ) {
+  Widget _buildErrorState(BuildContext context, String message, bool isDark) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
         child: Column(
           children: [
-            Icon(
-              Icons.cloud_off_rounded,
-              size: 48,
-              color: AppColors.slate,
-            ),
+            Icon(Icons.cloud_off_rounded, size: 48, color: AppColors.slate),
             const SizedBox(height: AppSpacing.md),
             Text(
               'Unable to load community',
@@ -416,12 +421,13 @@ class CommunityHubScreen extends ConsumerWidget {
     return AppCard.interactive(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => const MyActivityScreen(),
-          ),
+          MaterialPageRoute<void>(builder: (_) => const MyActivityScreen()),
         );
       },
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       child: Row(
         children: [
           Container(
@@ -445,7 +451,9 @@ class CommunityHubScreen extends ConsumerWidget {
                   'My Activity',
                   style: AppTypography.light.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.charcoal,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xxs),
@@ -458,10 +466,7 @@ class CommunityHubScreen extends ConsumerWidget {
               ],
             ),
           ),
-          Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.slate,
-          ),
+          Icon(Icons.chevron_right_rounded, color: AppColors.slate),
         ],
       ),
     );
@@ -502,7 +507,10 @@ class CommunityHubScreen extends ConsumerWidget {
   }) {
     return AppCard.interactive(
       onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       child: Row(
         children: [
           Icon(icon, size: 20, color: AppColors.sage),
@@ -542,22 +550,36 @@ class CommunityHubScreen extends ConsumerWidget {
                   style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
-                const Text('What would you like to report?',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                const Text(
+                  'What would you like to report?',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   initialValue: selectedType,
                   items: const [
-                    DropdownMenuItem(value: 'general', child: Text('General Concern')),
-                    DropdownMenuItem(value: 'post', child: Text('A Specific Post')),
-                    DropdownMenuItem(value: 'reply', child: Text('A Specific Reply')),
+                    DropdownMenuItem(
+                      value: 'general',
+                      child: Text('General Concern'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'post',
+                      child: Text('A Specific Post'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'reply',
+                      child: Text('A Specific Reply'),
+                    ),
                   ],
                   onChanged: (v) {
                     if (v != null) setDialogState(() => selectedType = v);
                   },
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
                 ),
                 if (selectedType == 'post' || selectedType == 'reply') ...[
@@ -567,7 +589,9 @@ class CommunityHubScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: AppColors.warning.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: AppColors.warning.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: const Text(
                       'To report a specific post or reply, please navigate to that content and use the report option there.',
@@ -598,20 +622,28 @@ class CommunityHubScreen extends ConsumerWidget {
                 final reason = reasonController.text.trim();
                 if (reason.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please describe your concern')),
+                    const SnackBar(
+                      content: Text('Please describe your concern'),
+                    ),
                   );
                   return;
                 }
                 Navigator.of(ctx).pop();
                 try {
-                  await ref.read(communityRepositoryProvider).reportContent(
-                    contentType: selectedType,
-                    contentId: '',
-                    reason: reason,
-                  );
+                  await ref
+                      .read(communityRepositoryProvider)
+                      .reportContent(
+                        contentType: selectedType,
+                        contentId: '',
+                        reason: reason,
+                      );
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Your report has been submitted. Thank you.')),
+                      const SnackBar(
+                        content: Text(
+                          'Your report has been submitted. Thank you.',
+                        ),
+                      ),
                     );
                   }
                 } catch (e) {
@@ -642,7 +674,9 @@ class MyActivityScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Activity'),
-        backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        backgroundColor: isDark
+            ? AppColors.surfaceDark
+            : AppColors.surfaceLight,
       ),
       body: myPostsAsync.when(
         data: (posts) {
@@ -662,7 +696,9 @@ class MyActivityScreen extends ConsumerWidget {
                     Text(
                       'No activity yet',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.charcoal,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -694,7 +730,9 @@ class MyActivityScreen extends ConsumerWidget {
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.light.bodySmall?.copyWith(
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.charcoal,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),

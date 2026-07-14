@@ -22,8 +22,8 @@ class Pregnancy with _$Pregnancy {
   factory Pregnancy.fromJson(Map<String, dynamic> json) =>
       _$PregnancyFromJson(json);
 
-  int get weeksRemaining => 40 - currentWeek;
-  double get progress => currentWeek / 40.0;
+  int get weeksRemaining => (40 - currentWeek).clamp(0, 40);
+  double get progress => (currentWeek / 40.0).clamp(0.0, 1.0);
   String get trimesterName => switch (currentTrimester) {
     1 => 'First Trimester',
     2 => 'Second Trimester',

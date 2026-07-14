@@ -873,9 +873,27 @@ class PregnancyData {
   ];
 
   static WeeklyMilestone getMilestone(int week) {
+    if (week <= milestones.first.week) {
+      return milestones.first;
+    }
+    if (week >= milestones.last.week) {
+      return milestones.last.copyWith(
+        week: week,
+        babySizeComparison: 'Full-term baby',
+        developmentSummary:
+            'Your baby is full term. Some pregnancies go beyond 40 weeks, and your care team can guide monitoring and next steps.',
+        maternalChanges:
+            'It is understandable to feel ready and watchful. Keep tracking movement, contractions, and any guidance from your care team.',
+        tips: [
+          'Keep all late-pregnancy appointments and monitoring visits',
+          'Call your care team about decreased movement, bleeding, water breaking, or concerning symptoms',
+          'Rest, hydrate, and keep your hospital bag and support plan ready',
+        ],
+      );
+    }
     return milestones.firstWhere(
       (m) => m.week == week,
-      orElse: () => milestones[week - 1],
+      orElse: () => milestones.last,
     );
   }
 

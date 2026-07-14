@@ -160,7 +160,7 @@ class _DetailBody extends StatelessWidget {
               child: HealthStatCard(
                 label: 'Period',
                 value: '${cycle.periodLength} days',
-                icon: Icons.water_drop_rounded,
+                icon: Icons.sync_rounded,
                 accentColor: AppColors.error,
               ),
             ),
@@ -189,7 +189,7 @@ class _DetailBody extends StatelessWidget {
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: HealthStatCard(
-                label: 'Symptoms',
+                label: 'Body notes',
                 value: '${data.symptoms.length}',
                 icon: Icons.healing_outlined,
                 accentColor: AppColors.softGold,

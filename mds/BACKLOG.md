@@ -260,6 +260,56 @@ boundary while free tracking, privacy, prediction explanations, and exports rema
 
 ---
 
+## Security-Gated Backlog
+
+These requests are intentionally blocked from client-only implementation because they touch
+sensitive health data, account identity, or reproductive history in ways that require a verified
+backend contract and privacy review before shipping.
+
+### T-SAFE-1. Cloud restore and cross-device sync
+**Blocked because:** Restoring cycle, pregnancy, settings, and profile history from an email,
+iCloud, Google Drive, or cloud account would move sensitive health data outside the local-only
+security boundary.
+**Prerequisites:** Explicit opt-in cloud-sync product spec; authenticated account model; end-to-end
+or server-side encryption design; key recovery policy; conflict resolution rules; audit logging;
+backup provider review for iCloud/Google Drive; consent and deletion UX; threat model covering
+shared devices and account takeover.
+
+### T-SAFE-2. Permanent account deletion and complete anonymization
+**Blocked because:** "Delete account and anonymize all cycle/pregnancy data so the user cannot be
+found under any circumstances" cannot be guaranteed from the mobile client alone.
+**Prerequisites:** Server-side deletion/anonymization job; data inventory across Supabase tables,
+storage, logs, exports, backups, analytics, and community content; legal retention policy; verified
+unlinking of email/phone/device IDs; idempotent deletion API; audit trail that does not retain
+re-identifying health data; regression tests proving same-email re-registration does not restore
+old records.
+
+### T-SAFE-3. User data access request package
+**Blocked because:** A dynamic download link for all information held about a user requires a
+server-side processor that can authenticate the requester and package data without exposing it to
+other users.
+**Prerequisites:** Authenticated request API; background job queue; export format spec; encrypted
+temporary storage; expiring signed links; fresh auth before download; audit events; failure/retry
+states; deletion of generated packages after expiry; tests for cross-account access prevention.
+
+### T-SAFE-4. Conception-window selection from saved sex activity
+**Blocked because:** Sex activity logging exists in the app, but using it to infer conception
+windows can produce sensitive and emotionally significant estimates if validation is loose.
+**Prerequisites:** Confirmed persistence model for intercourse records; consent-oriented UX copy;
+date-window validation rules; pregnancy-mode setup spec; limits preventing implausibly wide windows;
+clear uncertainty language; tests for saved-date selection, deselection, and pregnancy estimate
+updates.
+
+### T-SAFE-5. Seven-day educational onboarding / glossary sequence
+**Blocked because:** This is not a security blocker, but it is a larger content and notification
+experience that should be designed as a cohesive education flow rather than scattered one-off
+messages.
+**Prerequisites:** Reviewed glossary content for terms such as luteal phase, BBT, OPK, cervical
+mucus, fertile window, and cycle variability; notification cadence; dismiss/skip controls; age-
+appropriate wording; local-only scheduling; analytics-free completion state.
+
+---
+
 ## Cross-cutting: fix before/alongside the above
 
 ### [x] T18. Add automated tests

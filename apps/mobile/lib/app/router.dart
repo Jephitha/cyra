@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cyra/app/app_routes.dart';
 import 'package:cyra/core/design/app_colors.dart';
+import 'package:cyra/core/providers/settings_providers.dart';
 import 'package:cyra/features/auth/providers/auth_providers.dart';
 import 'package:cyra/features/auth/screens/onboarding_screen.dart';
 import 'package:cyra/features/auth/screens/lock_screen.dart';
@@ -47,18 +48,24 @@ class _RouterRefresh extends ChangeNotifier {
       isEmergencyLockedProvider,
       (_, __) => notifyListeners(),
     );
+    _settingsSub = _ref.listen(
+      appSettingsNotifierProvider,
+      (_, __) => notifyListeners(),
+    );
   }
 
   final Ref _ref;
   late final ProviderSubscription _authSub;
   late final ProviderSubscription _onBoardSub;
   late final ProviderSubscription _emergencySub;
+  late final ProviderSubscription _settingsSub;
 
   @override
   void dispose() {
     _authSub.close();
     _onBoardSub.close();
     _emergencySub.close();
+    _settingsSub.close();
     super.dispose();
   }
 }
@@ -74,10 +81,24 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final authState = ref.read(authStateNotifierProvider);
       final isEmergencyLocked = ref.read(isEmergencyLockedProvider);
+      final settings = ref.read(appSettingsNotifierProvider).valueOrNull ?? {};
+      final ovulationTrackingEnabled =
+          (settings['feature_bbt'] ?? 'true') == 'true' ||
+          (settings['feature_mucus'] ?? 'true') == 'true' ||
+          (settings['feature_opk'] ?? 'true') == 'true';
+      final ovulationPathBlocked =
+          state.uri.path == AppRoutes.ovulation ||
+          state.uri.path == AppRoutes.logBbt ||
+          state.uri.path == AppRoutes.logMucus ||
+          state.uri.path == AppRoutes.logOpk;
 
       if (isEmergencyLocked) {
         if (location != AppRoutes.emergencyLock) return AppRoutes.emergencyLock;
         return null;
+      }
+
+      if (!ovulationTrackingEnabled && ovulationPathBlocked) {
+        return AppRoutes.dashboard;
       }
 
       if (authState == AuthStatus.locked) {
@@ -277,44 +298,60 @@ class MainShell extends StatelessWidget {
     }
   }
 
+  bool get _isRootTabRoute {
+    final path = Uri.parse(location).path;
+    return path == AppRoutes.dashboard ||
+        path == AppRoutes.calendar ||
+        path == AppRoutes.insights ||
+        path == AppRoutes.community ||
+        path == AppRoutes.settings;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => _onTabTapped(context, index),
-        backgroundColor: isDark ? AppColors.charcoal : AppColors.onBrand,
-        indicatorColor: AppColors.forestGreen.withValues(alpha: 0.15),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: 'Calendar',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.insights_outlined),
-            selectedIcon: Icon(Icons.insights),
-            label: 'Insights',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.forum_outlined),
-            selectedIcon: Icon(Icons.forum),
-            label: 'Community',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+    return PopScope(
+      canPop: !_isRootTabRoute || _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop || !_isRootTabRoute || _currentIndex == 0) return;
+        context.go(AppRoutes.dashboard);
+      },
+      child: Scaffold(
+        body: child,
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) => _onTabTapped(context, index),
+          backgroundColor: isDark ? AppColors.charcoal : AppColors.onBrand,
+          indicatorColor: AppColors.forestGreen.withValues(alpha: 0.15),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.calendar_month_outlined),
+              selectedIcon: Icon(Icons.calendar_month),
+              label: 'Calendar',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.lightbulb_outline_rounded),
+              selectedIcon: Icon(Icons.lightbulb_rounded),
+              label: 'Insights',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.forum_outlined),
+              selectedIcon: Icon(Icons.forum),
+              label: 'Community',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+          ],
+        ),
       ),
     );
   }

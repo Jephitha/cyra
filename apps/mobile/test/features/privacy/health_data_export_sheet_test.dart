@@ -42,7 +42,7 @@ class _ExportService extends DataExportService {
 }
 
 void main() {
-  testWidgets('privacy settings makes PDF primary and keeps JSON advanced', (
+  testWidgets('privacy settings makes PDF primary and hides raw JSON export', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -56,18 +56,8 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Export my data'), findsOneWidget);
-    expect(find.text('Advanced exports'), findsOneWidget);
+    expect(find.text('Advanced exports'), findsNothing);
     expect(find.text('Export all data as JSON'), findsNothing);
-
-    await tester.scrollUntilVisible(
-      find.text('Advanced exports'),
-      120,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Advanced exports'));
-    await tester.pumpAndSettle();
-    expect(find.text('Export all data as JSON'), findsOneWidget);
   });
 
   testWidgets('PDF flow excludes journals by default and offers share/save', (

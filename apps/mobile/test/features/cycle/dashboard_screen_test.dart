@@ -51,12 +51,8 @@ final _fakeInsights = DashboardInsights(
 
 Widget _createEmptyApp() {
   return ProviderScope(
-    overrides: [
-      allCyclesProvider.overrideWith((ref) async => []),
-    ],
-    child: const MaterialApp(
-      home: DashboardScreen(),
-    ),
+    overrides: [allCyclesProvider.overrideWith((ref) async => [])],
+    child: const MaterialApp(home: DashboardScreen()),
   );
 }
 
@@ -69,30 +65,30 @@ Widget _createPopulatedApp() {
       nextPeriodPredictionProvider.overrideWith((ref) async => _fakePrediction),
       dashboardInsightsProvider.overrideWith((ref) async => _fakeInsights),
     ],
-    child: const MaterialApp(
-      home: DashboardScreen(),
-    ),
+    child: const MaterialApp(home: DashboardScreen()),
   );
 }
 
 void main() {
   group('DashboardScreen empty state', () {
-    testWidgets('shows welcome message and log button when no cycles exist',
-        (tester) async {
+    testWidgets('shows welcome message and log button when no cycles exist', (
+      tester,
+    ) async {
       await tester.pumpWidget(_createEmptyApp());
       await tester.pumpAndSettle();
 
       expect(find.text('Welcome to Cyra!'), findsOneWidget);
-      expect(find.text('Log Your Period'), findsOneWidget);
+      expect(find.text('Log Period'), findsOneWidget);
       expect(find.text('Explore Calendar'), findsOneWidget);
     });
 
-    testWidgets('tapping Log Your Period navigates to LogPeriodScreen',
-        (tester) async {
+    testWidgets('tapping Log Your Period navigates to LogPeriodScreen', (
+      tester,
+    ) async {
       await tester.pumpWidget(_createEmptyApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Log Your Period'));
+      await tester.tap(find.text('Log Period'));
       await tester.pumpAndSettle();
 
       expect(find.byType(LogPeriodScreen), findsOneWidget);
@@ -100,8 +96,7 @@ void main() {
   });
 
   group('DashboardScreen populated state', () {
-    testWidgets('renders without crashing when data is loaded',
-        (tester) async {
+    testWidgets('renders without crashing when data is loaded', (tester) async {
       await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
 
@@ -120,7 +115,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Next period predicted'), findsOneWidget);
-      expect(find.byIcon(Icons.water_drop_rounded), findsWidgets);
+      expect(find.byIcon(Icons.sync_rounded), findsWidgets);
     });
 
     testWidgets('displays cycle overview section', (tester) async {
@@ -155,6 +150,12 @@ void main() {
     testWidgets('displays log today card', (tester) async {
       await tester.pumpWidget(_createPopulatedApp());
       await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Log today'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
 
       expect(find.text('Log today'), findsOneWidget);
     });
