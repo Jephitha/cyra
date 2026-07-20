@@ -39,7 +39,7 @@ class PaywallScreen extends ConsumerWidget {
           Text(
             state.isPremium
                 ? 'Thank you for supporting private, ad-free health tracking.'
-                : 'Upgrade for automatic wearable sync and advanced multi-cycle analysis.',
+                : 'Upgrade for advanced multi-cycle analysis, richer reports, and planning tools built around your own history.',
             textAlign: TextAlign.center,
             style: Theme.of(
               context,
@@ -47,12 +47,18 @@ class PaywallScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.xl),
           const _BenefitRow(
-            icon: Icons.watch_outlined,
-            text: 'Apple Health and Health Connect synchronization',
+            icon: Icons.stacked_line_chart_outlined,
+            text:
+                'Longitudinal trends across cycles, symptoms, mood, and fertility signals',
           ),
           const _BenefitRow(
             icon: Icons.insights_outlined,
-            text: 'Advanced longitudinal trends and correlations',
+            text:
+                'Advanced correlations, pattern explanations, and planning summaries',
+          ),
+          const _BenefitRow(
+            icon: Icons.picture_as_pdf_outlined,
+            text: 'Enhanced report layouts and reusable care-team summaries',
           ),
           const _BenefitRow(
             icon: Icons.lock_outline,
@@ -61,7 +67,7 @@ class PaywallScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xl),
           AppCard.standard(
             child: Text(
-              'Core tracking, prediction explanations, privacy controls, and exporting your data always remain free.',
+              'Core tracking, reminders, prediction explanations, privacy controls, data deletion, and a basic export always remain free.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),

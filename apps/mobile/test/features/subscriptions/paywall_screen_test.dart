@@ -28,14 +28,14 @@ void main() {
     );
 
     expect(find.text('Cyra Premium'), findsOneWidget);
-    expect(find.text('KES 299 / month'), findsOneWidget);
+    expect(find.text('KES 299 / month', skipOffstage: false), findsOneWidget);
     expect(
       find.textContaining(
-        'privacy controls, and exporting your data always remain free',
+        'privacy controls, data deletion, and a basic export always remain free',
       ),
       findsOneWidget,
     );
-    expect(find.text('Restore purchases'), findsOneWidget);
+    expect(find.text('Restore purchases', skipOffstage: false), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await gateway.dispose();

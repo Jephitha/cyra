@@ -18,9 +18,11 @@ not safety, privacy, or access to a user's own records.
 
 ## Cyra Premium
 
-- Apple Health / Health Connect synchronization and automatic wearable refresh.
 - Advanced longitudinal analysis: multi-cycle correlations, extended trend views, and
   comparative reports beyond the current-cycle explanation included free.
+- Enhanced report layouts and reusable care-team summaries beyond the basic free export.
+- Planning tools that turn historical cycle, symptom, and fertility patterns into richer
+  preparation summaries.
 - Future convenience features may join Premium only when they do not weaken the free core or
   create a safety, privacy, or data-portability paywall.
 
@@ -38,5 +40,5 @@ not safety, privacy, or access to a user's own records.
 ## Gate placement
 
 Gates belong at the entry point to a Premium capability and must explain what remains free.
-Existing health records are never hidden after expiry. If wearable sync expires, previously
-synced readings remain visible and usable; only new synchronization is paused.
+Existing health records are never hidden after expiry. Wearable sync is not part of the current
+release paywall; it must be re-reviewed before it returns as a future Premium-capable feature.

@@ -1,7 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:cyra/core/database/app_database.dart';
-import 'package:cyra/core/security/encryption_service.dart';
 import 'package:cyra/features/wearables/models/wearable_models.dart';
 import 'package:cyra/features/wearables/services/wearable_service.dart';
 
@@ -9,10 +7,7 @@ part 'wearable_providers.g.dart';
 
 @Riverpod(keepAlive: true)
 WearableService wearableService(WearableServiceRef ref) {
-  final service = WearableService(
-    ref.watch(appDatabaseProvider),
-    ref.watch(encryptionServiceProvider),
-  );
+  final service = WearableService();
   ref.onDispose(() => service.dispose());
   return service;
 }

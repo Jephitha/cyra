@@ -37,6 +37,19 @@ This starts all Supabase services locally (Postgres, PostgREST, GoTrue, Storage,
 - API: `http://localhost:54321`
 - Database: `postgresql://postgres:postgres@localhost:54322/postgres`
 
+Apply pending local migrations after the stack is running:
+
+```bash
+npx supabase migration up --local
+npx supabase db lint --local
+```
+
+Remote Supabase deployment uses a separate CLI login or `SUPABASE_ACCESS_TOKEN`.
+The mobile release values (`SUPABASE_URL_PROD` and `SUPABASE_ANON_KEY_PROD`) are
+runtime API values only; they do not authorize `supabase db push` or function
+deployments. See [`mds/ENVIRONMENTS.md`](mds/ENVIRONMENTS.md) for the release
+environment contract.
+
 ### 2. Configure Environment
 
 ```bash
@@ -114,6 +127,7 @@ Migrations are in `apps/backend/supabase/migrations/`:
 |---|---|
 | `001_initial_schema.sql` | Core tables: users, cycles, community_posts, health_reports, audit_logs |
 | `002_community_features.sql` | Community: topics, replies, likes, reports, moderation notifications |
+| `003_release_privacy_ops.sql` | Release hardening: tightened community RLS, moderation audit, export/deletion queues, sync manifests, backups, logs, rate limits, alerts |
 
 Apply migrations manually with:
 ```bash
@@ -144,12 +158,15 @@ The app auto-seeds 6+ months of realistic cycle data on first launch in debug mo
 
 The admin dashboard at `http://localhost:3000` provides:
 
+- **Landing page** — Public product/support page with Microsoft Clarity on public content only
 - **Dashboard** — Overview stats (pending reports, flagged content)
 - **Reports** — Moderation queue showing reported content, aggregated by report count (reporter identities are NEVER exposed)
 - **Posts** — Browse and moderate all community posts
 - **Replies** — Browse and moderate all community replies
+- **Operations** — Export/deletion queues, backup runs, and recent operational alerts
 
-Moderation actions: Approve, Flag, or Remove content.
+Moderation actions: Approve, Flag, or Remove content. Browser pages call server-side route
+handlers so `SUPABASE_SERVICE_ROLE_KEY` is never exposed to the client bundle.
 
 ## Development
 

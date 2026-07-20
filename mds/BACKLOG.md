@@ -228,11 +228,20 @@ real predicted period/fertile dates, not just a settings UI with no backing logi
 
 ## P4 — Breadth (parity + differentiation vs. incumbents)
 
-### [x] T13. Wearable integration (Health Connect / Apple Health)
-DB table (`wearable_sources_table`) and Android manifest permission already present, but no
-`health` package dependency exists yet. Add it, build a sync service that reads
-temperature/sleep/HRV and feeds it into `OvulationDetector`/`HealthInsightsEngine`, and add a
-"Connect a wearable" flow in Settings.
+### [ ] T13. Future feature: Wearable integration (Health Connect / Apple Health)
+Health Connect / HealthKit is intentionally **not shipping** in the release app yet. The
+previous dependency, native permissions, HealthKit entitlement, Settings surface, bootstrap
+sync path, and Premium promise were stripped because the feature still needs real-device
+validation and store permission review.
+
+Done when:
+- Re-add the platform permissions only after Google Play / App Store declarations are complete.
+- Restore the Health Connect / HealthKit service behind explicit opt-in consent.
+- Verify temperature, sleep, HRV, and heart-rate reads on real Android and iOS hardware.
+- Confirm wearable data is never uploaded unless the user separately opts into documented cloud
+  sync.
+- Add regression tests and manual acceptance steps for permission denial, revocation, boot,
+  package replacement, and offline behavior.
 
 ### [x] T14. Clinician export (PDF/shareable summary)
 Completed by T10/T10a: the authenticated `DataExportService` flow now generates a readable,
@@ -249,8 +258,9 @@ user-facing copy now states this explicitly instead of claiming an AI-powered im
 
 ### [x] T16. Design the free/paid boundary
 Defined in `MONETIZATION.md`: core tracking, prediction explanations, privacy/security, reminders,
-and data deletion/export (including clinician PDF) remain free and ad-free. Premium covers wearable
-sync and advanced longitudinal analysis; previously synced or user-authored records are never hidden.
+and data deletion/export remain free and ad-free. Premium now focuses on advanced longitudinal
+analysis, richer reports, and planning tools. Wearable sync is a future feature and is not part of
+the current launch paywall.
 
 ### [x] T17. Integrate `in_app_purchase` or RevenueCat
 Integrated the first-party `in_app_purchase` plugin with store-provided products/pricing,

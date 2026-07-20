@@ -25,10 +25,16 @@ class SupabaseEnvironmentConfig {
   final bool enabled;
 
   factory SupabaseEnvironmentConfig.current() {
+    final useProductionDefines =
+        kReleaseMode && ApiConstants.appEnvironment == 'production';
     return SupabaseEnvironmentConfig.fromValues(
       environment: ApiConstants.appEnvironment,
-      url: ApiConstants.supabaseUrl,
-      publishableKey: ApiConstants.supabaseAnonKey,
+      url: useProductionDefines
+          ? ApiConstants.supabaseUrlProd
+          : ApiConstants.supabaseUrl,
+      publishableKey: useProductionDefines
+          ? ApiConstants.supabaseAnonKeyProd
+          : ApiConstants.supabaseAnonKey,
       isRelease: kReleaseMode,
     );
   }
@@ -46,7 +52,7 @@ class SupabaseEnvironmentConfig {
     if (normalizedUrl.isEmpty || normalizedKey.isEmpty) {
       if (isRelease) {
         throw const SupabaseConfigurationException(
-          'Release builds require APP_ENV, SUPABASE_URL, and SUPABASE_ANON_KEY dart-defines.',
+          'Release builds require APP_ENV plus the matching Supabase dart-defines. Production releases use SUPABASE_URL_PROD and SUPABASE_ANON_KEY_PROD.',
         );
       }
       return SupabaseEnvironmentConfig._(

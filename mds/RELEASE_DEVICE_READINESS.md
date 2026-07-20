@@ -26,8 +26,9 @@ Release builds must be built with public HTTPS Supabase values:
 ```sh
 flutter build appbundle --release \
   --dart-define=APP_ENV=production \
-  --dart-define=SUPABASE_URL=https://PROJECT.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=...
+  --dart-define=SUPABASE_URL_PROD=https://PROJECT.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY_PROD=... \
+  --dart-define=SENTRY_DSN=...
 ```
 
 The Android Gradle and iOS build validation already reject release builds that
@@ -61,7 +62,8 @@ as `com.getmycyra.app`.
 - Register the final bundle identifier. Current project value is
   `com.cyra.cyra`; decide whether to keep it or align with `getmycyra`.
 - Configure signing certificates and provisioning profiles.
-- Enable HealthKit capability if wearable sync remains in the submitted build.
+- Do not enable HealthKit capability for this release; wearable sync is future
+  roadmap work.
 - Enable In-App Purchase capability if Premium remains visible.
 - Verify alternate weather icon assets and behavior on real iOS hardware.
 - Confirm the app runs correctly through TestFlight before App Store review.
@@ -87,20 +89,23 @@ as `com.getmycyra.app`.
 
 The privacy policy must clearly distinguish local-only data from data sent to
 Supabase. It should cover cycle and pregnancy records, community posts/replies,
-reports, anonymous auth/session IDs, HealthKit/Health Connect reads, PDF export,
-deletion, support requests, and the no-sale/no-ads posture if that remains true.
+reports, anonymous auth/session IDs, PDF export, deletion, support requests,
+and the no-sale/no-ads posture if that remains true. HealthKit/Health Connect
+should be added only if the future wearable feature is reintroduced.
 
 ### Health permissions
 
-The app currently includes Health Connect permissions on Android and HealthKit
-entitlement/usage strings on iOS. Before store submission:
+Health Connect and HealthKit are not release-ready and have been stripped from
+the shipping surface:
 
-- Keep these permissions only if wearable sync is genuinely ready for release.
-- Complete Google Play health permissions declarations.
-- Explain exactly why temperature, heart rate, HRV, and sleep are read.
-- Confirm no health data is used for ads, sale, or unrelated purposes.
-- Confirm HealthKit/Health Connect data is not sent to cloud services unless
-  the user explicitly opts into a documented sync feature.
+- Android no longer declares Health Connect read permissions or the health
+  permission-rationale activity alias.
+- iOS no longer declares HealthKit usage strings or the HealthKit entitlement.
+- Wearables remain a roadmap item, not a Premium launch promise.
+
+Reintroduce these permissions only when the future wearable feature has
+real-device verification, store permission declarations, consent copy, and cloud
+sync boundaries reviewed.
 
 ### Subscriptions
 
@@ -136,25 +141,32 @@ If Premium ships:
 - Delete date range and delete all local data.
 - Community post/report/moderation happy path.
 - Premium paywall and restore purchases if enabled.
+- Debug APK notification simulation:
+  - Open Settings → Notifications.
+  - Enable All notifications and grant permission.
+  - In debug builds only, use **Simulate cycle notification** → **Send now**.
+  - Reboot the device, then verify the boot receiver reschedules pending cycle
+    reminders after app launch and package replacement.
 
 ## Future backlog prerequisites
 
 ### Cloud sync and restore
 
-Required before implementation:
+Implemented backend primitives in `003_release_privacy_ops.sql`; remaining
+client/product work before launch:
 
 - Explicit opt-in sync product spec.
-- Account identity model and account upgrade path.
-- End-to-end or server-side encryption design.
-- Key recovery and device replacement policy.
-- Conflict resolution and offline merge rules.
+- Account identity model and account upgrade path in the mobile UI.
+- End-to-end encrypted payload format and device key storage.
+- Recovery-code UX and device replacement policy.
+- Conflict resolution UI for `conflict_state = conflict`.
 - Consent UX and privacy policy updates.
-- Audit logging without leaking health data.
 - Tests proving local-only users never upload health records.
 
 ### Permanent account deletion and anonymization
 
-Required before implementation:
+Backend request/anonymization primitives are present in
+`003_release_privacy_ops.sql`; remaining production work:
 
 - Server-side deletion/anonymization job.
 - Complete data inventory across database, storage, logs, exports, backups, and
@@ -162,20 +174,19 @@ Required before implementation:
 - Legal retention policy.
 - Verified unlinking from email, phone, device IDs, Supabase IDs, and purchase
   IDs where possible.
-- Idempotent deletion API.
+- Edge function or worker that calls `anonymize_deleted_user` after deleting
+  Supabase Auth and storage records.
 - Tests proving same-email re-registration does not restore old records.
 
 ### User data request package
 
-Required before implementation:
+Backend request queue and private `user_exports` bucket are present; remaining
+production work:
 
-- Authenticated request API.
-- Background job queue.
+- Edge function/background job processor.
 - Export format spec.
-- Encrypted temporary export storage.
-- Expiring signed links.
-- Fresh authentication before download.
-- Audit events and retry/failure states.
+- Client flow that requires fresh auth before requesting and downloading.
+- Retry/failure states.
 - Automatic deletion of generated export packages after expiry.
 
 ### Conception window from saved sex activity

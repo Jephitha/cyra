@@ -9,12 +9,19 @@ const navigation = [
   { name: 'Reports', href: '/reports' },
   { name: 'Posts', href: '/posts' },
   { name: 'Replies', href: '/replies' },
+  { name: 'Operations', href: '/ops' },
 ]
+
+const publicRoutes = new Set(['/'])
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null)
 
   useEffect(() => {
+    if (publicRoutes.has(window.location.pathname)) {
+      setAuthenticated(false)
+      return
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       setAuthenticated(!!session)
       if (!session && window.location.pathname !== '/login') {

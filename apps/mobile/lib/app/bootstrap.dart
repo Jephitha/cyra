@@ -6,7 +6,7 @@ import 'package:cyra/core/database/daos/cycle_dao.dart';
 import 'package:cyra/core/networking/supabase_client.dart';
 import 'package:cyra/core/networking/supabase_environment.dart';
 import 'package:cyra/core/notifications/cycle_reminder_scheduler.dart';
-import 'package:cyra/core/providers/settings_providers.dart';
+import 'package:cyra/core/observability/error_monitor.dart';
 import 'package:cyra/core/security/encryption_service.dart';
 import 'package:cyra/core/security/pin_auth_service.dart';
 import 'package:cyra/core/security/secure_storage_service.dart';
@@ -16,8 +16,6 @@ import 'package:cyra/features/cycle/providers/cycle_providers.dart';
 import 'package:cyra/features/journal/providers/journal_providers.dart';
 import 'package:cyra/features/ovulation/providers/ovulation_providers.dart';
 import 'package:cyra/features/symptoms/providers/symptom_providers.dart';
-import 'package:cyra/features/subscriptions/subscription_controller.dart';
-import 'package:cyra/features/wearables/providers/wearable_providers.dart';
 
 Future<void> bootstrapApp() async {
   try {
@@ -29,9 +27,11 @@ Future<void> bootstrapApp() async {
     }
   } on SupabaseConfigurationException catch (e, st) {
     debugPrint('Supabase configuration is invalid: $e\n$st');
+    ErrorMonitor.capture(e, st);
     if (kReleaseMode) rethrow;
   } catch (e, st) {
     debugPrint('Supabase initialization failed: $e\n$st');
+    ErrorMonitor.capture(e, st);
   }
   tz.initializeTimeZones();
 }
@@ -86,14 +86,6 @@ Future<void> bootstrapServices(ProviderContainer container) async {
     await container.read(cycleReminderSchedulerProvider).reschedule();
   } catch (e, st) {
     debugPrint('Cycle reminder scheduling failed: $e\n$st');
-  }
-
-  try {
-    if (await container.read(wearableSyncEnabledProvider.future) &&
-        container.read(isPremiumProvider)) {
-      await container.read(wearableServiceProvider).syncAllDevices();
-    }
-  } catch (e, st) {
-    debugPrint('Wearable sync failed: $e\n$st');
+    ErrorMonitor.capture(e, st);
   }
 }

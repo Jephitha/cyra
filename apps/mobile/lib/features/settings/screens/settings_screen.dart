@@ -12,7 +12,6 @@ import 'package:cyra/features/settings/screens/appearance_screen.dart';
 import 'package:cyra/features/settings/screens/notifications_screen.dart';
 import 'package:cyra/features/subscriptions/paywall_screen.dart';
 import 'package:cyra/features/subscriptions/subscription_controller.dart';
-import 'package:cyra/features/wearables/screens/wearables_hub_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -51,10 +50,6 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.sm),
           _buildNotificationsSection(context, ref),
           const SizedBox(height: AppSpacing.lg),
-          _buildSectionHeader('Wearables'),
-          const SizedBox(height: AppSpacing.sm),
-          _buildWearablesSection(context, ref),
-          const SizedBox(height: AppSpacing.lg),
           _buildSectionHeader('Units'),
           const SizedBox(height: AppSpacing.sm),
           _buildUnitsSection(context, ref, settings),
@@ -84,7 +79,7 @@ class SettingsScreen extends ConsumerWidget {
         label: 'Cyra Premium',
         subtitle: subscription.isPremium
             ? 'Active'
-            : 'Wearable sync and advanced trends',
+            : 'Deeper trends, reports, and planning tools',
         trailing: Icon(Icons.chevron_right, color: AppColors.slate),
         onTap: () => _openPaywall(context),
       ),
@@ -278,53 +273,6 @@ class SettingsScreen extends ConsumerWidget {
               activeTrackColor: AppColors.forestGreen,
               onChanged: (value) => setFeature('feature_pregnancy', value),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWearablesSection(BuildContext context, WidgetRef ref) {
-    final wearableAsync = ref.watch(wearableSyncEnabledProvider);
-
-    return AppCard.standard(
-      child: Column(
-        children: [
-          _SettingsRow(
-            icon: Icons.watch_outlined,
-            label: 'Connected Devices',
-            subtitle: 'Apple Health or Health Connect',
-            trailing: Icon(Icons.chevron_right, color: AppColors.slate),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const WearablesHubScreen(),
-              ),
-            ),
-          ),
-          const Divider(height: 1),
-          wearableAsync.when(
-            data: (enabled) {
-              return _SettingsRow(
-                icon: Icons.sync_outlined,
-                label: 'Auto Sync',
-                subtitle: 'Automatically sync wearable data',
-                trailing: Switch.adaptive(
-                  value: enabled,
-                  activeTrackColor: AppColors.forestGreen,
-                  onChanged: (v) {
-                    if (v && !ref.read(isPremiumProvider)) {
-                      _openPaywall(context);
-                      return;
-                    }
-                    ref
-                        .read(wearableSyncEnabledProvider.notifier)
-                        .setEnabled(v);
-                  },
-                ),
-              );
-            },
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
           ),
         ],
       ),

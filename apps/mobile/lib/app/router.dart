@@ -30,7 +30,6 @@ import 'package:cyra/features/settings/screens/appearance_screen.dart';
 import 'package:cyra/features/settings/screens/notifications_screen.dart';
 import 'package:cyra/features/subscriptions/paywall_screen.dart';
 import 'package:cyra/features/symptoms/screens/log_symptom_screen.dart';
-import 'package:cyra/features/wearables/screens/wearables_hub_screen.dart';
 import 'package:cyra/features/privacy/screens/privacy_controls_screen.dart';
 
 /// Tells GoRouter to re-evaluate redirects when auth/onboarding/emergency state changes.
@@ -247,10 +246,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.notifications,
             builder: (_, __) => const NotificationsScreen(),
-          ),
-          GoRoute(
-            path: AppRoutes.wearables,
-            builder: (_, __) => const WearablesHubScreen(),
           ),
           GoRoute(
             path: AppRoutes.premium,

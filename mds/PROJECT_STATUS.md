@@ -101,9 +101,9 @@ journal entries for the selected stored cycle, while prediction detail consumes 
 
 ## 4. Not started
 
-- **Wearable integration** — `wearable_sources_table` exists in the DB, and
-  `androidx.health.platform.client.*` (Health Connect) appears in the Android manifest, but
-  there is no `health` (or equivalent) Dart package dependency and no wearable feature folder.
+- **Wearable integration** — Future feature. `wearable_sources_table` remains
+  for roadmap continuity, but the release app no longer declares Health Connect
+  permissions, HealthKit entitlements, or a user-visible wearable sync surface.
   This is a declared intent, not an implementation.
 - **Monetization** — no `in_app_purchase`, no RevenueCat, no paywall screen, no subscription
   table. The app is currently 100% free with no premium tier scaffolding.

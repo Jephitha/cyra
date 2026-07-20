@@ -21,8 +21,16 @@ fun decodedDartDefines(): Map<String, String> {
 fun validateReleaseSupabaseConfig() {
     val defines = decodedDartDefines()
     val environment = defines["APP_ENV"]?.lowercase()
-    val url = defines["SUPABASE_URL"].orEmpty()
-    val key = defines["SUPABASE_ANON_KEY"].orEmpty()
+    val url = if (environment == "production") {
+        defines["SUPABASE_URL_PROD"].orEmpty()
+    } else {
+        defines["SUPABASE_URL"].orEmpty()
+    }
+    val key = if (environment == "production") {
+        defines["SUPABASE_ANON_KEY_PROD"].orEmpty()
+    } else {
+        defines["SUPABASE_ANON_KEY"].orEmpty()
+    }
     val privateHost = Regex(
         "^https://(localhost|127\\.|10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.)",
         RegexOption.IGNORE_CASE,
@@ -32,10 +40,10 @@ fun validateReleaseSupabaseConfig() {
         "Release builds require --dart-define=APP_ENV=staging or production."
     }
     require(url.startsWith("https://") && !privateHost.containsMatchIn(url)) {
-        "Release builds require a public HTTPS SUPABASE_URL dart-define."
+        "Release builds require a public HTTPS Supabase URL dart-define. Production uses SUPABASE_URL_PROD."
     }
     require(key.length >= 20 && !key.contains("your_", ignoreCase = true)) {
-        "Release builds require a non-placeholder SUPABASE_ANON_KEY dart-define."
+        "Release builds require a non-placeholder Supabase anon key dart-define. Production uses SUPABASE_ANON_KEY_PROD."
     }
 }
 

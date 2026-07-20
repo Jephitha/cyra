@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:cyra/core/design/app_colors.dart';
@@ -8,6 +9,7 @@ import 'package:cyra/core/design/widgets/app_card.dart';
 import 'package:cyra/core/notifications/cycle_reminder_scheduler.dart';
 import 'package:cyra/core/notifications/cycle_reminder_settings.dart';
 import 'package:cyra/core/providers/settings_providers.dart';
+import 'package:cyra/core/utils/notification_helper.dart';
 import 'package:cyra/features/settings/providers/settings_notifier.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -47,6 +49,12 @@ class NotificationsScreen extends ConsumerWidget {
           const _SectionHeader('Privacy'),
           const SizedBox(height: AppSpacing.sm),
           _PreviewCard(current: preview),
+          if (kDebugMode) ...[
+            const SizedBox(height: AppSpacing.xxl),
+            const _SectionHeader('Debug testing'),
+            const SizedBox(height: AppSpacing.sm),
+            const _DebugNotificationCard(),
+          ],
           const SizedBox(height: AppSpacing.xxl),
           const _SectionHeader('Pregnancy reminders'),
           const SizedBox(height: AppSpacing.sm),
@@ -62,6 +70,118 @@ class NotificationsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+class _DebugNotificationCard extends ConsumerStatefulWidget {
+  const _DebugNotificationCard();
+
+  @override
+  ConsumerState<_DebugNotificationCard> createState() =>
+      _DebugNotificationCardState();
+}
+
+class _DebugNotificationCardState
+    extends ConsumerState<_DebugNotificationCard> {
+  bool _busy = false;
+  int? _pendingCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard.standard(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                Icons.science_outlined,
+                color: AppColors.forestGreen,
+              ),
+              title: Text('Simulate cycle notification'),
+              subtitle: Text(
+                'Debug APK only. Sends one local test reminder now.',
+              ),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _pendingCount == null
+                        ? 'Pending scheduled reminders not checked'
+                        : 'Pending scheduled reminders: $_pendingCount',
+                    style: const TextStyle(color: AppColors.slate),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _busy ? null : _refreshPendingCount,
+                  child: const Text('Check'),
+                ),
+                FilledButton(
+                  onPressed: _busy ? null : _sendTestNotification,
+                  child: _busy
+                      ? const SizedBox.square(
+                          dimension: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Send now'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _sendTestNotification() async {
+    setState(() => _busy = true);
+    try {
+      final helper = ref.read(notificationHelperProvider);
+      await helper.initialize();
+      final granted = await helper.requestPermissions();
+      if (!granted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notification permission denied.')),
+          );
+        }
+        return;
+      }
+      await helper.sendImmediateNotification(
+        id: 9001,
+        title: 'Cyra',
+        body: 'Debug notification simulation',
+        payload: '/settings/notifications',
+      );
+      await _refreshPendingCount(showSnack: false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Debug notification sent.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _refreshPendingCount({bool showSnack = true}) async {
+    setState(() => _busy = true);
+    try {
+      final helper = ref.read(notificationHelperProvider);
+      await helper.initialize();
+      final pending = await helper.getPendingNotifications();
+      if (mounted) setState(() => _pendingCount = pending.length);
+      if (showSnack && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${pending.length} pending reminder(s).')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 }
 

@@ -68,5 +68,27 @@ void main() {
       expect(config.enabled, isTrue);
       expect(config.environment, 'production');
     });
+
+    test(
+      'documents production release values as distinct from debug values',
+      () {
+        final debugConfig = SupabaseEnvironmentConfig.fromValues(
+          environment: 'development',
+          url: 'http://192.168.1.20:54321',
+          publishableKey: 'sb_publishable_local_development_key',
+          isRelease: false,
+        );
+        final releaseConfig = SupabaseEnvironmentConfig.fromValues(
+          environment: 'production',
+          url: 'https://prod-project.supabase.co',
+          publishableKey: 'sb_publishable_realistic_production_key',
+          isRelease: true,
+        );
+
+        expect(debugConfig.url, isNot(releaseConfig.url));
+        expect(debugConfig.environment, 'development');
+        expect(releaseConfig.environment, 'production');
+      },
+    );
   });
 }
